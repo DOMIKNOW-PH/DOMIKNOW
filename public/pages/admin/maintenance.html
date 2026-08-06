@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Monitor - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .list-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-admin">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-admin">Admin</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="users.html" class="navbar-menu-link">Users</a>
+                <a href="property-review.html" class="navbar-menu-link">Property Review</a>
+                <a href="reservations.html" class="navbar-menu-link">Reservation Monitoring</a>
+                <a href="screening.html" class="navbar-menu-link">Screening Monitor</a>
+                <a href="leases.html" class="navbar-menu-link">Lease Monitor</a>
+                <a href="billings.html" class="navbar-menu-link">Billing Monitor</a>
+                <a href="payments.html" class="navbar-menu-link">Payment Monitor</a>
+                <a href="maintenance.html" class="navbar-menu-link active">Maintenance Monitor</a>
+                <a href="reports.html" class="navbar-menu-link">Reports Monitor</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes Monitor</a>
+                <a href="policy-violations.html" class="navbar-menu-link">Violations Monitor</a>
+                <a href="feedback.html" class="navbar-menu-link">Feedback Monitor</a>
+                <a href="audit-logs.html" class="navbar-menu-link">Audit Logs</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Global Maintenance Monitor</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Monitor all rental maintenance and coordination issues across the system.</p>
+
+        <div class="list-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property & Tenant</th>
+                        <th>Issue Summary</th>
+                        <th>Category & Priority</th>
+                        <th>Status</th>
+                        <th>Assigned Personnel</th>
+                        <th>Remarks / Directives</th>
+                        <th>Date Submitted</th>
+                    </tr>
+                </thead>
+                <tbody id="maintenanceTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading maintenance registry...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchMaintenanceRequests();
+        });
+
+        async function fetchMaintenanceRequests() {
+            const tableBody = document.getElementById('maintenanceTableBody');
+            try {
+                const response = await fetch('/api/admin/maintenance', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--error);">Failed to load maintenance registry.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const queue = result.data || [];
+
+                if (queue.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No maintenance requests filed globally.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                queue.forEach(req => {
+                    let priorityBadgeClass = 'status-pending';
+                    if (req.priority_level === 'urgent' || req.priority_level === 'high') priorityBadgeClass = 'status-rejected';
+                    if (req.priority_level === 'low') priorityBadgeClass = 'status-active';
+
+                    let statusBadgeClass = 'status-pending';
+                    if (req.status === 'completed') statusBadgeClass = 'status-active';
+                    if (req.status === 'in_progress' || req.status === 'assigned') statusBadgeClass = 'status-pending';
+                    if (req.status === 'rejected' || req.status === 'cancelled') statusBadgeClass = 'status-rejected';
+
+                    const createdDate = new Date(req.created_at).toLocaleDateString();
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary);">${req.properties?.property_name || 'Property'}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">👤 Tenant: ${req.tenant?.full_name || 'N/A'}</div>
+                        </td>
+                        <td>
+                            <strong>${req.issue_title}</strong>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${req.issue_description.substring(0, 40)}...</div>
+                        </td>
+                        <td>
+                            <div style="text-transform:capitalize;">${req.issue_category}</div>
+                            <span class="status-badge ${priorityBadgeClass}" style="text-transform:capitalize; font-size:0.7rem; padding:0.1rem 0.4rem;">${req.priority_level}</span>
+                        </td>
+                        <td>
+                            <span class="status-badge ${statusBadgeClass}" style="text-transform:capitalize;">${req.status.replace('_', ' ')}</span>
+                        </td>
+                        <td>
+                            <strong>${req.assigned_maintenance?.full_name || 'Unassigned'}</strong>
+                        </td>
+                        <td>
+                            <div style="font-size:0.8rem; color:var(--text-secondary); max-width: 150px; overflow:hidden; text-overflow:ellipsis;">
+                                ${req.landlord_remarks || 'No instructions provided.'}
+                            </div>
+                        </td>
+                        <td>${createdDate}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--error);">Error reaching service API.</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>

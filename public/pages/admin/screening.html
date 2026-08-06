@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Screening Audit - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .screening-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9375rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-admin">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-admin">Admin</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="users.html" class="navbar-menu-link">Users</a>
+                <a href="property-review.html" class="navbar-menu-link">Property Review</a>
+                <a href="reservations.html" class="navbar-menu-link">Reservation Monitoring</a>
+                <a href="screening.html" class="navbar-menu-link active">Screening Monitor</a>
+                <a href="leases.html" class="navbar-menu-link">Lease Monitor</a>
+                <a href="billings.html" class="navbar-menu-link">Billing Monitor</a>
+                <a href="payments.html" class="navbar-menu-link">Payment Monitor</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Global Tenant Screening Log</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">System-wide audit trail of all tenant screening metrics, computed risk classifications, and assessment queues.</p>
+
+        <div class="screening-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date Submitted</th>
+                        <th>Property</th>
+                        <th>Tenant</th>
+                        <th>Landlord</th>
+                        <th>Declared Income</th>
+                        <th>Suitability Score</th>
+                        <th>Risk Label</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="screeningTableBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading screening logs...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchGlobalScreenings();
+        });
+
+        async function fetchGlobalScreenings() {
+            const tableBody = document.getElementById('screeningTableBody');
+            try {
+                const response = await fetch('/api/admin/monitor/screenings', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Failed to load screenings list.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const list = result.data || [];
+
+                if (list.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">No tenant screening logs exist in the system yet.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                list.forEach(scr => {
+                    const submitDate = new Date(scr.created_at).toLocaleDateString(undefined, { 
+                        year: 'numeric', month: 'short', day: 'numeric' 
+                    });
+                    
+                    const income = parseFloat(scr.monthly_income).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    
+                    let scoreVal = 'Pending';
+                    let riskLabel = 'Pending';
+                    let riskClass = 'status-pending';
+
+                    if (scr.screening_score !== null && scr.screening_score !== undefined) {
+                        scoreVal = `${scr.screening_score} / 100`;
+                        riskLabel = scr.screening_result_label.replace('_', ' ').toUpperCase();
+                        if (scr.screening_result_label === 'low_risk') riskClass = 'status-active';
+                        if (scr.screening_result_label === 'high_risk') riskClass = 'status-rejected';
+                    }
+
+                    const statusClass = scr.status === 'reviewed' ? 'status-active' : 'status-pending';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${submitDate}</td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--primary);">${scr.properties?.property_name || 'Property'}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">📍 ${scr.properties?.address || 'N/A'}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">${scr.users?.full_name || 'Tenant'}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${scr.users?.email || ''}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">${scr.landlord?.full_name || 'Landlord'}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${scr.landlord?.email || ''}</div>
+                        </td>
+                        <td style="font-weight: 600;">₱${income}</td>
+                        <td style="font-weight: 700; color: var(--primary);">${scoreVal}</td>
+                        <td><span class="status-badge ${riskClass}">${riskLabel}</span></td>
+                        <td><span class="status-badge ${statusClass}">${scr.status.toUpperCase()}</span></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Error reaching admin screening monitor API.</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratings & Feedback - DomiKnow</title>
+    <meta name="description" content="Rate your landlord and rental experience. Authenticated ratings shape property listings and help future tenants make informed decisions.">
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        /* ── Page Layout ─────────────────────────────────────── */
+        .ratings-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            align-items: start;
+        }
+        @media (max-width: 1100px) {
+            .ratings-layout { grid-template-columns: 1fr; }
+        }
+
+        /* ── Tabs Styling ─────────────────────────────────────── */
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: color var(--transition-fast), border-color var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab-btn:hover {
+            color: var(--tenant);
+        }
+        .tab-btn.active {
+            color: var(--tenant);
+            border-bottom-color: var(--tenant);
+        }
+
+        /* ── Cards ───────────────────────────────────────────── */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+        .panel-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .panel-title svg {
+            color: var(--tenant);
+            flex-shrink: 0;
+        }
+
+        /* ── Lease Eligibility Cards ──────────────────────────── */
+        .lease-card {
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .lease-card:hover:not(.rated) {
+            border-color: var(--tenant);
+            background: var(--tenant-bg);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
+        }
+        .lease-card.active-selection {
+            border-color: var(--tenant);
+            background: var(--tenant-bg);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+        .lease-card.rated {
+            cursor: default;
+            opacity: 0.65;
+        }
+        .lease-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .lease-property-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .lease-landlord-name {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+        }
+        .lease-contract-number {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+            font-family: monospace;
+        }
+        .lease-rating-badge {
+            flex-shrink: 0;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.25rem 0.65rem;
+            border-radius: var(--radius-full);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .badge-not-rated {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+        .badge-submitted {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .badge-status {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.55rem;
+            border-radius: var(--radius-full);
+            background: #e0e7ff;
+            color: var(--tenant);
+            text-transform: capitalize;
+            margin-right: 0.4rem;
+        }
+
+        /* ── Multi-criteria Star Widget Grid ──────────────────────── */
+        .criteria-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background: var(--bg-primary);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+        .criterion-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+        .criterion-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .criterion-info {
+            flex: 1;
+        }
+        .criterion-name {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: var(--text-primary);
+            text-transform: capitalize;
+        }
+        .criterion-desc {
+            font-size: 0.73rem;
+            color: var(--text-muted);
+            margin-top: 0.1rem;
+        }
+        .criterion-stars {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .criteria-star-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-size: 1.4rem;
+            line-height: 1;
+            color: #d1d5db;
+            transition: color var(--transition-fast), transform var(--transition-fast);
+        }
+        .criteria-star-btn:hover,
+        .criteria-star-btn.active {
+            color: #f59e0b;
+            transform: scale(1.15);
+        }
+        .edit-star {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-size: 1.3rem;
+            line-height: 1;
+            color: #d1d5db;
+            transition: color var(--transition-fast), transform var(--transition-fast);
+        }
+        .edit-star:hover,
+        .edit-star.active {
+            color: #f59e0b;
+            transform: scale(1.15);
+        }
+        .criterion-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            min-width: 75px;
+            text-align: right;
+        }
+        .criterion-label.active-label {
+            color: #f59e0b;
+        }
+
+        /* ── Table ───────────────────────────────────────────── */
+        .history-scroll { overflow-x: auto; margin-top: 1rem; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.7rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td { background: var(--bg-primary); }
+
+        .star-display {
+            color: #f59e0b;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+        }
+        .star-display-muted { color: #d1d5db; }
+
+        .action-btn {
+            font-size: 0.78rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background var(--transition-fast), transform var(--transition-fast);
+        }
+        .action-btn:hover { transform: translateY(-1px); }
+        .btn-view { background: var(--primary-light); color: var(--primary); }
+        .btn-edit { background: var(--warning-bg); color: var(--warning); }
+        .btn-view:hover { background: var(--primary); color: #fff; }
+        .btn-edit:hover { background: var(--warning); color: #fff; }
+
+        /* ── Placeholder State ────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .empty-state svg { opacity: 0.3; }
+
+        /* ── Form Alert Messages ──────────────────────────────── */
+        .alert-bar {
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .alert-bar.visible { display: block; }
+        .alert-error { background: var(--error-bg); color: var(--error); border: 1px solid #fca5a5; }
+        .alert-success { background: var(--success-bg); color: var(--success); border: 1px solid #6ee7b7; }
+
+        /* ── Modal ────────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 580px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-premium);
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .modal-close-x {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0.25rem;
+            border-radius: var(--radius-sm);
+            transition: color var(--transition-fast);
+        }
+        .modal-close-x:hover { color: var(--text-primary); }
+        
+        /* ── Details breakdown styling ── */
+        .detail-row {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 0.5rem 1rem;
+            margin-bottom: 0.8rem;
+            align-items: start;
+        }
+        .detail-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding-top: 0.05rem;
+        }
+        .detail-value {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+        .detail-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 1rem 0;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .modal-breakdown-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .modal-breakdown-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .modal-breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            padding: 0.35rem 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        .modal-breakdown-row:last-child {
+            border-bottom: none;
+        }
+        .modal-breakdown-val {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ── Info banner ──────────────────────────────────── */
+        .info-banner {
+            background: var(--primary-light);
+            color: var(--tenant);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .info-banner.visible { display: block; }
+
+        /* ── Edit window pill ─────────────────────────────────── */
+        .edit-window-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-full);
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
+                <a href="compare.html" class="navbar-menu-link">Compare</a>
+                <a href="reservations.html" class="navbar-menu-link">My Reservations</a>
+                <a href="applications.html" class="navbar-menu-link">My Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Screening</a>
+                <a href="leases.html" class="navbar-menu-link">My Lease</a>
+                <a href="billings.html" class="navbar-menu-link">My Billings</a>
+                <a href="payments.html" class="navbar-menu-link">My Payments</a>
+                <a href="maintenance.html" class="navbar-menu-link">Maintenance</a>
+                <a href="reports.html" class="navbar-menu-link">Reports</a>
+                <a href="tenant-reports.html" class="navbar-menu-link">Reports Against Me</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes</a>
+                <a href="policy-violations.html" class="navbar-menu-link">Violations</a>
+                <a href="feedback.html" class="navbar-menu-link active">Feedback</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="dashboard-container">
+        <h2>Ratings &amp; Feedback</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Provide evaluations and written reviews. Property ratings and Landlord ratings are submitted independently to feed DSS decision support algorithms.
+        </p>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-header">
+            <button class="tab-btn active" id="tabPropertyBtn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                Module A: Property Rating
+            </button>
+            <button class="tab-btn" id="tabLandlordBtn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                Module B: Landlord Rating
+            </button>
+        </div>
+
+        <div class="ratings-layout">
+            <!-- LEFT: Submit Panel -->
+            <div>
+                <!-- Lease Eligibility Selector -->
+                <div class="panel" style="margin-bottom: 1.5rem;">
+                    <div class="panel-title">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="9" y1="21" x2="9" y2="9"/>
+                        </svg>
+                        Eligible Lease Contracts
+                    </div>
+                    <div class="info-banner" id="noLeasesBanner">
+                        No eligible lease contracts found. You can submit a rating if you are currently renting (active lease whose start date has passed) or have a previously completed, ended, or terminated lease.
+                    </div>
+                    <div id="leaseCardsList">
+                        <div class="empty-state" style="padding: 1.5rem;">
+                            <span style="color:var(--text-muted); font-size:0.85rem;">Loading your leases...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating Form Panel -->
+                <div class="panel" id="ratingFormPanel" style="display:none;">
+                    <div class="panel-title" style="margin-bottom:0.5rem;">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        <span id="formPanelTitle">Leave Your Property Rating</span>
+                    </div>
+
+                    <!-- Selected Lease Info -->
+                    <div style="background:var(--bg-primary); border-radius:var(--radius-md); padding:0.9rem 1.1rem; margin-bottom:1.25rem; border:1px solid var(--border-color);">
+                        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; font-weight:700; margin-bottom:0.5rem;">Selected Contract</div>
+                        <div id="selectedPropertyDisplay" style="font-weight:700; font-size:0.95rem; color:var(--text-primary);"></div>
+                        <div id="selectedLandlordDisplay" style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;"></div>
+                        <div id="selectedLeaseNumDisplay" style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; font-family:monospace;"></div>
+                    </div>
+
+                    <div id="formAlertError" class="alert-bar alert-error"></div>
+                    <div id="formAlertSuccess" class="alert-bar alert-success"></div>
+
+                    <form id="ratingForm">
+                        <input type="hidden" id="selectedLeaseId">
+
+                        <!-- Rating Criteria Container (Populated Dynamically) -->
+                        <div class="star-widget">
+                            <label class="form-label" style="margin-bottom:0.5rem;" id="starGridLabel">Rate by Criteria</label>
+                            <div class="criteria-grid" id="criteriaGrid">
+                                <!-- Populated dynamically based on tab -->
+                            </div>
+                        </div>
+
+                        <!-- Feedback Text -->
+                        <div class="form-group">
+                            <label class="form-label" for="feedbackText" id="feedbackFieldLabel">Your Property Written Review</label>
+                            <textarea
+                                id="feedbackText"
+                                class="form-input"
+                                placeholder="Write your review here..."
+                                style="height: 110px;"
+                                minlength="10"
+                                required
+                            ></textarea>
+                            <small style="color:var(--text-muted); font-size:0.72rem;">Minimum 10 characters. Your review helps support decision support system analytics.</small>
+                        </div>
+
+                        <button type="submit" id="submitRatingBtn" class="btn-primary" style="background:var(--tenant); border-color:var(--tenant); width:100%;">
+                            Submit Rating
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- RIGHT: Submitted Ratings History -->
+            <div class="panel">
+                <div class="panel-title">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    <span id="historyPanelTitle">My Submitted Property Ratings</span>
+                </div>
+                <div class="history-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Details</th>
+                                <th id="tableTargetHeader">Landlord</th>
+                                <th>Overall Avg</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ratingsTableBody">
+                            <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:2rem;">Loading ratings...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Details / Edit Modal -->
+    <div class="modal-overlay hidden" id="detailsModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 style="margin:0; font-size:1.05rem; color:var(--text-primary);" id="modalTitle">Rating Details</h3>
+                <button class="modal-close-x" id="closeModalBtn" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalBody">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="modal-footer" id="modalFooter"></div>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        // Module mode: 'property' or 'landlord'
+        let currentTab = 'property'; 
+
+        // State
+        let currentSelectedLeaseId = null;
+        let currentSelectedLease = null;
+        let eligibleLeases = [];
+        let submittedRatings = [];
+        let currentRatingValues = {}; // stores rating values for criteria
+        let currentViewRating = null;  // rating record open in modal
+        let editMode = false;
+        let editRatingValues = {};
+
+        const STAR_LABELS = {
+            1: 'Very Poor',
+            2: 'Poor',
+            3: 'Fair',
+            4: 'Good',
+            5: 'Excellent'
+        };
+
+        // Criteria details
+        const PROPERTY_CRITERIA = [
+            { id: 'cleanliness', name: 'Cleanliness', desc: 'Hygiene and physical cleanliness of the property' },
+            { id: 'safety', name: 'Safety', desc: 'Secure locks, lighting, hazard-free structure' },
+            { id: 'comfort', name: 'Comfort', desc: 'Ventilation, space, heat/cool comfort levels' },
+            { id: 'amenities', name: 'Amenities', desc: 'Functionality of kitchen, laundry, shared spaces' },
+            { id: 'location', name: 'Location', desc: 'Convenience, security, neighborhood safety' },
+            { id: 'internet_availability', name: 'Internet Availability', desc: 'WiFi/Fiber speed and uptime' },
+            { id: 'water_supply', name: 'Water Supply', desc: 'Consistent pressure and availability' },
+            { id: 'electricity_reliability', name: 'Electricity Reliability', desc: 'Power stability, minimal outages' },
+            { id: 'noise_level', name: 'Noise Level', desc: 'Silence and quietness of area (5 = very quiet)' },
+            { id: 'overall_satisfaction', name: 'Overall Property Satisfaction', desc: 'Your final overall evaluation of the rental property itself' }
+        ];
+
+        const LANDLORD_CRITERIA = [
+            { id: 'communication', name: 'Communication', desc: 'Clear guidelines, polite and professional messaging' },
+            { id: 'responsiveness', name: 'Responsiveness', desc: 'Answering queries, calls, messages fast' },
+            { id: 'professionalism', name: 'Professionalism', desc: 'Business etiquette, punctuality, contract execution' },
+            { id: 'fairness', name: 'Fairness', desc: 'Reasonable rules, deposit security, issue mediation' },
+            { id: 'maintenance_response', name: 'Maintenance Response', desc: 'Speed and quality of repairing reported problems' },
+            { id: 'respectfulness', name: 'Respectfulness', desc: 'Respecting privacy, giving notices before entry' },
+            { id: 'reliability', name: 'Reliability', desc: 'Trustworthiness, keeping promises and lease terms' },
+            { id: 'overall_satisfaction', name: 'Overall Landlord Satisfaction', desc: 'Your overall rating of the landlord\'s management' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            
+            // Add click listeners to tabs to bypass inline CSP restriction
+            const tabPropertyBtn = document.getElementById('tabPropertyBtn');
+            const tabLandlordBtn = document.getElementById('tabLandlordBtn');
+            if (tabPropertyBtn) {
+                tabPropertyBtn.addEventListener('click', () => switchModuleTab('property'));
+            }
+            if (tabLandlordBtn) {
+                tabLandlordBtn.addEventListener('click', () => switchModuleTab('landlord'));
+            }
+
+            switchModuleTab('property');
+            bindFormEvents();
+        });
+
+        // ── Navigation Tabs ────────────────────────────────────────────────
+        function switchModuleTab(moduleName) {
+            currentTab = moduleName;
+            
+            // Toggle active tabs buttons
+            document.getElementById('tabPropertyBtn').classList.toggle('active', moduleName === 'property');
+            document.getElementById('tabLandlordBtn').classList.toggle('active', moduleName === 'landlord');
+
+            // Reset selection and form
+            currentSelectedLeaseId = null;
+            currentSelectedLease = null;
+            document.getElementById('ratingFormPanel').style.display = 'none';
+
+            // Update Titles & Labels
+            if (moduleName === 'property') {
+                document.getElementById('formPanelTitle').textContent = 'Leave Your Property Rating';
+                document.getElementById('feedbackFieldLabel').textContent = 'Your Property Written Review';
+                document.getElementById('feedbackText').placeholder = 'Describe the property condition, internet quality, water/electric reliability...';
+                document.getElementById('historyPanelTitle').textContent = 'My Submitted Property Ratings';
+                document.getElementById('tableTargetHeader').textContent = 'Property';
+            } else {
+                document.getElementById('formPanelTitle').textContent = 'Leave Your Landlord Rating';
+                document.getElementById('feedbackFieldLabel').textContent = 'Your Landlord Written Review';
+                document.getElementById('feedbackText').placeholder = 'Describe the landlord\'s communication style, response speed to repairs, fairness...';
+                document.getElementById('historyPanelTitle').textContent = 'My Submitted Landlord Ratings';
+                document.getElementById('tableTargetHeader').textContent = 'Landlord';
+            }
+
+            // Reload Data
+            fetchEligibleLeases();
+            fetchMyRatings();
+        }
+
+        // ── Data Fetchers ──────────────────────────────────────────────────
+        async function fetchEligibleLeases() {
+            const url = currentTab === 'property' 
+                ? '/api/tenant/property-ratings/eligible' 
+                : '/api/tenant/landlord-ratings/eligible';
+            
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) return;
+                const result = await res.json();
+                eligibleLeases = result.data || [];
+                renderLeaseCards();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function fetchMyRatings() {
+            const tbody = document.getElementById('ratingsTableBody');
+            const url = currentTab === 'property' 
+                ? '/api/tenant/property-ratings/my' 
+                : '/api/tenant/landlord-ratings/my';
+
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--error);">Failed to load ratings.</td></tr>`;
+                    return;
+                }
+                const result = await res.json();
+                submittedRatings = result.data || [];
+                renderRatingsTable();
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--error);">Network error.</td></tr>`;
+            }
+        }
+
+        // ── Render Functions ───────────────────────────────────────────────
+        function renderLeaseCards() {
+            const container = document.getElementById('leaseCardsList');
+            const noLeaseBanner = document.getElementById('noLeasesBanner');
+
+            if (eligibleLeases.length === 0) {
+                noLeaseBanner.classList.add('visible');
+                container.innerHTML = '';
+                return;
+            }
+
+            noLeaseBanner.classList.remove('visible');
+            container.innerHTML = '';
+
+            eligibleLeases.forEach(lease => {
+                const card = document.createElement('div');
+                card.className = `lease-card ${lease.is_rated ? 'rated' : ''}`;
+                card.dataset.leaseId = lease.id;
+
+                const statusLabel = lease.lease_status.replace('_', ' ');
+                const ratedBadge = lease.is_rated
+                    ? `<span class="lease-rating-badge badge-submitted">Submitted</span>`
+                    : `<span class="lease-rating-badge badge-not-rated">Not Yet Rated</span>`;
+
+                card.innerHTML = `
+                    <div class="lease-card-info">
+                        <div class="lease-property-name">${lease.properties?.property_name || 'Property'}</div>
+                        <div class="lease-landlord-name">Landlord: ${lease.landlord?.full_name || 'N/A'}</div>
+                        <div class="lease-contract-number">
+                            <span class="badge-status">${statusLabel}</span>
+                            ${lease.lease_number || 'No contract number'}
+                        </div>
+                    </div>
+                    <div style="flex-shrink:0; display:flex; align-items:center;">
+                        ${ratedBadge}
+                    </div>
+                `;
+
+                if (!lease.is_rated) {
+                    card.addEventListener('click', () => selectLease(lease));
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        function renderRatingsTable() {
+            const tbody = document.getElementById('ratingsTableBody');
+
+            if (submittedRatings.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="5">
+                        <div class="empty-state">
+                            <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            <span>No reviews submitted in this module yet.</span>
+                            <span style="font-size:0.78rem;">Select a lease on the left to submit a feedback.</span>
+                        </div>
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            submittedRatings.forEach(rat => {
+                const targetName = currentTab === 'property' 
+                    ? (rat.properties?.property_name || 'Property')
+                    : (rat.landlord?.full_name || 'Landlord');
+
+                const overallVal = parseFloat(rat.overall_computed_avg || 0);
+                const starsHtml = buildStarDisplay(Math.round(overallVal));
+                const dateStr = new Date(rat.submitted_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+                const isEditable = isWithinEditWindow(rat.submitted_at);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <div style="font-weight:700; color:var(--text-primary);">${targetName}</div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); font-family:monospace;">${rat.lease_records?.lease_number || ''}</div>
+                    </td>
+                    <td style="color:var(--text-secondary); font-size:0.85rem;">
+                        ${currentTab === 'property' ? (rat.landlord?.full_name || 'N/A') : (rat.properties?.property_name || 'N/A')}
+                    </td>
+                    <td>
+                        ${starsHtml}
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.15rem;">${overallVal.toFixed(2)} Avg</div>
+                    </td>
+                    <td style="font-size:0.82rem; color:var(--text-secondary); white-space:nowrap;">${dateStr}</td>
+                    <td>
+                        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                            <button class="action-btn btn-view" data-action="view" data-rating-id="${rat.id}">Details</button>
+                            ${isEditable ? `<button class="action-btn btn-edit" data-action="edit" data-rating-id="${rat.id}">Edit</button>` : ''}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function buildStarDisplay(rating) {
+            const filled = '&#9733;'.repeat(rating);
+            const empty = '<span style="color:#d1d5db;">&#9733;</span>'.repeat(Math.max(0, 5 - rating));
+            return `<span class="star-display">${filled}</span>${empty}`;
+        }
+
+        function isWithinEditWindow(submittedAt) {
+            const days = (Date.now() - new Date(submittedAt)) / (1000 * 60 * 60 * 24);
+            return days <= 7;
+        }
+
+        // ── Lease Selection ────────────────────────────────────────────────
+        function selectLease(lease) {
+            currentSelectedLeaseId = lease.id;
+            currentSelectedLease = lease;
+
+            // Highlight card
+            document.querySelectorAll('.lease-card').forEach(c => c.classList.remove('active-selection'));
+            const targetCard = document.querySelector(`.lease-card[data-lease-id="${lease.id}"]`);
+            if (targetCard) targetCard.classList.add('active-selection');
+
+            // Fill display
+            document.getElementById('selectedPropertyDisplay').textContent = lease.properties?.property_name || 'Property';
+            document.getElementById('selectedLandlordDisplay').textContent = `Landlord: ${lease.landlord?.full_name || 'N/A'}`;
+            document.getElementById('selectedLeaseNumDisplay').textContent = lease.lease_number || 'No contract number';
+            document.getElementById('selectedLeaseId').value = lease.id;
+
+            // Initialize star criteria grid
+            initCriteriaGrid();
+            
+            // Reset form alerts & input fields
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('formAlertError').classList.remove('visible');
+            document.getElementById('formAlertSuccess').classList.remove('visible');
+
+            // Show form panel
+            document.getElementById('ratingFormPanel').style.display = 'block';
+            document.getElementById('ratingFormPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Initialize stars criteria form fields
+        function initCriteriaGrid() {
+            const grid = document.getElementById('criteriaGrid');
+            grid.innerHTML = '';
+            currentRatingValues = {};
+
+            const criteriaList = currentTab === 'property' ? PROPERTY_CRITERIA : LANDLORD_CRITERIA;
+
+            criteriaList.forEach(crit => {
+                currentRatingValues[crit.id] = 0; // initialize value to 0
+
+                const row = document.createElement('div');
+                row.className = 'criterion-row';
+                row.dataset.criterionId = crit.id;
+
+                row.innerHTML = `
+                    <div class="criterion-info">
+                        <div class="criterion-name">${crit.name}</div>
+                        <div class="criterion-desc">${crit.desc}</div>
+                    </div>
+                    <div class="criterion-stars" id="starGroup-${crit.id}">
+                        <button type="button" class="criteria-star-btn" data-val="1">&#9733;</button>
+                        <button type="button" class="criteria-star-btn" data-val="2">&#9733;</button>
+                        <button type="button" class="criteria-star-btn" data-val="3">&#9733;</button>
+                        <button type="button" class="criteria-star-btn" data-val="4">&#9733;</button>
+                        <button type="button" class="criteria-star-btn" data-val="5">&#9733;</button>
+                        <span class="criterion-label" id="critLabel-${crit.id}">Select</span>
+                    </div>
+                `;
+
+                // Add event listeners for hover and click on stars
+                const starBtns = row.querySelectorAll('.criteria-star-btn');
+                const label = row.querySelector(`#critLabel-${crit.id}`);
+
+                const updateStars = (val, persist) => {
+                    starBtns.forEach(btn => {
+                        const btnVal = parseInt(btn.dataset.val);
+                        if (persist) {
+                            btn.classList.toggle('active', btnVal <= val);
+                            btn.style.color = '';
+                        } else {
+                            btn.style.color = btnVal <= val ? '#f59e0b' : '#d1d5db';
+                        }
+                    });
+                };
+
+                starBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const val = parseInt(btn.dataset.val);
+                        currentRatingValues[crit.id] = val;
+                        updateStars(val, true);
+                        label.textContent = STAR_LABELS[val];
+                        label.classList.add('active-label');
+                    });
+
+                    btn.addEventListener('mouseover', () => {
+                        const val = parseInt(btn.dataset.val);
+                        updateStars(val, false);
+                    });
+                });
+
+                row.querySelector(`.criterion-stars`).addEventListener('mouseleave', () => {
+                    updateStars(currentRatingValues[crit.id], true);
+                });
+
+                grid.appendChild(row);
+            });
+        }
+
+        // ── Form Events Binding ─────────────────────────────────────────────
+        function bindFormEvents() {
+            // Form submit
+            document.getElementById('ratingForm').addEventListener('submit', handleSubmit);
+
+            // Modal events
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('detailsModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('detailsModal')) closeModal();
+            });
+
+            // Table event delegation
+            document.getElementById('ratingsTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                const id = btn.dataset.ratingId;
+                if (action === 'view') openDetailsModal(id, false);
+                if (action === 'edit') openDetailsModal(id, true);
+            });
+
+            // Modal footer delegation
+            document.getElementById('modalFooter').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                if (action === 'close') closeModal();
+                if (action === 'save-edit') handleSaveEdit();
+                if (action === 'start-edit') switchToEditMode();
+            });
+        }
+
+        // ── Submit Handling ───────────────────────────────────────────────
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const errorEl = document.getElementById('formAlertError');
+            const successEl = document.getElementById('formAlertSuccess');
+            const submitBtn = document.getElementById('submitRatingBtn');
+
+            errorEl.classList.remove('visible');
+            successEl.classList.remove('visible');
+
+            // Validate that all criteria are filled
+            const criteriaList = currentTab === 'property' ? PROPERTY_CRITERIA : LANDLORD_CRITERIA;
+            for (const crit of criteriaList) {
+                if (!currentRatingValues[crit.id]) {
+                    errorEl.textContent = `Please complete your rating for: ${crit.name}`;
+                    errorEl.classList.add('visible');
+                    return;
+                }
+            }
+
+            const feedback = document.getElementById('feedbackText').value.trim();
+            if (feedback.length < 10) {
+                errorEl.textContent = 'Feedback must be at least 10 characters.';
+                errorEl.classList.add('visible');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const payload = {
+                lease_id: currentSelectedLeaseId,
+                feedback,
+                ...currentRatingValues
+            };
+
+            const url = currentTab === 'property' 
+                ? '/api/tenant/property-ratings' 
+                : '/api/tenant/landlord-ratings';
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    successEl.textContent = result.message || 'Rating submitted successfully!';
+                    successEl.classList.add('visible');
+                    document.getElementById('ratingForm').reset();
+                    currentSelectedLeaseId = null;
+                    currentSelectedLease = null;
+                    document.getElementById('ratingFormPanel').style.display = 'none';
+                    await fetchEligibleLeases();
+                    await fetchMyRatings();
+                } else {
+                    errorEl.textContent = result.message || 'Submission failed.';
+                    errorEl.classList.add('visible');
+                }
+            } catch (err) {
+                console.error(err);
+                errorEl.textContent = 'Network error. Please try again.';
+                errorEl.classList.add('visible');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Rating';
+            }
+        }
+
+        // ── Details / Edit Modal ──────────────────────────────────────────
+        async function openDetailsModal(ratingId, startEdit = false) {
+            const modal = document.getElementById('detailsModal');
+            const body = document.getElementById('modalBody');
+            const footer = document.getElementById('modalFooter');
+            const titleEl = document.getElementById('modalTitle');
+
+            modal.classList.remove('hidden');
+            body.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted);">Loading details...</div>';
+            footer.innerHTML = '';
+
+            const url = currentTab === 'property' 
+                ? `/api/tenant/property-ratings/${ratingId}` 
+                : `/api/tenant/landlord-ratings/${ratingId}`;
+
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await res.json();
+                if (!res.ok) {
+                    body.innerHTML = `<div style="color:var(--error);">${result.message || 'Failed to load details.'}</div>`;
+                    return;
+                }
+                currentViewRating = result.data;
+                editMode = false;
+                
+                // Initialize edit values
+                editRatingValues = {};
+                const criteriaList = currentTab === 'property' ? PROPERTY_CRITERIA : LANDLORD_CRITERIA;
+                criteriaList.forEach(crit => {
+                    editRatingValues[crit.id] = currentViewRating[crit.id];
+                });
+
+                renderModalView(startEdit);
+                titleEl.textContent = startEdit ? 'Edit Rating' : 'Rating Details';
+            } catch (err) {
+                console.error(err);
+                body.innerHTML = `<div style="color:var(--error);">Network error.</div>`;
+            }
+        }
+
+        function renderModalView(inEditMode) {
+            const body = document.getElementById('modalBody');
+            const footer = document.getElementById('modalFooter');
+            const rat = currentViewRating;
+            const dateStr = new Date(rat.submitted_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+            const editable = isWithinEditWindow(rat.submitted_at);
+            const daysLeft = Math.max(0, 7 - Math.floor((Date.now() - new Date(rat.submitted_at)) / (1000 * 60 * 60 * 24)));
+
+            const criteriaList = currentTab === 'property' ? PROPERTY_CRITERIA : LANDLORD_CRITERIA;
+
+            if (inEditMode && editable) {
+                editMode = true;
+                
+                let criteriaHtml = '';
+                criteriaList.forEach(crit => {
+                    const currentVal = editRatingValues[crit.id];
+                    criteriaHtml += `
+                        <div style="margin-bottom:0.75rem; border-bottom:1px dashed var(--border-color); padding-bottom:0.5rem;">
+                            <div style="font-weight:600; font-size:0.85rem; color:var(--text-primary);">${crit.name}</div>
+                            <div class="edit-star-row" id="editStarRow-${crit.id}" data-crit="${crit.id}">
+                                <button type="button" class="edit-star ${currentVal >= 1 ? 'active' : ''}" data-eval="1">&#9733;</button>
+                                <button type="button" class="edit-star ${currentVal >= 2 ? 'active' : ''}" data-eval="2">&#9733;</button>
+                                <button type="button" class="edit-star ${currentVal >= 3 ? 'active' : ''}" data-eval="3">&#9733;</button>
+                                <button type="button" class="edit-star ${currentVal >= 4 ? 'active' : ''}" data-eval="4">&#9733;</button>
+                                <button type="button" class="edit-star ${currentVal >= 5 ? 'active' : ''}" data-eval="5">&#9733;</button>
+                                <span id="editStarLabel-${crit.id}" style="font-size:0.78rem; color:var(--text-secondary); margin-left:0.4rem;">${STAR_LABELS[currentVal]}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                body.innerHTML = `
+                    <div class="detail-row">
+                        <span class="detail-label">Lease</span>
+                        <span class="detail-value" style="font-family:monospace;">${rat.lease_records?.lease_number || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Property</span>
+                        <span class="detail-value" style="font-weight:700;">${rat.properties?.property_name || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Landlord</span>
+                        <span class="detail-value">${rat.landlord?.full_name || 'N/A'}</span>
+                    </div>
+                    <hr class="detail-divider">
+                    
+                    <div style="max-height: 250px; overflow-y: auto; padding-right: 0.5rem; margin-bottom: 1.25rem;">
+                        ${criteriaHtml}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editFeedbackText">Updated Feedback</label>
+                        <textarea id="editFeedbackText" class="form-input" style="height:100px;" minlength="10" required>${rat.feedback}</textarea>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--warning); background:var(--warning-bg); padding:0.5rem 0.75rem; border-radius:var(--radius-sm);">
+                        Edit window closes in <strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong>.
+                    </div>
+                `;
+
+                // Bind edit star triggers
+                criteriaList.forEach(crit => {
+                    const group = document.getElementById(`editStarRow-${crit.id}`);
+                    const editStarBtns = group.querySelectorAll('.edit-star');
+                    const label = document.getElementById(`editStarLabel-${crit.id}`);
+
+                    const updateEditStars = (val, persist) => {
+                        editStarBtns.forEach(btn => {
+                            const btnVal = parseInt(btn.dataset.eval);
+                            if (persist) {
+                                btn.classList.toggle('active', btnVal <= val);
+                                btn.style.color = '';
+                            } else {
+                                btn.style.color = btnVal <= val ? '#f59e0b' : '#d1d5db';
+                            }
+                        });
+                    };
+
+                    editStarBtns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const val = parseInt(btn.dataset.eval);
+                            editRatingValues[crit.id] = val;
+                            updateEditStars(val, true);
+                            label.textContent = STAR_LABELS[val];
+                        });
+
+                        btn.addEventListener('mouseover', () => {
+                            const val = parseInt(btn.dataset.eval);
+                            updateEditStars(val, false);
+                        });
+                    });
+
+                    group.addEventListener('mouseleave', () => {
+                        updateEditStars(editRatingValues[crit.id], true);
+                    });
+                });
+
+                footer.innerHTML = `
+                    <button class="btn-secondary action-btn" data-action="close" style="padding:0.5rem 1.1rem;">Cancel</button>
+                    <button class="btn-primary action-btn" data-action="save-edit" style="background:var(--tenant); border-color:var(--tenant); padding:0.5rem 1.1rem;">Save Changes</button>
+                `;
+            } else {
+                // View Mode
+                editMode = false;
+                
+                let criteriaBreakdownHtml = '';
+                criteriaList.forEach(crit => {
+                    const score = rat[crit.id];
+                    criteriaBreakdownHtml += `
+                        <div class="modal-breakdown-row">
+                            <span style="color:var(--text-secondary); text-transform:capitalize;">${crit.name}</span>
+                            <div style="display:flex; align-items:center; gap:0.5rem;">
+                                ${buildStarDisplay(score)}
+                                <span class="modal-breakdown-val">${score}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                body.innerHTML = `
+                    <div class="detail-row">
+                        <span class="detail-label">Property</span>
+                        <span class="detail-value" style="font-weight:700;">${rat.properties?.property_name || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Landlord</span>
+                        <span class="detail-value">${rat.landlord?.full_name || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Lease</span>
+                        <span class="detail-value" style="font-family:monospace;">${rat.lease_records?.lease_number || 'N/A'}</span>
+                    </div>
+                    
+                    <div class="modal-breakdown-card">
+                        <div class="modal-breakdown-title">Evaluation Breakdown</div>
+                        ${criteriaBreakdownHtml}
+                    </div>
+
+                    <hr class="detail-divider">
+                    <div class="detail-row">
+                        <span class="detail-label">Overall Average</span>
+                        <span class="detail-value" style="font-weight:800; font-size:1.1rem; color:#f59e0b;">
+                            ${parseFloat(rat.overall_computed_avg).toFixed(2)} / 5.00
+                        </span>
+                    </div>
+                    <div class="detail-row" style="align-items:start;">
+                        <span class="detail-label">Feedback Review</span>
+                        <span class="detail-value" style="white-space:pre-wrap; background:var(--bg-primary); padding:0.75rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">${rat.feedback}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Submitted</span>
+                        <span class="detail-value">${dateStr}</span>
+                    </div>
+                    ${editable ? `
+                    <div style="font-size:0.74rem; color:var(--text-muted); margin-top:0.5rem;">
+                        <span class="edit-window-pill">
+                            <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            ${daysLeft}d edit window remaining
+                        </span>
+                    </div>` : ''}
+                `;
+
+                footer.innerHTML = `
+                    ${editable ? `<button class="btn-primary action-btn" data-action="start-edit" style="background:var(--warning);border-color:var(--warning);padding:0.5rem 1.1rem;">Edit Review</button>` : ''}
+                    <button class="btn-secondary action-btn" data-action="close" style="padding:0.5rem 1.1rem;">Close</button>
+                `;
+            }
+        }
+
+        function switchToEditMode() {
+            renderModalView(true);
+            document.getElementById('modalTitle').textContent = 'Edit Review';
+        }
+
+        async function handleSaveEdit() {
+            const feedbackText = document.getElementById('editFeedbackText')?.value?.trim();
+            if (!feedbackText || feedbackText.length < 10) {
+                alert('Feedback must be at least 10 characters.');
+                return;
+            }
+
+            const saveBtn = document.querySelector('[data-action="save-edit"]');
+            if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+
+            const payload = {
+                feedback: feedbackText,
+                ...editRatingValues
+            };
+
+            const url = currentTab === 'property' 
+                ? `/api/tenant/property-ratings/${currentViewRating.id}` 
+                : `/api/tenant/landlord-ratings/${currentViewRating.id}`;
+
+            try {
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    closeModal();
+                    await fetchMyRatings();
+                } else {
+                    alert(result.message || 'Update failed.');
+                    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Network error.');
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detailsModal').classList.add('hidden');
+            currentViewRating = null;
+            editMode = false;
+        }
+    </script>
+</body>
+</html>

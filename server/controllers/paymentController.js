@@ -1,0 +1,174 @@
+const paymentModel = require('../models/paymentModel');
+const auditLogModel = require('../models/auditLogModel');
+const responseHelper = require('../utils/responseHelper');
+const supabase = require('../config/supabaseClient');
+const { uploadFile, getSignedUrl } = require('../utils/storageHelper');
+
+const paymentController = {
+    async submitPayment(req, res) {
+        try {
+            const { 
+                billing_id, payment_amount, payment_method, 
+                payment_reference_number, base64_content, file_name, mime_type, file_size 
+            } = req.body;
+            
+            const tenantId = req.user.id;
+
+            // 1. Validate required fields
+            if (!billing_id || !payment_amount || !payment_method || !payment_reference_number || !base64_content || !file_name || !mime_type || !file_size) {
+                return responseHelper.error(res, 'All details (billing, amount, method, reference, and file proof payload) are required.');
+            }
+
+            // 2. Validate billing record belongs to tenant
+            const { data: billing, error: billingErr } = await supabase
+                .from('billing_records')
+                .select('id, tenant_id, lease_id, landlord_id, property_id, billing_status')
+                .eq('id', billing_id)
+                .maybeSingle();
+
+            if (billingErr) throw billingErr;
+            if (!billing || billing.tenant_id !== tenantId) {
+                return responseHelper.error(res, 'Billing statement not found or access denied.', null, 404);
+            }
+
+            const allowedBillingStatuses = ['unpaid', 'pending_payment', 'partially_paid', 'overdue'];
+            if (!allowedBillingStatuses.includes(billing.billing_status)) {
+                return responseHelper.error(res, `Cannot submit payment. Billing status is currently '${billing.billing_status}'.`);
+            }
+
+            // Rule: Only one Payment Record can be Pending Verification for a billing at a time
+            const { data: existingPending, error: pendingErr } = await supabase
+                .from('payment_records')
+                .select('id')
+                .eq('billing_id', billing_id)
+                .eq('payment_status', 'pending_verification')
+                .maybeSingle();
+
+            if (pendingErr) throw pendingErr;
+            if (existingPending) {
+                return responseHelper.error(res, 'A payment submission is already pending verification for this billing statement.');
+            }
+
+            // 3. File type check
+            const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedMimeTypes.includes(mime_type)) {
+                return responseHelper.error(res, 'Invalid file format. Only PDF, JPG, JPEG, and PNG are allowed.');
+            }
+
+            // File size check (limit 10MB)
+            if (parseInt(file_size) > 10 * 1024 * 1024) {
+                return responseHelper.error(res, 'Payment proof file exceeds maximum limit of 10MB.');
+            }
+
+            // 4. Upload file payload to Supabase
+            const uniqueName = `${Date.now()}-${file_name}`;
+            const storagePath = `payments/${billing_id}/${uniqueName}`;
+            const uploadResult = await uploadFile('payment-proofs', storagePath, base64_content, mime_type);
+
+            // 5. Save payment record
+            const paymentRecord = await paymentModel.createPaymentRecord({
+                billing_id,
+                lease_id: billing.lease_id,
+                tenant_id: tenantId,
+                landlord_id: billing.landlord_id,
+                property_id: billing.property_id,
+                payment_amount: parseFloat(payment_amount),
+                payment_method,
+                payment_reference_number,
+                payment_proof_url: uploadResult.url,
+                payment_proof_path: uploadResult.path,
+                payment_status: 'pending_verification'
+            });
+
+            // 6. Update billing status to waiting_verification
+            const { error: updateBillingErr } = await supabase
+                .from('billing_records')
+                .update({ billing_status: 'waiting_verification', updated_at: new Date() })
+                .eq('id', billing_id);
+
+            if (updateBillingErr) throw updateBillingErr;
+
+            // 7. Audit log
+            await auditLogModel.log(tenantId, 'SUBMIT_PAYMENT_PROOF', `Tenant submitted payment reference ${payment_reference_number} for bill ${billing_id}`);
+
+            return responseHelper.success(res, 'Payment proof successfully submitted and logged for verification.', paymentRecord, 201);
+
+        } catch (error) {
+            console.error('Submit payment error:', error);
+            return responseHelper.error(res, 'Failed to upload payment proof', error, 500);
+        }
+    },
+
+    async getTenantPayments(req, res) {
+        try {
+            const list = await paymentModel.findByTenantId(req.user.id);
+            for (const payment of list) {
+                if (payment.payment_proof_path) {
+                    try {
+                        payment.payment_proof_url = await getSignedUrl('payment-proofs', payment.payment_proof_path);
+                    } catch (err) {
+                        console.error('Error generating signed URL for payment proof:', err);
+                    }
+                }
+            }
+            return responseHelper.success(res, 'Your payment logs retrieved successfully', list);
+        } catch (error) {
+            console.error('Get tenant payments error:', error);
+            return responseHelper.error(res, 'Failed to fetch payment history', error, 500);
+        }
+    },
+
+    async getLandlordPayments(req, res) {
+        try {
+            const list = await paymentModel.findByLandlordId(req.user.id);
+            for (const payment of list) {
+                if (payment.payment_proof_path) {
+                    try {
+                        payment.payment_proof_url = await getSignedUrl('payment-proofs', payment.payment_proof_path);
+                    } catch (err) {
+                        console.error('Error generating signed URL for payment proof:', err);
+                    }
+                }
+            }
+            return responseHelper.success(res, 'Landlord payments log retrieved successfully', list);
+        } catch (error) {
+            console.error('Get landlord payments error:', error);
+            return responseHelper.error(res, 'Failed to fetch payments queue', error, 500);
+        }
+    },
+
+    async verifyPayment(req, res) {
+        try {
+            const { id } = req.params;
+            const { payment_status, verification_remarks } = req.body;
+            const landlordId = req.user.id;
+
+            const allowedStatuses = ['verified', 'rejected'];
+            if (!allowedStatuses.includes(payment_status)) {
+                return responseHelper.error(res, 'Invalid verification status. Allowed: verified, rejected.');
+            }
+
+            // Requirements check: Rejections must require remarks
+            if (payment_status === 'rejected' && (!verification_remarks || verification_remarks.trim() === '')) {
+                return responseHelper.error(res, 'Remarks are required when rejecting a payment submission.');
+            }
+
+            const updated = await paymentModel.verifyPayment(id, landlordId, payment_status, verification_remarks);
+            if (!updated) {
+                return responseHelper.error(res, 'Payment submission not found or access denied.', null, 404);
+            }
+
+            // Audit logs
+            const actionType = payment_status === 'verified' ? 'VERIFY_PAYMENT' : 'REJECT_PAYMENT';
+            await auditLogModel.log(landlordId, actionType, `Landlord marked payment submission ${id} as ${payment_status}`);
+
+            return responseHelper.success(res, `Payment submission successfully marked as ${payment_status}`, updated);
+
+        } catch (error) {
+            console.error('Verify payment error:', error);
+            return responseHelper.error(res, 'Failed to update payment status', error, 500);
+        }
+    }
+};
+
+module.exports = paymentController;

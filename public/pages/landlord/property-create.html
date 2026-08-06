@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Property - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <!-- Leaflet.js GIS map components -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #locationMap {
+            height: 380px;
+            width: 100%;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border-color);
+            margin-bottom: 1rem;
+            z-index: 1;
+            background-color: #f0f0f0;
+        }
+        .map-instructions {
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+        .location-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .location-btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+        }
+        .location-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .location-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Step Wizard styles */
+        .step-wizard-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+            gap: 0.5rem;
+        }
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            opacity: 0.5;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            user-select: none;
+        }
+        .step-header.active {
+            color: var(--landlord);
+            opacity: 1;
+        }
+        .step-header.completed {
+            color: var(--success);
+            opacity: 0.9;
+        }
+        .step-num {
+            background: var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 800;
+        }
+        .step-header.active .step-num {
+            background: var(--landlord);
+            color: white;
+        }
+        .step-header.completed .step-num {
+            background: var(--success);
+            color: white;
+        }
+        /* Upload Cards */
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .upload-card {
+            border: 1px dashed var(--border-color);
+            background-color: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            transition: all var(--transition-fast);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .upload-card:hover {
+            border-color: var(--landlord);
+            box-shadow: var(--shadow-sm);
+        }
+        .upload-card-title {
+            font-weight: 700;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        .upload-card-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        .rule-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 0.35rem 0.85rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: all var(--transition-fast);
+            color: var(--text-primary);
+        }
+        .rule-chip:hover {
+            background-color: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .rule-chip.active-chip {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+        .photo-preview {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-top: 0.5rem;
+        }
+
+        .radio-card-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .radio-card {
+            flex: 1;
+            position: relative;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: var(--bg-primary);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            user-select: none;
+        }
+
+        .radio-card input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .radio-card:hover {
+            border-color: var(--landlord);
+        }
+
+        .radio-card.selected {
+            background-color: rgba(220, 252, 231, 0.4);
+            border-color: var(--success);
+            color: var(--success-text);
+            font-weight: 700;
+        }
+
+        .radio-card.selected-not {
+            background-color: rgba(254, 226, 226, 0.4);
+            border-color: var(--error);
+            color: var(--error-text);
+            font-weight: 700;
+        }
+
+        .conditional-box {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            animation: slideDown 0.2s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="property-create.html" class="navbar-menu-link active">Register Property</a>
+                <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container" style="max-width: 900px;">
+        <h2>Register New Rental Property</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Follow the 3-step wizard to register your property, upload verification permits, and upload building photos.</p>
+
+        <!-- Wizard Navigation -->
+        <div class="step-wizard-nav">
+            <div id="stepHeader1" class="step-header active" onclick="goToStep(1)" title="Click to view Step 1: Property Details">
+                <span class="step-num">1</span>
+                <span>Step 1: Property Details</span>
+            </div>
+            <div id="stepHeader2" class="step-header" onclick="goToStep(2)" title="Click to view Step 2: Upload Documents">
+                <span class="step-num">2</span>
+                <span>Step 2: Upload Documents</span>
+            </div>
+            <div id="stepHeader3" class="step-header" onclick="goToStep(3)" title="Click to view Step 3: Property Photos">
+                <span class="step-num">3</span>
+                <span>Step 3: Property Photos</span>
+            </div>
+        </div>
+
+        <div id="createFeedback" class="alert alert-success hidden"></div>
+
+        <!-- ========================================== -->
+        <!-- STEP 1: PROPERTY DETAILS FORM -->
+        <!-- ========================================== -->
+        <div id="stepPanel1" class="profile-card">
+            <form id="createPropertyForm">
+                <!-- Section 1. Basic Information -->
+                <h3 class="form-step-title" style="margin-top: 0;">Section 1. Basic Information</h3>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="propertyName" class="form-label">Property Name *</label>
+                        <input type="text" id="propertyName" required placeholder="e.g. ABC Apartment / Sunshine Boarding House" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="propertyType" class="form-label">Property Type *</label>
+                        <select id="propertyType" required class="form-select">
+                            <option value="apartment">Apartment</option>
+                            <option value="boarding_house">Boarding House</option>
+                            <option value="bedspace">Bedspace</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description" class="form-label">Property Description *</label>
+                    <textarea id="description" rows="3" required placeholder="Provide a general overview of your rental building, environment, and features..." class="form-textarea"></textarea>
+                </div>
+
+                <!-- Section 2. Property Location -->
+                <h3 class="form-step-title">Section 2. Property Location (Siniloan, Laguna)</h3>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="address" class="form-label">Street / Purok / Sitio *</label>
+                        <input type="text" id="address" required placeholder="e.g. Purok 3, G. Redor Street" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="barangay" class="form-label">Barangay (Siniloan) *</label>
+                        <select id="barangay" required class="form-select" style="transition: all 0.3s ease;">
+                            <option value="G. Redor">G. Redor (Poblacion)</option>
+                            <option value="Halayhayin">Halayhayin</option>
+                            <option value="Pandeño">Pandeño</option>
+                            <option value="Macasipac">Macasipac</option>
+                            <option value="Acevida">Acevida</option>
+                            <option value="Mendiola">Mendiola (Poblacion)</option>
+                            <option value="Salubungan">Salubungan</option>
+                            <option value="Wawa">Wawa</option>
+                            <option value="Liyang">Liyang</option>
+                            <option value="Kapatalan">Kapatalan</option>
+                            <option value="Bagong Pag-asa">Bagong Pag-asa (Poblacion)</option>
+                            <option value="Bagumbarangay">Bagumbarangay (Poblacion)</option>
+                            <option value="Castro">Castro (Poblacion)</option>
+                            <option value="Jose Rizal">Jose Rizal (Poblacion)</option>
+                            <option value="Laguio">Laguio</option>
+                            <option value="Llavac">Llavac</option>
+                            <option value="Valderrama">Valderrama (Poblacion)</option>
+                            <option value="P. Burgos">P. Burgos</option>
+                            <option value="San Jose">San Jose</option>
+                            <option value="San Antonio">San Antonio</option>
+                        </select>
+                        <span id="bgyDetectStatus" style="display: block; font-size: 0.725rem; margin-top: 0.25rem; min-height: 1rem;"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="landmark" class="form-label">Landmark (Optional)</label>
+                        <input type="text" id="landmark" placeholder="e.g. Near LSPU Gate 2" class="form-input">
+                    </div>
+                </div>
+
+                <div class="map-instructions" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; color: var(--primary);">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span><strong>Location Pin Auto-Fill:</strong> Clicking or dragging the marker pin on the map automatically detects your <strong>Street/Sitio</strong> and <strong>Barangay</strong>. You can also adjust manually anytime.</span>
+                </div>
+
+                <div class="location-actions">
+                    <button type="button" id="btnGetLocation" class="location-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="22" y1="12" x2="18" y2="12"></line>
+                            <line x1="6" y1="12" x2="2" y2="12"></line>
+                            <line x1="12" y1="6" x2="12" y2="2"></line>
+                            <line x1="12" y1="22" x2="12" y2="18"></line>
+                        </svg>
+                        Get My Current Location
+                    </button>
+                    <button type="button" id="btnSearchAddress" class="location-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        Search by Address
+                    </button>
+                    <button type="button" id="btnCenterSiniloan" onclick="centerSiniloanMap()" class="location-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background-color: var(--primary); color: white; border-color: var(--primary);">
+                        🎯 Center on Siniloan Town
+                    </button>
+                </div>
+
+                <div id="locationMap" style="position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+                    <div id="mapLoadingIndicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: rgba(255,255,255,0.95); padding: 1rem 1.5rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); backdrop-filter: blur(4px);">
+                        <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon">
+                                <line x1="12" y1="2" x2="12" y2="6"></line>
+                                <line x1="12" y1="18" x2="12" y2="22"></line>
+                                <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                                <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                                <line x1="2" y1="12" x2="6" y2="12"></line>
+                                <line x1="18" y1="12" x2="22" y2="12"></line>
+                                <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                                <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                            </svg>
+                            <div style="font-size: 0.875rem; font-weight: 500; color: var(--text-secondary);">Loading High-Resolution Map...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="latitude" class="form-label">Latitude</label>
+                        <input type="number" id="latitude" required step="any" value="14.425" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="longitude" class="form-label">Longitude</label>
+                        <input type="number" id="longitude" required step="any" value="121.440" class="form-input">
+                    </div>
+                </div>
+
+                <!-- Section 3. Contact Information -->
+                <h3 class="form-step-title">Section 3. Contact Information</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="contactEmail" class="form-label">Email Address * (Account Email)</label>
+                        <input type="email" id="contactEmail" required readonly class="form-input" style="background-color: var(--bg-secondary); cursor: not-allowed;" title="Auto-filled from your registered landlord account">
+                        <span style="display: block; font-size: 0.725rem; margin-top: 0.25rem; color: #10b981; font-weight: 500;">✓ Auto-filled from landlord account</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactNumber" class="form-label">Contact Number *</label>
+                        <input type="text" id="contactNumber" required placeholder="+63 9XX XXX XXXX" class="form-input">
+                        <span id="contactNoNotice" style="display: block; font-size: 0.725rem; margin-top: 0.25rem; font-weight: 500;"></span>
+                    </div>
+                </div>
+
+                <!-- Section 4. Property Information -->
+                <h3 class="form-step-title">Section 4. Property Building Specs</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="totalFloors" class="form-label">Total Floors *</label>
+                        <input type="number" id="totalFloors" required min="1" value="2" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxOccupants" class="form-label">Total Rental Units / Rooms *</label>
+                        <input type="number" id="maxOccupants" required min="1" value="5" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="totalCapacity" class="form-label">Total Capacity (Optional)</label>
+                        <input type="number" id="totalCapacity" min="1" placeholder="e.g. 20 persons" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="prefTenantType" class="form-label">Tenant Suitability *</label>
+                    <select id="prefTenantType" required class="form-select">
+                        <option value="student">Student</option>
+                        <option value="worker">Employee / Worker</option>
+                        <option value="family">Family</option>
+                        <option value="general">Mixed / General</option>
+                    </select>
+                </div>
+
+                <!-- Section 5. Shared Amenities -->
+                <h3 class="form-step-title">Section 5. Shared Amenities</h3>
+                <div class="form-group">
+                    <label class="form-label">Select Shared Amenities Available at Building</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; background-color: var(--bg-primary); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="WiFi"> Wi-Fi</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Parking"> Parking Area</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="CCTV"> CCTV</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Water Supply"> Water Supply</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Electricity"> Electricity</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Laundry Area"> Laundry Area</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Kitchen Access"> Kitchen</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Dining Area"> Dining Area</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Study Area"> Study Area</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Common Bathroom"> Common Bathroom</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Security Gate"> Security Gate</label>
+                        <label class="checkbox-label" style="cursor: pointer;"><input type="checkbox" class="amenity-cb" value="Garbage Collection"> Garbage Collection</label>
+                    </div>
+                </div>
+
+                <!-- Section 6. Property Rules & Guidelines -->
+                <h3 class="form-step-title">Section 6. Property Rules & Guidelines</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: -0.5rem; margin-bottom: 1rem;">
+                    Select predefined policy choices below or add custom policies for your property.
+                </p>
+
+                <!-- Grid container for popped-up policy cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.85rem; margin-bottom: 1rem;" id="policiesGrid">
+                    <div id="customPoliciesContainer" style="display:contents;"></div>
+                </div>
+
+                <!-- Quick Add Policy Chips -->
+                <div style="margin-top:0.5rem;margin-bottom:1rem;padding:0.85rem;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                    <div style="font-size:0.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:0.5rem;">Select Predefined Policy Choices (Click chip to add):</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+                        <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Smoking Policy', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Smoking Policy</button>
+                        <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Pet Policy', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Pet Policy</button>
+                        <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Overnight Guests', 'Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Overnight Guests</button>
+                        <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Subleasing & Sharing', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Subleasing & Sharing</button>
+                        <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Unit Alterations & Painting', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Unit Alterations & Painting</button>
+                        <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Day Visitors', 'Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Day Visitors</button>
+                        <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Loud Music & Parties', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Loud Music & Parties</button>
+                        <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Commercial Business Use', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Commercial Business Use</button>
+                        <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Outdoor Laundry Drying', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.75rem;border-radius:var(--radius-sm);font-size:0.8rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Outdoor Laundry Drying</button>
+                    </div>
+                </div>
+
+                <!-- Add Custom Policy Input Bar -->
+                <div style="margin-top:0.75rem;margin-bottom:1.25rem;display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:240px;">
+                        <input type="text" id="customPolicyNameInput" class="form-input" placeholder="Add custom policy (e.g. Appliance Wattage Limit, Keycard Deposit)..." style="font-size:0.85rem;padding:0.5rem 0.85rem;">
+                    </div>
+                    <button type="button" id="addCustomPolicyBtn" onclick="handleAddCustomPolicy()" style="background:var(--landlord);color:white;border:none;padding:0.5rem 1.1rem;border-radius:var(--radius-md);font-size:0.85rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;transition:all 0.2s;white-space:nowrap;">
+                        <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block;vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Add Custom Policy Choice
+                    </button>
+                </div>
+
+                <!-- Additional House Rules & Guidelines Textarea -->
+                <div class="form-group" style="margin-top:0.5rem;">
+                    <label for="houseRules" class="form-label" style="font-weight:700;">Additional House Rules & Specific Premises Guidelines</label>
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:-0.25rem;margin-bottom:0.5rem;">Enter detailed guidelines, curfews, quiet hours, or specific property instructions for tenants.</div>
+                    <textarea id="houseRules" rows="3" placeholder="State curfews, quiet hours, specific instructions for tenants..." class="form-textarea"></textarea>
+                </div>
+
+                <div class="card-action-bar">
+                    <a href="properties.html" class="navbar-btn" style="text-decoration: none;">Cancel</a>
+                    <button type="submit" id="btnRegisterSubmit" class="btn-primary" style="width: auto; padding: 0.75rem 2rem; background-color: var(--landlord); display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <span>Save & Proceed to Documents</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 2: UPLOAD DOCUMENTS -->
+        <!-- ========================================== -->
+        <div id="stepPanel2" class="profile-card hidden">
+            <h3 class="form-step-title" style="margin-top: 0;">Step 2. Upload Legal Documents & Permits</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem;">
+                Upload proof of property ownership and business permits required for administrator verification. (Allowed formats: PDF, JPG, PNG up to 10MB).
+            </p>
+
+            <div class="upload-grid">
+                <!-- Slot 1: Proof of Ownership / Authorization -->
+                <div class="upload-card">
+                    <div>
+                        <div class="upload-card-title">1. Proof of Ownership / Authorization *</div>
+                        <div class="upload-card-desc">Title Deed, Tax Declaration, or Authorization Letter from owner.</div>
+                        <div id="statusDocOwnership" style="font-size: 0.75rem; margin-bottom: 0.5rem; color: var(--text-muted);">Status: Pending Upload</div>
+                    </div>
+                    <input type="file" id="fileDocOwnership" accept=".pdf, .jpg, .jpeg, .png" class="form-input" style="font-size: 0.8125rem;">
+                </div>
+
+                <!-- Slot 2: Business Permit -->
+                <div class="upload-card">
+                    <div>
+                        <div class="upload-card-title">2. Business Permit (If applicable) *</div>
+                        <div class="upload-card-desc">Mayors Permit or DTI Registration certificate.</div>
+                        <div id="statusDocPermit" style="font-size: 0.75rem; margin-bottom: 0.5rem; color: var(--text-muted);">Status: Pending Upload</div>
+                    </div>
+                    <input type="file" id="fileDocPermit" accept=".pdf, .jpg, .jpeg, .png" class="form-input" style="font-size: 0.8125rem;">
+                </div>
+
+                <!-- Slot 3: Barangay Clearance -->
+                <div class="upload-card">
+                    <div>
+                        <div class="upload-card-title">3. Barangay Clearance</div>
+                        <div class="upload-card-desc">Barangay clearance certificate for rental property operation.</div>
+                        <div id="statusDocBrgy" style="font-size: 0.75rem; margin-bottom: 0.5rem; color: var(--text-muted);">Status: Optional</div>
+                    </div>
+                    <input type="file" id="fileDocBrgy" accept=".pdf, .jpg, .jpeg, .png" class="form-input" style="font-size: 0.8125rem;">
+                </div>
+
+                <!-- Slot 4: Valid Government ID -->
+                <div class="upload-card">
+                    <div>
+                        <div class="upload-card-title">4. Valid Government ID *</div>
+                        <div class="upload-card-desc">Landlords passport, UMID, Drivers License, or National ID.</div>
+                        <div id="statusDocGovId" style="font-size: 0.75rem; margin-bottom: 0.5rem; color: var(--text-muted);">Status: Pending Upload</div>
+                    </div>
+                    <input type="file" id="fileDocGovId" accept=".pdf, .jpg, .jpeg, .png" class="form-input" style="font-size: 0.8125rem;">
+                </div>
+            </div>
+
+            <div class="card-action-bar" style="justify-content: space-between;">
+                <button type="button" id="btnBackToStep1" onclick="goToStep(1)" class="location-btn">← Back to Property Details</button>
+                <button type="button" id="btnProceedToPhotos" onclick="uploadStep2Documents()" class="btn-primary" style="width: auto; padding: 0.75rem 2rem; background-color: var(--landlord);">
+                    Proceed to Property Photos →
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 3: PROPERTY PHOTOS -->
+        <!-- ========================================== -->
+        <div id="stepPanel3" class="profile-card hidden">
+            <h3 class="form-step-title" style="margin-top: 0;">Step 3. Property Building Photos</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem;">
+                Upload photos of your rental building. Clear photos help tenants discover and apply to your property. (Allowed formats: JPG, PNG, WEBP up to 5MB).
+            </p>
+
+            <div class="upload-grid">
+                <!-- Photo 1: Building Front View (Main Cover) -->
+                <div class="upload-card">
+                    <div>
+                        <div class="upload-card-title">1. Building Front View (Cover Photo) *</div>
+                        <div class="upload-card-desc">Main facade photo shown in discovery search list.</div>
+                        <div id="statusPhotoFront" style="font-size: 0.75rem; color: var(--text-muted);">Status: Pending Photo</div>
+                    </div>
+                    <div>
+                        <img id="previewPhotoFront" src="" alt="" class="photo-preview hidden">
+                        <input type="file" id="filePhotoFront" accept=".jpg, .jpeg, .png, .webp" class="form-input" style="font-size: 0.8125rem; margin-top: 0.5rem;" onchange="previewSelectedImage(this, 'previewPhotoFront')">
+                    </div>
+                </div>
+
+                <!-- Photo 2: Entrance Photo -->
+                <div class="upload-card">
+                    <div>
+                        <div class="upload-card-title">2. Main Entrance</div>
+                        <div class="upload-card-desc">Entrance gate or doorway view.</div>
+                        <div id="statusPhotoEntrance" style="font-size: 0.75rem; color: var(--text-muted);">Status: Pending Photo</div>
+                    </div>
+                    <div>
+                        <img id="previewPhotoEntrance" src="" alt="" class="photo-preview hidden">
+                        <input type="file" id="filePhotoEntrance" accept=".jpg, .jpeg, .png, .webp" class="form-input" style="font-size: 0.8125rem; margin-top: 0.5rem;" onchange="previewSelectedImage(this, 'previewPhotoEntrance')">
+                    </div>
+                </div>
+
+                <!-- Photo 3: Hallway / Common Area -->
+                <div class="upload-card">
+                    <div>
+                        <div class="upload-card-title">3. Hallway / Common Area</div>
+                        <div class="upload-card-desc">Corridor, lobby, or shared space view.</div>
+                        <div id="statusPhotoHallway" style="font-size: 0.75rem; color: var(--text-muted);">Status: Pending Photo</div>
+                    </div>
+                    <div>
+                        <img id="previewPhotoHallway" src="" alt="" class="photo-preview hidden">
+                        <input type="file" id="filePhotoHallway" accept=".jpg, .jpeg, .png, .webp" class="form-input" style="font-size: 0.8125rem; margin-top: 0.5rem;" onchange="previewSelectedImage(this, 'previewPhotoHallway')">
+                    </div>
+                </div>
+
+                <!-- Photo 4: Parking Area -->
+                <div class="upload-card">
+                    <div>
+                        <div class="upload-card-title">4. Parking Area (Optional)</div>
+                        <div class="upload-card-desc">Vehicle or motorcycle parking area view.</div>
+                        <div id="statusPhotoParking" style="font-size: 0.75rem; color: var(--text-muted);">Status: Optional</div>
+                    </div>
+                    <div>
+                        <img id="previewPhotoParking" src="" alt="" class="photo-preview hidden">
+                        <input type="file" id="filePhotoParking" accept=".jpg, .jpeg, .png, .webp" class="form-input" style="font-size: 0.8125rem; margin-top: 0.5rem;" onchange="previewSelectedImage(this, 'previewPhotoParking')">
+                    </div>
+                </div>
+
+                <!-- Photo 5: Exterior View -->
+                <div class="upload-card">
+                    <div>
+                        <div class="upload-card-title">5. Exterior / Surroundings</div>
+                        <div class="upload-card-desc">Street view or exterior surrounding view.</div>
+                        <div id="statusPhotoExterior" style="font-size: 0.75rem; color: var(--text-muted);">Status: Pending Photo</div>
+                    </div>
+                    <div>
+                        <img id="previewPhotoExterior" src="" alt="" class="photo-preview hidden">
+                        <input type="file" id="filePhotoExterior" accept=".jpg, .jpeg, .png, .webp" class="form-input" style="font-size: 0.8125rem; margin-top: 0.5rem;" onchange="previewSelectedImage(this, 'previewPhotoExterior')">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-action-bar" style="justify-content: space-between;">
+                <button type="button" id="btnBackToStep2" onclick="goToStep(2)" class="location-btn">← Back to Documents</button>
+                <button type="button" id="btnFinishRegistration" onclick="uploadStep3Photos()" class="btn-primary" style="width: auto; padding: 0.75rem 2.5rem; background-color: var(--success);">
+                    Complete Property Registration 🎉
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let map, marker;
+        const defaultLat = 14.4235;
+        const defaultLng = 121.4450;
+        let createdPropertyId = null;
+        const customPolicies = [];
+
+        // Ensure all interactive handler functions are explicitly globally attached to window
+        window.goToStep = goToStep;
+        window.addRuleTag = addRuleTag;
+        window.toggleRuleChip = toggleRuleChip;
+        window.uploadStep2Documents = uploadStep2Documents;
+        window.uploadStep3Photos = uploadStep3Photos;
+        window.previewSelectedImage = previewSelectedImage;
+        window.getUserLocation = getUserLocation;
+        window.searchByAddress = searchByAddress;
+        window.handleAddCustomPolicy = handleAddCustomPolicy;
+        window.addCustomPolicyCard = addCustomPolicyCard;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            
+            setTimeout(() => {
+                try {
+                    initializeMap();
+                } catch (err) {
+                    console.error('Map initialization error:', err);
+                }
+            }, 400);
+            
+            fetchLandlordProfile();
+
+            const form = document.getElementById('createPropertyForm');
+            if (form) form.addEventListener('submit', handleStep1Submit);
+
+            const btnGetLoc = document.getElementById('btnGetLocation');
+            if (btnGetLoc) btnGetLoc.addEventListener('click', getUserLocation);
+
+            const btnSearchAddr = document.getElementById('btnSearchAddress');
+            if (btnSearchAddr) btnSearchAddr.addEventListener('click', searchByAddress);
+            
+            const latInput = document.getElementById('latitude');
+            if (latInput) latInput.addEventListener('change', updateMapFromInputs);
+
+            const lngInput = document.getElementById('longitude');
+            if (lngInput) lngInput.addEventListener('change', updateMapFromInputs);
+
+            // Bind policy radio cards
+            setupRadioCardEvents('smoking_policy', null);
+            setupRadioCardEvents('pet_policy', 'petConditionsBox');
+            setupRadioCardEvents('guest_policy', null);
+            setupRadioCardEvents('sublease_policy', null);
+            setupRadioCardEvents('alteration_policy', null);
+            setupRadioCardEvents('day_visitors_policy', null);
+            setupRadioCardEvents('loud_music_policy', null);
+            setupRadioCardEvents('business_use_policy', null);
+            setupRadioCardEvents('laundry_drying_policy', null);
+
+            // Custom policy name input Enter key listener
+            const customInput = document.getElementById('customPolicyNameInput');
+            if (customInput) {
+                customInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomPolicy();
+                    }
+                });
+            }
+        });
+
+        function handleAddCustomPolicy() {
+            const input = document.getElementById('customPolicyNameInput');
+            if (!input) return;
+            const name = input.value.trim();
+            if (!name) {
+                alert('Please enter a custom policy name.');
+                return;
+            }
+            addCustomPolicyCard(name, 'Not Allowed');
+            input.value = '';
+        }
+
+        function addCustomPolicyCard(name, defaultValue = 'Not Allowed') {
+            const container = document.getElementById('customPoliciesContainer');
+            if (!container) return;
+
+            const existingIdx = customPolicies.findIndex(p => p && p.name && p.name.toLowerCase() === name.toLowerCase());
+            if (existingIdx !== -1) {
+                alert(`"${name}" is already in choices list.`);
+                return;
+            }
+
+            const policyObj = { name, value: defaultValue };
+            customPolicies.push(policyObj);
+            const index = customPolicies.length - 1;
+
+            const card = document.createElement('div');
+            card.className = 'form-group';
+            card.style.cssText = 'background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:0.85rem;margin-bottom:0;position:relative;';
+
+            card.innerHTML = `
+                <div style="display:flex;justify-space-between;align-items:center;margin-bottom:0.35rem;">
+                    <label class="form-label" style="font-weight:700;font-size:0.85rem;color:var(--text-primary);margin-bottom:0;word-break:break-word;">${name.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</label>
+                    <button type="button" onclick="removeCustomPolicyCard(${index}, this)" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0;font-size:0.75rem;line-height:1;" title="Remove Policy">✕</button>
+                </div>
+                <div class="radio-card-group">
+                    <label class="radio-card ${defaultValue === 'Allowed' ? 'selected' : ''}" style="padding:0.45rem;">
+                        <input type="radio" name="custom_policy_${index}" value="Allowed" ${defaultValue === 'Allowed' ? 'checked' : ''}> Allowed
+                    </label>
+                    <label class="radio-card ${defaultValue === 'Not Allowed' ? 'selected-not' : ''}" style="padding:0.45rem;">
+                        <input type="radio" name="custom_policy_${index}" value="Not Allowed" ${defaultValue === 'Not Allowed' ? 'checked' : ''}> Not Allowed
+                    </label>
+                </div>
+            `;
+
+            container.appendChild(card);
+            setupRadioCardEvents(`custom_policy_${index}`, null, (val) => {
+                if (customPolicies[index]) customPolicies[index].value = val;
+            });
+            syncPolicyChips();
+        }
+
+        function syncPolicyChips() {
+            const activeNames = new Set(customPolicies.filter(Boolean).map(p => p.name.trim().toLowerCase()));
+            document.querySelectorAll('.btn-chip').forEach(btn => {
+                const chipText = btn.textContent.replace(/^\+\s*/, '').trim().toLowerCase();
+                const isMatch = Array.from(activeNames).some(activeName => {
+                    return activeName === chipText || activeName.includes(chipText) || chipText.includes(activeName);
+                });
+                if (isMatch) {
+                    btn.style.display = 'none';
+                } else {
+                    btn.style.display = 'inline-flex';
+                }
+            });
+        }
+
+        window.addCustomPolicyCard = addCustomPolicyCard;
+        window.handleAddCustomPolicy = handleAddCustomPolicy;
+        window.syncPolicyChips = syncPolicyChips;
+
+        window.removeCustomPolicyCard = function(index, btnElem) {
+            const card = btnElem.closest('.form-group');
+            if (card) card.remove();
+            if (customPolicies[index]) {
+                customPolicies[index] = null;
+            }
+            syncPolicyChips();
+        };
+
+        function setupRadioCardEvents(radioName, conditionalBoxId = null, onChangeCallback = null) {
+            const radios = document.querySelectorAll(`input[name="${radioName}"]`);
+            radios.forEach(radio => {
+                const card = radio.closest('.radio-card');
+                if (radio.checked && card) {
+                    if (radio.value === 'Allowed' || radio.value === 'Included' || radio.value === 'Enforced') {
+                        card.classList.add('selected');
+                        card.classList.remove('selected-not');
+                    } else {
+                        card.classList.add('selected-not');
+                        card.classList.remove('selected');
+                    }
+                }
+
+                radio.addEventListener('change', () => {
+                    radios.forEach(r => {
+                        const rCard = r.closest('.radio-card');
+                        if (rCard) {
+                            rCard.classList.remove('selected', 'selected-not');
+                        }
+                    });
+
+                    if (radio.checked && card) {
+                        if (radio.value === 'Allowed' || radio.value === 'Included' || radio.value === 'Enforced') {
+                            card.classList.add('selected');
+                        } else {
+                            card.classList.add('selected-not');
+                        }
+                    }
+
+                    if (conditionalBoxId) {
+                        const box = document.getElementById(conditionalBoxId);
+                        if (box) {
+                            if (radio.value === 'Allowed' || radio.value === 'Included') {
+                                box.classList.remove('hidden');
+                            } else {
+                                box.classList.add('hidden');
+                            }
+                        }
+                    }
+
+                    if (onChangeCallback) onChangeCallback(radio.value);
+                });
+
+                if (card) {
+                    card.addEventListener('click', (e) => {
+                        if (e.target !== radio) {
+                            radio.checked = true;
+                            radio.dispatchEvent(new Event('change'));
+                        }
+                    });
+                }
+            });
+        }
+
+        function goToStep(stepNumber) {
+            if ((stepNumber === 2 || stepNumber === 3) && !createdPropertyId) {
+                alert('Please complete and save Step 1 (Property Details) first before proceeding to documents or photos.');
+                return;
+            }
+
+            document.getElementById('stepPanel1').classList.add('hidden');
+            document.getElementById('stepPanel2').classList.add('hidden');
+            document.getElementById('stepPanel3').classList.add('hidden');
+
+            document.getElementById('stepHeader1').className = 'step-header';
+            document.getElementById('stepHeader2').className = 'step-header';
+            document.getElementById('stepHeader3').className = 'step-header';
+
+            if (stepNumber === 1) {
+                document.getElementById('stepPanel1').classList.remove('hidden');
+                document.getElementById('stepHeader1').className = 'step-header active';
+            } else if (stepNumber === 2) {
+                document.getElementById('stepPanel2').classList.remove('hidden');
+                document.getElementById('stepHeader1').className = 'step-header completed';
+                document.getElementById('stepHeader2').className = 'step-header active';
+            } else if (stepNumber === 3) {
+                document.getElementById('stepPanel3').classList.remove('hidden');
+                document.getElementById('stepHeader1').className = 'step-header completed';
+                document.getElementById('stepHeader2').className = 'step-header completed';
+                document.getElementById('stepHeader3').className = 'step-header active';
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleRuleChip(elem, ruleText) {
+            const rulesArea = document.getElementById('houseRules');
+            if (!rulesArea) return;
+
+            let currentRules = rulesArea.value.split('\n').map(r => r.trim()).filter(Boolean);
+            
+            if (elem.classList.contains('active-chip')) {
+                elem.classList.remove('active-chip');
+                elem.innerHTML = `+ ${ruleText.replace(/[\.\s]*$/, '')}`;
+                currentRules = currentRules.filter(r => r !== ruleText);
+            } else {
+                elem.classList.add('active-chip');
+                elem.innerHTML = `✓ ${ruleText.replace(/[\.\s]*$/, '')}`;
+                if (!currentRules.includes(ruleText)) {
+                    currentRules.push(ruleText);
+                }
+            }
+            rulesArea.value = currentRules.join('\n');
+        }
+
+        function addRuleTag(text) {
+            const rulesArea = document.getElementById('houseRules');
+            if (!rulesArea) return;
+            if (rulesArea.value.trim() === '') {
+                rulesArea.value = text;
+            } else if (!rulesArea.value.includes(text)) {
+                rulesArea.value = rulesArea.value.trim() + '\n' + text;
+            }
+        }
+
+        async function fetchLandlordProfile() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+
+                const result = await response.json();
+                if (result.success && result.data) {
+                    const u = result.data;
+                    
+                    const emailInput = document.getElementById('contactEmail');
+                    if (emailInput && u.email) {
+                        emailInput.value = u.email;
+                    }
+
+                    const phoneInput = document.getElementById('contactNumber');
+                    const noticeSpan = document.getElementById('contactNoNotice');
+                    if (phoneInput) {
+                        if (u.contact_number && u.contact_number.trim() !== '') {
+                            phoneInput.value = u.contact_number.trim();
+                            if (noticeSpan) {
+                                noticeSpan.style.color = '#10b981';
+                                noticeSpan.textContent = '✓ Auto-filled from profile';
+                            }
+                        } else {
+                            if (noticeSpan) {
+                                noticeSpan.style.color = 'var(--primary)';
+                                noticeSpan.textContent = 'ℹ️ Please enter active phone number';
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching profile:', err);
+            }
+        }
+
+        const SINILOAN_BARANGAYS = [
+            { name: "G. Redor", lat: 14.4234, lng: 121.4448 },
+            { name: "Mendiola", lat: 14.4279, lng: 121.4484 },
+            { name: "Pandeño", lat: 14.4160, lng: 121.4432 },
+            { name: "Salubungan", lat: 14.4215, lng: 121.4473 },
+            { name: "Halayhayin", lat: 14.4241, lng: 121.4486 },
+            { name: "Bagumbarangay", lat: 14.4212, lng: 121.4461 },
+            { name: "P. Burgos", lat: 14.4215, lng: 121.4430 },
+            { name: "Macasipac", lat: 14.4320, lng: 121.4450 },
+            { name: "Acevida", lat: 14.4250, lng: 121.4560 },
+            { name: "Wawa", lat: 14.4146, lng: 121.4453 },
+            { name: "Laguio", lat: 14.4080, lng: 121.4480 },
+            { name: "Liyang", lat: 14.4703, lng: 121.4904 },
+            { name: "Kapatalan", lat: 14.4825, lng: 121.5001 },
+            { name: "Llavac", lat: 14.4950, lng: 121.5200 },
+            { name: "Castro", lat: 14.4225, lng: 121.4440 },
+            { name: "Bagong Pag-asa", lat: 14.4220, lng: 121.4450 },
+            { name: "Jose Rizal", lat: 14.4230, lng: 121.4435 },
+            { name: "Valderrama", lat: 14.4240, lng: 121.4455 },
+            { name: "San Jose", lat: 14.4320, lng: 121.4550 },
+            { name: "San Antonio", lat: 14.4350, lng: 121.4580 }
+        ];
+
+        function getClosestSiniloanBarangay(lat, lng) {
+            let minDistance = Infinity;
+            let closestName = "G. Redor";
+
+            for (const bgy of SINILOAN_BARANGAYS) {
+                const R = 6371; // Earth radius in km
+                const dLat = (bgy.lat - lat) * Math.PI / 180;
+                const dLng = (bgy.lng - lng) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                          Math.cos(lat * Math.PI / 180) * Math.cos(bgy.lat * Math.PI / 180) *
+                          Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const dist = R * c;
+
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestName = bgy.name;
+                }
+            }
+            return closestName;
+        }
+
+        function initializeMap() {
+            if (typeof L === 'undefined') return;
+
+            try {
+                // High Resolution Map Layers
+                const cartoVoyagerHD = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 21,
+                    maxNativeZoom: 20,
+                    subdomains: 'abcd',
+                    detectRetina: true,
+                    attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap'
+                });
+
+                const satelliteBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, detectRetina: true });
+                const labelsOverlay = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, detectRetina: true });
+                const esriSatelliteHD = L.layerGroup([satelliteBase, labelsOverlay]);
+
+                const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, detectRetina: true });
+
+                const baseMaps = {
+                    "🗺️ CARTO HD Street Vector (Recommended)": cartoVoyagerHD,
+                    "🛰️ Esri HD Satellite Hybrid": esriSatelliteHD,
+                    "🌐 OpenStreetMap Standard": osmStandard
+                };
+
+                map = L.map('locationMap', {
+                    zoomControl: true,
+                    layers: [cartoVoyagerHD]
+                }).setView([defaultLat, defaultLng], 17);
+
+                L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+                const customPinIcon = L.divIcon({
+                    className: 'custom-map-pin',
+                    html: `
+                        <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); width: 38px; height: 38px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(37,99,235,0.5); border: 2.5px solid #ffffff;">
+                            <div style="transform: rotate(45deg);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    `,
+                    iconSize: [38, 38],
+                    iconAnchor: [19, 38]
+                });
+
+                marker = L.marker([defaultLat, defaultLng], { draggable: true, icon: customPinIcon }).addTo(map);
+
+                const loadingIndicator = document.getElementById('mapLoadingIndicator');
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+
+                setTimeout(() => map.invalidateSize(), 200);
+
+                marker.on('dragend', function() {
+                    const pos = marker.getLatLng();
+                    updateCoordinates(pos.lat, pos.lng);
+                    reverseGeocode(pos.lat, pos.lng);
+                });
+
+                map.on('click', function(e) {
+                    const { lat, lng } = e.latlng;
+                    marker.setLatLng([lat, lng]);
+                    map.panTo([lat, lng]);
+                    updateCoordinates(lat, lng);
+                    reverseGeocode(lat, lng);
+                });
+
+                updateCoordinates(defaultLat, defaultLng);
+                reverseGeocode(defaultLat, defaultLng);
+            } catch (err) {
+                console.error('Error in initializeMap:', err);
+            }
+        }
+
+        function centerSiniloanMap() {
+            if (map && marker) {
+                map.setView([defaultLat, defaultLng], 17);
+                marker.setLatLng([defaultLat, defaultLng]);
+                updateCoordinates(defaultLat, defaultLng);
+                reverseGeocode(defaultLat, defaultLng);
+            }
+        }
+        window.centerSiniloanMap = centerSiniloanMap;
+
+        function updateCoordinates(lat, lng) {
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lng.toFixed(6);
+        }
+
+        function updateMapFromInputs() {
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lng = parseFloat(document.getElementById('longitude').value);
+            if (!isNaN(lat) && !isNaN(lng) && marker && map) {
+                marker.setLatLng([lat, lng]);
+                map.panTo([lat, lng]);
+                reverseGeocode(lat, lng);
+            }
+        }
+
+        function getUserLocation() {
+            const btn = document.getElementById('btnGetLocation');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Getting location...';
+            }
+
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                if (btn) btn.disabled = false;
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    if (marker && map) {
+                        marker.setLatLng([lat, lng]);
+                        map.setView([lat, lng], 17);
+                    }
+                    updateCoordinates(lat, lng);
+                    reverseGeocode(lat, lng);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Get My Current Location';
+                    }
+                },
+                (error) => {
+                    alert('Unable to get location automatically.');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Get My Current Location';
+                    }
+                }
+            );
+        }
+
+        async function reverseGeocode(lat, lng) {
+            const statusLabel = document.getElementById('bgyDetectStatus');
+            if (statusLabel) {
+                statusLabel.style.color = 'var(--primary)';
+                statusLabel.textContent = '⚡ Precision Geocoding Pin...';
+            }
+
+            let detectedStreet = '';
+
+            // 1. Esri World Geocoding API (High Precision for Philippines)
+            try {
+                const esriUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?location=${lng},${lat}&f=json`;
+                const res = await fetch(esriUrl);
+                const data = await res.json();
+                if (data && data.address) {
+                    const a = data.address;
+                    detectedStreet = a.Address || a.StAddr || a.Match_addr || a.Neighborhood || '';
+                }
+            } catch (e) {
+                console.warn('Esri geocode notice:', e);
+            }
+
+            // 2. Fallback to Nominatim if street not found
+            if (!detectedStreet) {
+                try {
+                    const nomUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+                    const nomRes = await fetch(nomUrl);
+                    const nomData = await nomRes.json();
+                    if (nomData && nomData.address) {
+                        const addr = nomData.address;
+                        detectedStreet = addr.road || addr.street || addr.suburb || '';
+                    }
+                } catch (e) {
+                    console.warn('Nominatim geocode notice:', e);
+                }
+            }
+
+            // 3. Exact Siniloan Barangay Matching via Haversine Engine
+            const matchedBarangay = getClosestSiniloanBarangay(lat, lng);
+
+            if (detectedStreet && document.getElementById('address')) {
+                const cleanStreet = detectedStreet.split(',')[0].replace(/Siniloan|Laguna|4005|Philippines/gi, '').trim();
+                if (cleanStreet) {
+                    document.getElementById('address').value = cleanStreet;
+                }
+            }
+
+            const selectElem = document.getElementById('barangay');
+            if (selectElem && matchedBarangay) {
+                selectElem.value = matchedBarangay;
+                selectElem.style.borderColor = '#10b981';
+                selectElem.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.25)';
+                setTimeout(() => {
+                    selectElem.style.borderColor = '';
+                    selectElem.style.boxShadow = '';
+                }, 1500);
+            }
+
+            if (statusLabel) {
+                statusLabel.style.color = '#10b981';
+                statusLabel.textContent = `✓ Auto-detected Barangay: ${matchedBarangay}`;
+            }
+
+            if (marker) {
+                const streetVal = document.getElementById('address') ? document.getElementById('address').value : '';
+                const popupHtml = `
+                    <div style="font-family: inherit; font-size: 0.8125rem; line-height: 1.4; padding: 2px;">
+                        <div style="font-weight: 800; color: #2563eb; margin-bottom: 2px;">📍 Pin Target</div>
+                        <div style="font-weight: 700; color: #1e293b; font-size: 0.875rem;">Brgy. ${matchedBarangay}</div>
+                        <div style="color: #64748b; font-size: 0.75rem; margin-top: 2px;">${streetVal || 'Siniloan, Laguna'}</div>
+                    </div>
+                `;
+                marker.bindPopup(popupHtml).openPopup();
+            }
+        }
+
+        function searchByAddress() {
+            const address = prompt('Enter street or location in Siniloan:');
+            if (!address) return;
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}, Siniloan, Laguna, Philippines`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lng = parseFloat(data[0].lon);
+                        if (marker && map) {
+                            marker.setLatLng([lat, lng]);
+                            map.setView([lat, lng], 17);
+                        }
+                        updateCoordinates(lat, lng);
+                        reverseGeocode(lat, lng);
+                    } else {
+                        alert('Address not found in Siniloan.');
+                    }
+                });
+        }
+
+        // ==========================================
+        // SUBMIT STEP 1
+        // ==========================================
+        async function handleStep1Submit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnRegisterSubmit');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Saving Property Details...';
+            }
+
+            const amenities = [];
+            document.querySelectorAll('.amenity-cb:checked').forEach(cb => amenities.push(cb.value));
+
+            const streetAddr = document.getElementById('address').value.trim();
+            const landmarkVal = document.getElementById('landmark').value.trim();
+            const fullAddr = landmarkVal ? `${streetAddr} (Near ${landmarkVal})` : streetAddr;
+
+            // Gather Section 6 policy choices selected by landlord
+            const chosenPolicies = customPolicies.filter(Boolean);
+            const freeformRules = document.getElementById('houseRules').value.trim();
+
+            const houseRulesPayload = JSON.stringify({
+                house_rules: freeformRules,
+                custom_policies: chosenPolicies
+            });
+
+            const payload = {
+                property_name: document.getElementById('propertyName').value,
+                property_type: document.getElementById('propertyType').value,
+                description: document.getElementById('description').value,
+                address: fullAddr,
+                barangay: document.getElementById('barangay').value,
+                municipality: 'Siniloan',
+                province: 'Laguna',
+                latitude: document.getElementById('latitude').value,
+                longitude: document.getElementById('longitude').value,
+                monthly_rent: 0,
+                max_occupants: document.getElementById('maxOccupants').value,
+                tenant_type_suitability: document.getElementById('prefTenantType').value,
+                house_rules: houseRulesPayload,
+                total_floors: document.getElementById('totalFloors').value || 1,
+                total_capacity: document.getElementById('totalCapacity').value || null,
+                amenities
+            };
+
+            try {
+                let response, result;
+                if (createdPropertyId) {
+                    response = await fetch(`/api/landlord/properties/${createdPropertyId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    response = await fetch('/api/landlord/properties', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                result = await response.json();
+                
+                if (response.ok && result.data) {
+                    createdPropertyId = result.data.id;
+                    const feedback = document.getElementById('createFeedback');
+                    if (feedback) {
+                        feedback.textContent = 'Step 1 Complete: Property details saved! Please upload legal documents.';
+                        feedback.classList.remove('hidden');
+                        setTimeout(() => feedback.classList.add('hidden'), 3000);
+                    }
+
+                    goToStep(2);
+                } else {
+                    alert(result.message || 'Saving property details failed.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred while saving property details.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<span>Save & Proceed to Documents</span> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
+                }
+            }
+        }
+
+        // ==========================================
+        // SUBMIT STEP 2 (DOCUMENTS)
+        // ==========================================
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function uploadSingleDocument(fileInputId, docType, statusElemId) {
+            const input = document.getElementById(fileInputId);
+            const statusElem = document.getElementById(statusElemId);
+            if (!input || !input.files || input.files.length === 0) return true;
+
+            const file = input.files[0];
+            if (statusElem) {
+                statusElem.style.color = 'var(--primary)';
+                statusElem.textContent = `Uploading ${file.name}...`;
+            }
+
+            try {
+                const base64 = await fileToBase64(file);
+                const payload = {
+                    file_name: file.name,
+                    mime_type: file.type,
+                    file_size: file.size,
+                    document_type: docType,
+                    base64_content: base64
+                };
+
+                const res = await fetch(`/api/landlord/properties/${createdPropertyId}/documents`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    if (statusElem) {
+                        statusElem.style.color = 'var(--success)';
+                        statusElem.textContent = `✓ Uploaded: ${file.name}`;
+                    }
+                    return true;
+                } else {
+                    const errRes = await res.json();
+                    if (statusElem) {
+                        statusElem.style.color = 'var(--error)';
+                        statusElem.textContent = `❌ ${errRes.message || 'Upload failed'}`;
+                    }
+                    return false;
+                }
+            } catch (err) {
+                console.error(err);
+                if (statusElem) {
+                    statusElem.style.color = 'var(--error)';
+                    statusElem.textContent = `❌ Upload failed`;
+                }
+                return false;
+            }
+        }
+
+        async function uploadStep2Documents() {
+            if (!createdPropertyId) {
+                alert('Property details missing. Please complete Step 1 first.');
+                goToStep(1);
+                return;
+            }
+
+            const btn = document.getElementById('btnProceedToPhotos');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Uploading Documents...';
+            }
+
+            await uploadSingleDocument('fileDocOwnership', 'ownership_proof', 'statusDocOwnership');
+            await uploadSingleDocument('fileDocPermit', 'government_permit', 'statusDocPermit');
+            await uploadSingleDocument('fileDocBrgy', 'legal_document', 'statusDocBrgy');
+            await uploadSingleDocument('fileDocGovId', 'legal_document', 'statusDocGovId');
+
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Proceed to Property Photos →';
+            }
+
+            goToStep(3);
+        }
+
+        // ==========================================
+        // SUBMIT STEP 3 (PHOTOS)
+        // ==========================================
+        function previewSelectedImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (preview && input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function uploadSinglePhoto(fileInputId, isMain, statusElemId) {
+            const input = document.getElementById(fileInputId);
+            const statusElem = document.getElementById(statusElemId);
+            if (!input || !input.files || input.files.length === 0) return true;
+
+            const file = input.files[0];
+            if (statusElem) {
+                statusElem.style.color = 'var(--primary)';
+                statusElem.textContent = `Uploading ${file.name}...`;
+            }
+
+            try {
+                const base64 = await fileToBase64(file);
+                const payload = {
+                    file_name: file.name,
+                    mime_type: file.type,
+                    file_size: file.size,
+                    is_main: isMain,
+                    base64_content: base64
+                };
+
+                const res = await fetch(`/api/landlord/properties/${createdPropertyId}/images`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    if (statusElem) {
+                        statusElem.style.color = 'var(--success)';
+                        statusElem.textContent = `✓ Uploaded: ${file.name}`;
+                    }
+                    return true;
+                } else {
+                    const errRes = await res.json();
+                    if (statusElem) {
+                        statusElem.style.color = 'var(--error)';
+                        statusElem.textContent = `❌ ${errRes.message || 'Upload failed'}`;
+                    }
+                    return false;
+                }
+            } catch (err) {
+                console.error(err);
+                if (statusElem) {
+                    statusElem.style.color = 'var(--error)';
+                    statusElem.textContent = `❌ Upload failed`;
+                }
+                return false;
+            }
+        }
+
+        async function uploadStep3Photos() {
+            if (!createdPropertyId) {
+                alert('Property details missing. Please complete Step 1 first.');
+                goToStep(1);
+                return;
+            }
+
+            const btn = document.getElementById('btnFinishRegistration');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Submitting Registration...';
+            }
+
+            await uploadSinglePhoto('filePhotoFront', true, 'statusPhotoFront');
+            await uploadSinglePhoto('filePhotoEntrance', false, 'statusPhotoEntrance');
+            await uploadSinglePhoto('filePhotoHallway', false, 'statusPhotoHallway');
+            await uploadSinglePhoto('filePhotoParking', false, 'statusPhotoParking');
+            await uploadSinglePhoto('filePhotoExterior', false, 'statusPhotoExterior');
+
+            const feedback = document.getElementById('createFeedback');
+            if (feedback) {
+                feedback.textContent = '🎉 Property registration completed! Your property is submitted for admin review.';
+                feedback.classList.remove('hidden');
+            }
+
+            setTimeout(() => {
+                window.location.href = `property-details.html?id=${createdPropertyId}`;
+            }, 1800);
+        }
+    </script>
+</body>
+</html>

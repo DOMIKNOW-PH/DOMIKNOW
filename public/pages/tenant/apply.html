@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Rental - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0F4953;
+            --accent: #F98E6E;
+            --bg-color: #F9FCFB;
+            --soft-pink: #FFCFD2;
+            --text-dark: #0F4953;
+            --text-normal: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-shadow: 0 10px 30px rgba(15, 73, 83, 0.05);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-normal);
+        }
+
+        h1, h2, h3, h4, .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .wizard-container {
+            max-width: 700px;
+            margin: 2.5rem auto;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2.5px;
+            background-color: var(--border-color);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+        .step-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 800;
+            color: var(--text-muted);
+            z-index: 2;
+            position: relative;
+            transition: all 0.2s ease-in-out;
+        }
+        .step-circle.active {
+            border-color: var(--primary);
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(15, 73, 83, 0.15);
+        }
+        .step-circle.completed {
+            border-color: #10b981;
+            background-color: #10b981;
+            color: white;
+        }
+        .step-lbl {
+            position: absolute;
+            bottom: -24px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            white-space: nowrap;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .step-circle.active .step-lbl {
+            color: var(--primary);
+        }
+        .step-circle.completed .step-lbl {
+            color: #10b981;
+        }
+        .wizard-card {
+            background-color: white;
+            border: 1px solid rgba(15, 73, 83, 0.06);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--card-shadow);
+        }
+        .property-snippet {
+            display: flex;
+            gap: 1.25rem;
+            background-color: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1.75rem;
+        }
+        .prop-thumb {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .doc-suggestions {
+            background-color: var(--soft-pink);
+            border-left: 4px solid var(--primary);
+            padding: 1.25rem;
+            border-radius: 0 16px 16px 0;
+            font-size: 0.875rem;
+            margin-bottom: 1.75rem;
+            line-height: 1.6;
+            color: var(--primary);
+        }
+        .upload-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            align-items: flex-end;
+        }
+        @media (max-width: 600px) {
+            .upload-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        .uploaded-doc-badge {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background-color: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        .form-label {
+            font-weight: 700;
+            font-size: 0.8125rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: white;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(15, 73, 83, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.9375rem;
+            padding: 0.875rem;
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .doc-upload-section {
+            background-color: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: border-color 0.2s;
+        }
+
+        .doc-upload-section.uploaded {
+            border-color: #a7f3d0;
+            background-color: #f0fdf4;
+        }
+
+        .upload-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
+                <a href="compare.html" class="navbar-menu-link">Compare</a>
+                <a href="applications.html" class="navbar-menu-link">My Applications</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <div class="wizard-container">
+            <!-- Step Progress -->
+            <div class="step-indicator">
+                <div id="circle-1" class="step-circle active">1<span class="step-lbl">Details</span></div>
+                <div id="circle-2" class="step-circle">2<span class="step-lbl">Documents</span></div>
+                <div id="circle-3" class="step-circle">3<span class="step-lbl">Submitted</span></div>
+            </div>
+
+            <!-- Wizard Content Card -->
+            <div class="wizard-card">
+                <!-- Step 1: Form details -->
+                <div id="stepFormContainer">
+                    <h3 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--primary);">Submit Rental Application</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.875rem;">Fill in your desired occupancy target details to register this application.</p>
+
+                    <!-- Property Quick Preview -->
+                    <div id="propertySnippet" class="property-snippet">
+                        <p style="color: var(--text-muted); font-size: 0.875rem;">Fetching property profile...</p>
+                    </div>
+
+                    <form id="applicationForm">
+                        <div class="form-group">
+                            <label for="moveInDate" class="form-label">Desired Move-in Date</label>
+                            <input type="date" id="moveInDate" required class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="appMessage" class="form-label">Message for Landlord</label>
+                            <textarea id="appMessage" rows="4" required placeholder="Introduce yourself! State your occupation/schooling, clean habits, and how long you plan to stay..." class="form-textarea"></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+                            <a href="properties.html" class="navbar-btn" style="text-decoration: none;">Cancel</a>
+                            <button type="submit" id="btnSubmitApp" class="btn-primary" style="width: auto; padding: 0.75rem 2rem;">Next: Upload Verification Files ➔</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 2: Upload Documents -->
+                <div id="stepUploadContainer" class="hidden">
+                    <h3 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--primary);">Upload Required Verification Documents</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.875rem;">Please upload all required documents below. Each section corresponds to one requirement from the landlord.</p>
+
+                    <div id="suggestionsBox" class="doc-suggestions">
+                        <!-- Dynamic based on suitability -->
+                    </div>
+
+                    <!-- Dedicated Upload Sections -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem;">
+
+                        <!-- 1. Valid Government-Issued ID -->
+                        <div class="doc-upload-section" data-type="valid_id">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                                <span class="form-label" style="margin: 0; font-size: 0.875rem;">Identity Verification</span>
+                                <span style="font-size: 0.75rem; color: #ef4444; font-weight: 800; margin-left: auto;">REQUIRED</span>
+                            </div>
+                            <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0 0 0.5rem 0;">Valid government-issued ID (Driver's License, Passport, National ID, etc.)</p>
+                            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                <input type="file" class="doc-file-input form-input" data-type="valid_id" accept="application/pdf, image/png, image/jpeg, image/jpg" style="padding: 0.25rem; flex: 1;">
+                                <button class="btn-upload-single btn-primary" data-type="valid_id" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.8125rem;">Upload</button>
+                            </div>
+                            <div class="upload-status" data-type="valid_id" style="margin-top: 0.5rem;"></div>
+                        </div>
+
+                        <!-- 2. Proof of Income -->
+                        <div class="doc-upload-section" data-type="proof_of_income">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                <span class="form-label" style="margin: 0; font-size: 0.875rem;">Proof of Income</span>
+                                <span style="font-size: 0.75rem; color: #ef4444; font-weight: 800; margin-left: auto;">REQUIRED</span>
+                            </div>
+                            <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0 0 0.5rem 0;">Payslip, Certificate of Employment, Business Permit, or ITR</p>
+                            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                <input type="file" class="doc-file-input form-input" data-type="proof_of_income" accept="application/pdf, image/png, image/jpeg, image/jpg" style="padding: 0.25rem; flex: 1;">
+                                <button class="btn-upload-single btn-primary" data-type="proof_of_income" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.8125rem;">Upload</button>
+                            </div>
+                            <div class="upload-status" data-type="proof_of_income" style="margin-top: 0.5rem;"></div>
+                        </div>
+
+                        <!-- 3. Supporting Documents (Optional) -->
+                        <div class="doc-upload-section" data-type="other">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                <span class="form-label" style="margin: 0; font-size: 0.875rem;">Supporting Documents</span>
+                                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; margin-left: auto;">OPTIONAL</span>
+                            </div>
+                            <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0 0 0.5rem 0;">Any additional supporting files (COR, Student ID, Parent/Guardian ID, etc.)</p>
+                            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                <input type="file" class="doc-file-input form-input" data-type="other" accept="application/pdf, image/png, image/jpeg, image/jpg" style="padding: 0.25rem; flex: 1;">
+                                <button class="btn-upload-single btn-primary" data-type="other" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.8125rem;">Upload</button>
+                            </div>
+                            <div class="upload-status" data-type="other" style="margin-top: 0.5rem;"></div>
+                        </div>
+
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button id="btnFinishWizard" class="btn-primary" style="width: auto; background-color: #10b981; padding: 0.75rem 2.5rem;">Complete Application</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Finished successfully -->
+                <div id="stepFinishedContainer" class="hidden" style="text-align: center; padding: 2rem 0;">
+                    <span style="font-size: 4rem; display: block; margin-bottom: 1rem;">🎉</span>
+                    <h2 style="color: #10b981; margin-bottom: 0.5rem; font-weight: 800;">Application Submitted Successfully!</h2>
+                    <p style="color: var(--text-secondary); max-width: 450px; margin: 0 auto 2rem auto; line-height: 1.6;">Your landlord verification package has been submitted as pending review. The landlord has been notified and will audit your credentials.</p>
+                    
+                    <a href="applications.html" class="btn-primary" style="width: auto; padding: 0.75rem 2rem; text-decoration: none; background-color: var(--primary);">📄 View My Applications</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const propertyId = urlParams.get('property_id') || urlParams.get('id');
+        const unitId = urlParams.get('unit_id');
+        const bedId = urlParams.get('bed_id');
+        const reservationId = urlParams.get('reservation_id');
+        let currentProperty = null;
+        let currentUnit = null;
+        let createdApplicationId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            if (!propertyId) {
+                alert('Please select an approved property to apply first.');
+                window.location.href = 'properties.html';
+                return;
+            }
+
+            // Set min move in date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('moveInDate').setAttribute('min', today);
+
+            document.getElementById('applicationForm').addEventListener('submit', submitApplication);
+            document.getElementById('btnFinishWizard').addEventListener('click', finishWizard);
+
+            // Event delegation for per-section upload buttons
+            document.getElementById('stepUploadContainer').addEventListener('click', (e) => {
+                const btn = e.target.closest('.btn-upload-single');
+                if (btn) {
+                    const docType = btn.getAttribute('data-type');
+                    uploadSingleDocument(docType);
+                }
+            });
+
+            // Automatically trigger upload when file is selected
+            document.getElementById('stepUploadContainer').addEventListener('change', (e) => {
+                const input = e.target.closest('.doc-file-input');
+                if (input && input.files.length > 0) {
+                    const docType = input.getAttribute('data-type');
+                    uploadSingleDocument(docType);
+                }
+            });
+
+            fetchPropertyPreview();
+        });
+
+        async function fetchPropertyPreview() {
+            try {
+                const response = await fetch(`/api/properties/${propertyId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    document.getElementById('propertySnippet').innerHTML = `<p style="color: var(--error);">Failed to load target property specs.</p>`;
+                    return;
+                }
+
+                const result = await response.json();
+                currentProperty = result.data;
+
+                if (unitId) {
+                    try {
+                        const unitRes = await fetch(`/api/units/${unitId}`);
+                        if (unitRes.ok) {
+                            const uResult = await unitRes.json();
+                            currentUnit = uResult.data;
+                        }
+                    } catch (e) {
+                        console.warn('Unit fetch note:', e.message);
+                    }
+                }
+
+                let rentVal = currentProperty.monthly_rent;
+                let unitText = '';
+                if (currentUnit) {
+                    rentVal = currentUnit.monthly_rent;
+                    unitText = `Unit: ${currentUnit.unit_number}`;
+                    if (bedId && currentUnit.beds) {
+                        const bed = currentUnit.beds.find(b => b.id === bedId);
+                        if (bed) {
+                            rentVal = bed.monthly_rent;
+                            unitText += ` (${bed.bed_label})`;
+                        }
+                    }
+                }
+                const rentDisplay = `₱${parseInt(rentVal).toLocaleString()}/month`;
+                const unitTag = currentUnit ? `<span class="badge-amenity" style="margin: 0; background-color: var(--primary); color: white; display: inline-block;">${unitText}</span>` : '';
+
+                // Render snippet
+                const div = document.getElementById('propertySnippet');
+                div.innerHTML = `
+                    <img src="${(currentUnit && currentUnit.main_image_url) || currentProperty.main_image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80'}" class="prop-thumb" alt="${currentProperty.property_name}">
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 0.25rem;">
+                        <h4 style="margin: 0; color: var(--primary);">${currentProperty.property_name}</h4>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">${currentProperty.barangay}, Siniloan, Laguna</span>
+                        ${unitTag}
+                        <span style="font-weight: 700; font-size: 0.875rem; color: var(--landlord);">${rentDisplay}</span>
+                    </div>
+                `;
+
+                // Set up suggestions based on suitability
+                const suit = currentProperty.tenant_type_suitability;
+                const sugBox = document.getElementById('suggestionsBox');
+                
+                if (suit === 'student') {
+                    sugBox.innerHTML = `
+                        <strong>Suggested Documents for Students:</strong><br>
+                        Please attach your <strong>Student ID</strong>, <strong>Certificate of Registration (COR)</strong>, and <strong>Parent/Guardian ID</strong> in the Supporting Documents section.
+                    `;
+                } else if (suit === 'worker') {
+                    sugBox.innerHTML = `
+                        <strong>Suggested Documents for Workers:</strong><br>
+                        Please attach a <strong>Valid Government ID</strong> and <strong>Proof of Income</strong> (payslip / ITR / employment certificate).
+                    `;
+                } else if (suit === 'family') {
+                    sugBox.innerHTML = `
+                        <strong>Suggested Documents for Families:</strong><br>
+                        Please attach your <strong>Valid Government ID</strong> and <strong>Proof of Income</strong> (salary slip / business permit).
+                    `;
+                } else {
+                    sugBox.innerHTML = `
+                        <strong>Suggested Documents:</strong><br>
+                        Please attach a <strong>Valid Government ID</strong> and any secondary proof of credit standing.
+                    `;
+                }
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('propertySnippet').innerHTML = `<p style="color: var(--error);">Error contacting API servers.</p>`;
+            }
+        }
+
+        async function submitApplication(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitApp');
+            btn.disabled = true;
+            btn.textContent = 'Registering...';
+
+            const payload = {
+                property_id: propertyId,
+                unit_id: unitId || (currentUnit ? currentUnit.id : null),
+                bed_id: bedId || null,
+                reservation_id: reservationId || null,
+                desired_move_in_date: document.getElementById('moveInDate').value,
+                application_message: document.getElementById('appMessage').value
+            };
+
+
+            try {
+                const response = await fetch('/api/tenant/applications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    createdApplicationId = result.data.id;
+
+                    // Transition to step 2
+                    document.getElementById('circle-1').className = 'step-circle completed';
+                    document.getElementById('circle-2').className = 'step-circle active';
+                    document.getElementById('stepFormContainer').classList.add('hidden');
+                    document.getElementById('stepUploadContainer').classList.remove('hidden');
+                } else {
+                    alert(result.message || 'Submission failed.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error submitting application.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Next: Upload Verification Files ➔';
+            }
+        }
+
+        // Helper to convert File to Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function uploadSingleDocument(docType) {
+            const fileInput = document.querySelector(`.doc-file-input[data-type="${docType}"]`);
+            const btn = document.querySelector(`.btn-upload-single[data-type="${docType}"]`);
+            const statusDiv = document.querySelector(`.upload-status[data-type="${docType}"]`);
+            const section = document.querySelector(`.doc-upload-section[data-type="${docType}"]`);
+
+            if (!fileInput || fileInput.files.length === 0) {
+                alert('Please select a file first.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            btn.disabled = true;
+            btn.textContent = 'Uploading...';
+
+            try {
+                const base64Content = await fileToBase64(file);
+                const payload = {
+                    file_name: file.name,
+                    mime_type: file.type,
+                    file_size: file.size,
+                    document_type: docType,
+                    base64_content: base64Content
+                };
+
+                const response = await fetch(`/api/tenant/applications/${createdApplicationId}/documents`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    fileInput.value = '';
+                    fileInput.disabled = true;
+                    btn.style.display = 'none';
+
+                    // Mark section as uploaded
+                    section.classList.add('uploaded');
+                    statusDiv.innerHTML = `
+                        <span class="upload-status-badge" style="background-color: #ecfdf5; color: #065f46;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            ${file.name} uploaded successfully
+                        </span>
+                    `;
+                } else {
+                    alert(result.message || 'Upload failed.');
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred during file upload.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Upload';
+            }
+        }
+
+        function finishWizard() {
+            document.getElementById('circle-2').className = 'step-circle completed';
+            document.getElementById('circle-3').className = 'step-circle active';
+            document.getElementById('stepUploadContainer').classList.add('hidden');
+            document.getElementById('stepFinishedContainer').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0F4953;
+            --primary-hover: #176b79;
+            --primary-light: #FFCFD2;
+            --border-focus: #0F4953;
+            --bg-primary: #F9FCFB;
+            --accent: #F98E6E;
+            --card-shadow: 0 20px 40px rgba(15, 73, 83, 0.08);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--primary);
+        }
+
+        .auth-page {
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(255, 207, 210, 0.4) 0px, transparent 50%), 
+                radial-gradient(at 100% 100%, rgba(249, 142, 110, 0.15) 0px, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .back-to-home-container {
+            width: 100%;
+            max-width: 440px;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .back-to-home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(15, 73, 83, 0.08);
+            box-shadow: 0 2px 8px rgba(15, 73, 83, 0.02);
+        }
+
+        .back-to-home-link:hover {
+            transform: translateX(-4px);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .back-to-home-link svg {
+            stroke-width: 2.5px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-logo {
+            font-family: 'Outfit', sans-serif;
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 2.5rem;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-subtitle {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(15, 73, 83, 0.06);
+        }
+
+        .form-label {
+            font-weight: 700;
+            font-size: 0.8125rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-input {
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(15, 73, 83, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.9375rem;
+            padding: 0.875rem;
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(15, 73, 83, 0.15);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--border-color);
+            font-weight: 700;
+            font-size: 0.8125rem;
+            padding: 0.625rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(15, 73, 83, 0.05);
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body class="auth-page">
+    <div class="back-to-home-container">
+        <a href="../../index.html" class="back-to-home-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Back to Home</span>
+        </a>
+    </div>
+
+    <div class="auth-header">
+        <h1 class="auth-logo">DomiKnow</h1>
+        <p class="auth-subtitle">
+            We've sent a 6-digit code to your email. Enter it below to verify.
+        </p>
+    </div>
+
+    <div class="auth-card">
+        <div id="errorMessage" class="alert alert-danger hidden" style="border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; background: #fef2f2; border: 1px solid #fecaca; padding: 1rem; color: #b91c1c;">
+            <span class="alert-icon" style="color: #ef4444; display: inline-flex; align-items: center; flex-shrink: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </span>
+            <span class="alert-text" style="font-size: 0.875rem; font-weight: 600;">Error message</span>
+        </div>
+        
+        <div id="successMessage" class="alert alert-success hidden" style="border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 1rem; color: #065f46;">
+            <span class="alert-icon" style="color: #10b981; display: inline-flex; align-items: center; flex-shrink: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </span>
+            <span class="alert-text" style="font-size: 0.875rem; font-weight: 600;">Success message</span>
+        </div>
+
+        <form id="verifyForm" novalidate style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address *</label>
+                <input id="email" name="email" type="email" required readonly
+                       placeholder="john@example.com" class="form-input"
+                       style="background-color: var(--bg-color);">
+                <small class="form-error" id="email_error" style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.25rem; display: block;"></small>
+            </div>
+
+            <div class="form-group">
+                <label for="code" class="form-label">6-Digit Verification Code *</label>
+                <input id="code" name="code" type="text" maxlength="6" required 
+                       placeholder="000000" class="form-input verify-input"
+                       pattern="[0-9]{6}" inputmode="numeric"
+                       style="font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem; font-weight: 700;">
+                <small class="form-error" id="code_error" style="color: #ef4444; font-size: 0.75rem; font-weight: 600; margin-top: 0.25rem; display: block;"></small>
+                <small class="form-help" style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem;">Enter the 6-digit code sent to your email</small>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.5rem;">
+                <button type="submit" id="submitBtn" class="btn-primary">
+                    Verify Email
+                </button>
+            </div>
+        </form>
+        
+        <div style="text-align: center; margin-top: 1.25rem;">
+            <button type="button" id="resendBtn" class="btn-secondary">
+                <span id="resendText">Didn't receive the code? Resend</span>
+            </button>
+            <div id="resendTimer" class="hidden" style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--text-secondary);">
+                Resend available in <span id="countdown">60</span> seconds
+            </div>
+        </div>
+        
+        <div id="postVerifyActions" class="hidden" style="margin-top: 1.5rem; text-align: center;">
+            <div style="padding: 1.25rem; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 16px; margin-bottom: 1.25rem; text-align: center;">
+                <p style="color: #065f46; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Email Verified Successfully!
+                </p>
+                <p style="color: var(--text-secondary); font-size: 0.8125rem;">Your account has been verified. You can now sign in.</p>
+            </div>
+            <a href="login.html" class="btn-primary" style="display: block; text-decoration: none; text-align: center;">
+                Go to Login
+            </a>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script>
+        // Auto-fill email if passed in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailParam = urlParams.get('email');
+        if (emailParam) {
+            document.getElementById('email').value = emailParam;
+        }
+        
+        const form = document.getElementById('verifyForm');
+        const codeInput = document.getElementById('code');
+        const resendBtn = document.getElementById('resendBtn');
+        let resendCooldown = false;
+        
+        // Auto-focus on code input
+        codeInput.focus();
+        
+        // Only allow numbers in code input
+        codeInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        // Client-side validation
+        function validateForm() {
+            let isValid = true;
+            
+            // Clear previous errors
+            document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-input').forEach(el => {
+                el.style.borderColor = '';
+            });
+            
+            // Email validation
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
+                showFieldError('email', 'Email is required');
+                isValid = false;
+            } else if (!emailRegex.test(email)) {
+                showFieldError('email', 'Please enter a valid email address');
+                isValid = false;
+            }
+            
+            // Code validation
+            const code = document.getElementById('code').value.trim();
+            if (!code) {
+                showFieldError('code', 'Verification code is required');
+                isValid = false;
+            } else if (code.length !== 6) {
+                showFieldError('code', 'Code must be exactly 6 digits');
+                isValid = false;
+            } else if (!/^\d{6}$/.test(code)) {
+                showFieldError('code', 'Code must be numeric');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        function showFieldError(fieldId, message) {
+            const errorEl = document.getElementById(`${fieldId}_error`);
+            const inputEl = document.getElementById(fieldId);
+            if (errorEl) errorEl.textContent = message;
+            if (inputEl) inputEl.style.borderColor = '#ef4444';
+        }
+        
+        // Resend cooldown timer
+        function startResendCooldown() {
+            resendCooldown = true;
+            resendBtn.disabled = true;
+            resendBtn.style.opacity = '0.5';
+            resendBtn.style.cursor = 'not-allowed';
+            
+            const timerDiv = document.getElementById('resendTimer');
+            const countdownSpan = document.getElementById('countdown');
+            timerDiv.classList.remove('hidden');
+            
+            let seconds = 60;
+            const interval = setInterval(() => {
+                seconds--;
+                countdownSpan.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    resendCooldown = false;
+                    resendBtn.disabled = false;
+                    resendBtn.style.opacity = '1';
+                    resendBtn.style.cursor = 'pointer';
+                    timerDiv.classList.add('hidden');
+                }
+            }, 1000);
+        }
+        
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validate form
+            if (!validateForm()) {
+                return;
+            }
+            
+            // Call existing handleVerify function
+            await handleVerify(e);
+        });
+        
+        resendBtn.addEventListener('click', async function() {
+            if (resendCooldown) return;
+            
+            await handleResendCode();
+            startResendCooldown();
+        });
+    </script>
+</body>
+</html>

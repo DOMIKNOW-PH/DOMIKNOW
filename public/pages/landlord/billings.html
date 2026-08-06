@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing & Revenue Dashboard - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        /* Modern styling system */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .stat-val {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        .stat-val.revenue {
+            color: #10b981;
+        }
+
+        .tabs-header {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            color: var(--landlord);
+            border-bottom-color: var(--landlord);
+        }
+
+        .filter-panel {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .filter-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .filter-input {
+            padding: 0.45rem 0.75rem;
+            font-size: 0.85rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .table-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9125rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.78rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-bill {
+            background-color: var(--landlord);
+            color: white;
+        }
+        .btn-bill:hover {
+            background-color: var(--landlord-hover);
+        }
+        .btn-detail {
+            background-color: var(--bg-primary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .btn-detail:hover {
+            background-color: var(--border-color);
+        }
+        .btn-edit {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: rgb(217, 119, 6);
+            border-color: rgba(245, 158, 11, 0.3);
+            margin-left: 0.5rem;
+        }
+        .btn-edit:hover {
+            background-color: rgba(245, 158, 11, 0.2);
+        }
+
+        /* Modal system */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+        .modal-container {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 650px;
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-primary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 1rem 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            background-color: var(--bg-primary);
+            gap: 0.75rem;
+        }
+        .modal-close-x {
+            background: transparent;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .bill-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .bill-details-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .bill-details-lbl {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .bill-details-val {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 0.15rem;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+        .calc-row.total {
+            border-bottom: none;
+            border-top: 2px solid var(--border-color);
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--landlord);
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
+        }
+        .input-inline-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .input-inline-currency {
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .input-inline {
+            width: 120px;
+            padding: 0.3rem 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: right;
+        }
+    </style>
+</head>
+<body class="app-loading" data-role="landlord" data-page-title="Rent & Billings Management">
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration:none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Tenant Screening</a>
+                <a href="leases.html" class="navbar-menu-link">Leases</a>
+                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link active">Billings</a>
+                <a href="payments.html" class="navbar-menu-link">Payments</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Rent & Billings Management</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Create monthly bills, record custom utilities, and manage cash flows.</p>
+
+        <!-- Summary Section -->
+        <div class="summary-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Issued Bills</span>
+                <span id="statTotalActive" class="stat-val">—</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Paid Invoices</span>
+                <span id="statPaid" class="stat-val">—</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Awaiting Verification</span>
+                <span id="statPendingVerify" class="stat-val">—</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Overdue Invoices</span>
+                <span id="statOverdue" class="stat-val" style="color:var(--error);">—</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Total Monthly Revenue</span>
+                <span id="statRevenue" class="stat-val revenue">—</span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-header">
+            <button id="tabActiveLeases" class="tab-btn active">Active Leases (Current Month Billing)</button>
+            <button id="tabHistory" class="tab-btn">Billing Statement Logs</button>
+        </div>
+
+        <!-- Tab 1: Active Leases Dashboard -->
+        <div id="sectionActiveLeases">
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Lease Number</th>
+                            <th>Tenant Name</th>
+                            <th>Property Unit</th>
+                            <th>Monthly Base Rent</th>
+                            <th>Current Month Bill</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activeLeasesTableBody">
+                        <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading active leases...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 2: Billings History Logs -->
+        <div id="sectionHistory" class="hidden">
+            <!-- Filter Panel -->
+            <div class="filter-panel">
+                <div class="filter-group">
+                    <span class="filter-label">Search Tenant</span>
+                    <input type="text" id="filterTenant" class="filter-input" placeholder="e.g. Juan">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Property Name</span>
+                    <input type="text" id="filterProperty" class="filter-input" placeholder="e.g. Unit A">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Month</span>
+                    <input type="month" id="filterMonth" class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Status</span>
+                    <select id="filterStatus" class="filter-input">
+                        <option value="">-- All Statuses --</option>
+                        <option value="draft">Draft</option>
+                        <option value="pending_payment">Pending Payment</option>
+                        <option value="waiting_verification">Waiting Verification</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                </div>
+                <button id="resetFiltersBtn" class="action-btn btn-detail" style="margin-top:1rem;height:fit-content;padding:0.45rem 1rem;">Reset</button>
+            </div>
+
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Billing Month</th>
+                            <th>Tenant details</th>
+                            <th>Total Amount</th>
+                            <th>Due Date</th>
+                            <th>Billing Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Loading historical logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Generate Monthly Bill Modal -->
+    <div id="generateBillModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 style="margin:0;color:var(--text-primary);">Generate Monthly Billing</h3>
+                <button id="closeGenerateModalBtn" class="modal-close-x">&times;</button>
+            </div>
+            <form id="billingForm">
+                <div class="modal-body">
+                    <div id="errorMessage" class="status-badge status-rejected hidden" style="margin-bottom:1rem;padding:0.75rem;"></div>
+                    
+                    <input type="hidden" id="formLeaseId" name="lease_id">
+
+                    <!-- Readonly Autofilled Summary -->
+                    <div class="bill-details-grid">
+                        <div class="bill-details-item"><span class="bill-details-lbl">Lease Number</span><span id="lblLeaseNumber" class="bill-details-val">—</span></div>
+                        <div class="bill-details-item"><span class="bill-details-lbl">Tenant</span><span id="lblTenantName" class="bill-details-val">—</span></div>
+                        <div class="bill-details-item"><span class="bill-details-lbl">Property Name</span><span id="lblPropertyName" class="bill-details-val">—</span></div>
+                        <div class="bill-details-item"><span class="bill-details-lbl">Standard Due Day</span><span id="lblDueDay" class="bill-details-val">—</span></div>
+                    </div>
+
+                    <!-- Editable Section -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="formBillingMonth">Billing Cycle Month</label>
+                            <input type="month" id="formBillingMonth" name="billing_month" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="formDueDate">Payment Due Date <small style="color:var(--text-muted);font-weight:normal;">(Fixed by Lease)</small></label>
+                            <input type="date" id="formDueDate" name="due_date" class="form-input" disabled style="background-color: var(--bg-primary); cursor: not-allowed;">
+                        </div>
+                    </div>
+
+                    <h4 style="border-bottom:1px solid var(--border-color);padding-bottom:0.4rem;margin-bottom:0.75rem;">Account Specifications Breakdown</h4>
+                    
+                    <div class="calc-row">
+                        <span>Monthly Rent</span>
+                        <span style="font-weight:700;" id="lblBaseRent">₱0.00</span>
+                    </div>
+
+                    <div class="calc-row" id="rowWater">
+                        <label for="formWater" id="lblFormWater">Water Utility Charge</label>
+                        <div class="input-inline-group">
+                            <span class="input-inline-currency">₱</span>
+                            <input type="number" id="formWater" class="input-inline" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="calc-row" id="rowElectricity">
+                        <label for="formElectricity" id="lblFormElectricity">Electricity Utility Charge</label>
+                        <div class="input-inline-group">
+                            <span class="input-inline-currency">₱</span>
+                            <input type="number" id="formElectricity" class="input-inline" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="calc-row" id="rowInternet">
+                        <label for="formInternet" id="lblFormInternet">Internet Subscription Charge</label>
+                        <div class="input-inline-group">
+                            <span class="input-inline-currency">₱</span>
+                            <input type="number" id="formInternet" class="input-inline" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="calc-row" id="rowParking">
+                        <label for="formParking">Parking Slot Fee</label>
+                        <div class="input-inline-group">
+                            <span class="input-inline-currency">₱</span>
+                            <input type="number" id="formParking" class="input-inline" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="calc-row" id="rowOther">
+                        <label for="formOther" id="lblFormOther">Other Charges / Assoc Fee</label>
+                        <div class="input-inline-group">
+                            <span class="input-inline-currency">₱</span>
+                            <input type="number" id="formOther" class="input-inline" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="calc-row" id="rowPenalty" style="display:none;">
+                        <label for="formPenalty">Late Penalty Fine</label>
+                        <div class="input-inline-group">
+                            <span class="input-inline-currency">₱</span>
+                            <input type="number" id="formPenalty" class="input-inline" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label class="form-label" for="formRemarks">Remarks / Notes</label>
+                        <textarea id="formRemarks" class="form-input" style="height:60px;" placeholder="e.g. Month billing breakdown..."></textarea>
+                    </div>
+
+                    <div class="calc-row total">
+                        <span>ESTIMATED TOTAL DUE:</span>
+                        <span id="valTotalDue">₱0.00</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnSaveDraft" class="action-btn btn-detail" style="border-color:var(--text-secondary);color:var(--text-secondary);">Save Draft</button>
+                    <button type="button" id="btnSendBill" class="action-btn btn-bill">Send Bill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Bill Details Modal -->
+    <div id="viewBillModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="viewModalLeaseNum" style="margin:0;color:var(--text-primary);">Billing statement</h3>
+                <button id="closeViewModalBtn" class="modal-close-x">&times;</button>
+            </div>
+            <div class="modal-body" id="viewModalContent">
+                <!-- Loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button id="closeViewModalFooterBtn" class="navbar-btn" style="background-color:var(--text-secondary);color:white;width:auto;padding:0.5rem 1.5rem;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let activeLeases = [];
+        let allBillings = [];
+        let currentFormBaseRent = 0;
+        let editBillId = null;
+
+        function parseUtilitiesConfig(raw) {
+            if (!raw) return {};
+            if (typeof raw === 'object') return raw;
+            if (typeof raw === 'string') {
+                try { return JSON.parse(raw); } catch (e) { return {}; }
+            }
+            return {};
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+
+            // Statics
+            loadBillingDashboard();
+
+            // Tabs toggle
+            document.getElementById('tabActiveLeases').addEventListener('click', () => toggleTab('leases'));
+            document.getElementById('tabHistory').addEventListener('click', () => toggleTab('history'));
+
+            // Modal closures
+            document.getElementById('closeGenerateModalBtn').addEventListener('click', closeGenerateModal);
+            document.getElementById('closeViewModalBtn').addEventListener('click', closeViewModal);
+            document.getElementById('closeViewModalFooterBtn').addEventListener('click', closeViewModal);
+
+            // Calculations live updates
+            const calcInputs = ['formWater', 'formElectricity', 'formInternet', 'formParking', 'formOther', 'formPenalty'];
+            calcInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', calculateTotal);
+            });
+
+            // Action buttons inside Generate Bill modal
+            document.getElementById('btnSaveDraft').addEventListener('click', () => submitBillingForm('draft'));
+            document.getElementById('btnSendBill').addEventListener('click', () => submitBillingForm('pending_payment'));
+
+            // Dynamic delegation on Tables
+            document.getElementById('activeLeasesTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-lease-id]');
+                if (btn) openGenerateModal(btn.dataset.leaseId);
+            });
+
+            document.getElementById('historyTableBody').addEventListener('click', (e) => {
+                const viewBtn = e.target.closest('[data-bill-id]');
+                if (viewBtn) openViewModal(viewBtn.dataset.billId);
+
+                const editBtn = e.target.closest('[data-edit-bill-id]');
+                if (editBtn) openEditModal(editBtn.dataset.editBillId);
+
+                const deleteBtn = e.target.closest('[data-delete-bill-id]');
+                if (deleteBtn) handleDeleteBilling(deleteBtn.dataset.deleteBillId);
+            });
+
+            // Billing history filters
+            document.getElementById('filterTenant').addEventListener('input', renderHistoryTable);
+            document.getElementById('filterProperty').addEventListener('input', renderHistoryTable);
+            document.getElementById('filterMonth').addEventListener('change', renderHistoryTable);
+            document.getElementById('filterStatus').addEventListener('change', renderHistoryTable);
+            document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+                document.getElementById('filterTenant').value = '';
+                document.getElementById('filterProperty').value = '';
+                document.getElementById('filterMonth').value = '';
+                document.getElementById('filterStatus').value = '';
+                renderHistoryTable();
+            });
+            
+            // Auto fill due date month changes
+            document.getElementById('formBillingMonth').addEventListener('change', (e) => {
+                const val = e.target.value; // e.g. "2026-08"
+                if (!val) return;
+                const leaseId = document.getElementById('formLeaseId').value;
+                const lease = activeLeases.find(l => l.id === leaseId);
+                if (lease) {
+                    const parts = val.split('-');
+                    const year = parseInt(parts[0]);
+                    const month = parseInt(parts[1]);
+                    const dueDay = Math.min(parseInt(lease.payment_due_day || 5), 28);
+                    
+                    // Format due date: YYYY-MM-DD
+                    const dueMonthStr = month < 10 ? `0${month}` : `${month}`;
+                    const dueDayStr = dueDay < 10 ? `0${dueDay}` : `${dueDay}`;
+                    document.getElementById('formDueDate').value = `${year}-${dueMonthStr}-${dueDayStr}`;
+                }
+            });
+        });
+
+        function toggleTab(tab) {
+            const activeLeasesTab = document.getElementById('tabActiveLeases');
+            const historyTab = document.getElementById('tabHistory');
+            const activeLeasesSec = document.getElementById('sectionActiveLeases');
+            const historySec = document.getElementById('sectionHistory');
+
+            if (tab === 'leases') {
+                activeLeasesTab.classList.add('active');
+                historyTab.classList.remove('active');
+                activeLeasesSec.classList.remove('hidden');
+                historySec.classList.add('hidden');
+            } else {
+                activeLeasesTab.classList.remove('active');
+                historyTab.classList.add('active');
+                activeLeasesSec.classList.add('hidden');
+                historySec.classList.remove('hidden');
+            }
+        }
+
+        async function loadBillingDashboard() {
+            try {
+                // Fetch Landlord Leases
+                const leaseRes = await fetch('/api/leases', { headers: { 'Authorization': `Bearer ${token}` } });
+                const leaseData = await leaseRes.json();
+                activeLeases = (leaseData.data || []).filter(l => l.lease_status === 'active');
+
+                // Fetch Billings
+                const billingRes = await fetch('/api/billings', { headers: { 'Authorization': `Bearer ${token}` } });
+                const billingData = await billingRes.json();
+                allBillings = billingData.data || [];
+
+                calculateSummaryStats();
+                renderActiveLeasesTable();
+                renderHistoryTable();
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function calculateSummaryStats() {
+            let totalActive = allBillings.length;
+            let paidCount = 0;
+            let pendingVerifyCount = 0;
+            let overdueCount = 0;
+            let totalRevenue = 0;
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            allBillings.forEach(b => {
+                const status = b.billing_status;
+                const dueDate = new Date(b.due_date);
+
+                if (status === 'paid') {
+                    paidCount++;
+                    totalRevenue += parseFloat(b.total_amount || 0);
+                } else if (status === 'waiting_verification') {
+                    pendingVerifyCount++;
+                } else if (status === 'overdue' || (status === 'pending_payment' && dueDate < today)) {
+                    overdueCount++;
+                }
+            });
+
+            document.getElementById('statTotalActive').textContent = totalActive;
+            document.getElementById('statPaid').textContent = paidCount;
+            document.getElementById('statPendingVerify').textContent = pendingVerifyCount;
+            document.getElementById('statOverdue').textContent = overdueCount;
+            document.getElementById('statRevenue').textContent = `₱${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        }
+
+        function renderActiveLeasesTable() {
+            const tbody = document.getElementById('activeLeasesTableBody');
+            tbody.innerHTML = '';
+
+            if (activeLeases.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">No active leases currently registered.</td></tr>`;
+                return;
+            }
+
+            activeLeases.forEach(lease => {
+                const tenantName = lease.users?.full_name || '—';
+                const propertyName = lease.properties?.property_name || '—';
+                const rentVal = parseFloat(lease.monthly_rent || 0);
+
+                // Check if this lease already has a bill issued for the current calendar month or Move-In bill
+                const currentMonthStr = new Date().toISOString().slice(0, 7); // e.g. "2026-08"
+                const matchingBill = allBillings.find(b => b.lease_id === lease.id && b.billing_month && b.billing_month.startsWith(currentMonthStr));
+                
+                let billStatusHtml = `<span style="color:var(--text-muted);font-style:italic;">No bill generated</span>`;
+                if (matchingBill) {
+                    const badgeClass = matchingBill.billing_status === 'paid' ? 'status-active' : (matchingBill.billing_status === 'waiting_verification' ? 'status-pending' : 'status-rejected');
+                    const isMoveIn = matchingBill.billing_month.includes('Move-In');
+                    const labelText = isMoveIn ? `MOVE-IN BILL (${matchingBill.billing_status.toUpperCase()})` : matchingBill.billing_status.toUpperCase();
+                    billStatusHtml = `<span class="status-badge ${badgeClass}">${labelText}</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:700;font-family:monospace;color:var(--primary);">${lease.lease_number || 'DRAFT'}</td>
+                    <td style="font-weight:600;">${tenantName}</td>
+                    <td>${propertyName}</td>
+                    <td style="font-weight:700;">₱${rentVal.toLocaleString(undefined, { minimumFractionDigits:2 })}</td>
+                    <td>${billStatusHtml}</td>
+                    <td>
+                        <button class="action-btn btn-bill" data-lease-id="${lease.id}">Generate Bill</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+
+            const searchTenant = document.getElementById('filterTenant').value.toLowerCase();
+            const searchProperty = document.getElementById('filterProperty').value.toLowerCase();
+            const searchMonth = document.getElementById('filterMonth').value;
+            const searchStatus = document.getElementById('filterStatus').value;
+
+            const filtered = allBillings.filter(b => {
+                const tenant = (b.users?.full_name || '').toLowerCase();
+                const prop = (b.properties?.property_name || '').toLowerCase();
+                
+                if (searchTenant && !tenant.includes(searchTenant)) return false;
+                if (searchProperty && !prop.includes(searchProperty)) return false;
+                if (searchMonth && b.billing_month !== searchMonth) return false;
+                if (searchStatus && b.billing_status !== searchStatus) return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">No matching billing statements found.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(bill => {
+                const rent = parseFloat(bill.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                const due = new Date(bill.due_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                
+                const tenantName = bill.users?.full_name || '—';
+                const propertyName = bill.properties?.property_name || '—';
+
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                let statusLabel = bill.billing_status;
+                let badgeClass = 'status-pending';
+
+                if (statusLabel === 'paid') badgeClass = 'status-active';
+                else if (statusLabel === 'cancelled') badgeClass = 'status-rejected';
+                else if (statusLabel === 'overdue' || (statusLabel === 'pending_payment' && new Date(bill.due_date) < today)) {
+                    statusLabel = 'overdue';
+                    badgeClass = 'status-rejected';
+                }
+
+                // Move-In bills are auto-generated based on signed lease terms and cannot be edited or deleted
+                const isMoveIn = bill.billing_month && bill.billing_month.includes('Move-In');
+                const isEditable = !isMoveIn && ['draft', 'pending_payment', 'unpaid'].includes(bill.billing_status);
+                const isDeletable = !isMoveIn && ['draft', 'pending_payment', 'unpaid', 'overdue'].includes(bill.billing_status);
+
+                const editBtn = isEditable 
+                    ? `<button class="action-btn btn-edit" data-edit-bill-id="${bill.id}">Edit</button>` 
+                    : (isMoveIn ? `<span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;font-style:italic;" title="Move-In bill terms are locked to the signed lease agreement">🔒 Auto-Generated</span>` : '');
+
+                const deleteBtn = isDeletable
+                    ? `<button class="action-btn" data-delete-bill-id="${bill.id}" style="background-color:#ef4444;color:white;padding:0.35rem 0.65rem;font-size:0.75rem;border-radius:4px;border:none;margin-left:0.25rem;cursor:pointer;">Delete</button>`
+                    : '';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:700;color:var(--primary);">${bill.billing_month}</td>
+                    <td>
+                        <div style="font-weight:700;">${tenantName}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);">${propertyName}</div>
+                    </td>
+                    <td style="font-weight:700;">₱${rent} PHP</td>
+                    <td style="font-weight:600;">${due}</td>
+                    <td><span class="status-badge ${badgeClass}">${statusLabel.replace('_',' ').toUpperCase()}</span></td>
+                    <td>
+                        <button class="action-btn btn-detail" data-bill-id="${bill.id}">View</button>
+                        ${editBtn}
+                        ${deleteBtn}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Open Monthly Billing Generate dialog
+        function openGenerateModal(leaseId) {
+            const lease = activeLeases.find(l => l.id === leaseId);
+            if (!lease) return;
+
+            document.getElementById('formLeaseId').value = lease.id;
+            document.getElementById('lblLeaseNumber').textContent = lease.lease_number || 'DRAFT';
+            document.getElementById('lblTenantName').textContent = lease.users?.full_name || '—';
+            document.getElementById('lblPropertyName').textContent = lease.properties?.property_name || '—';
+            document.getElementById('lblDueDay').textContent = `${lease.payment_due_day || 5}th day of month`;
+            
+            currentFormBaseRent = parseFloat(lease.monthly_rent || 0);
+            document.getElementById('lblBaseRent').textContent = `₱${currentFormBaseRent.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+
+            // Auto-calculate Billing month: if move-in month already billed, default to next month!
+            let defaultMonthDate = new Date();
+            const currentMonthStr = defaultMonthDate.toISOString().slice(0, 7); // e.g. "2026-08"
+            
+            // Check if a bill for current month (or move-in bill) exists for this lease
+            const existingForCurrent = allBillings.some(b => b.lease_id === lease.id && b.billing_month && b.billing_month.startsWith(currentMonthStr));
+            if (existingForCurrent) {
+                // Advance to next month
+                defaultMonthDate.setMonth(defaultMonthDate.getMonth() + 1);
+            }
+
+            const targetMonthStr = defaultMonthDate.toISOString().slice(0, 7);
+            document.getElementById('formBillingMonth').value = targetMonthStr;
+
+            // Compute standard due date for target month
+            const parts = targetMonthStr.split('-');
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]);
+            const dueDay = Math.min(parseInt(lease.payment_due_day || 5), 28);
+            const dueMonthStr = month < 10 ? `0${month}` : `${month}`;
+            const dueDayStr = dueDay < 10 ? `0${dueDay}` : `${dueDay}`;
+            document.getElementById('formDueDate').value = `${year}-${dueMonthStr}-${dueDayStr}`;
+
+            // Reset inputs & apply Utilities Configuration rules from lease
+            const uConfig = parseUtilitiesConfig(lease.utilities_covered);
+            const isInc = (type) => {
+                if (typeof uConfig === 'object' && uConfig !== null && !Array.isArray(uConfig)) {
+                    return uConfig[type] === 'included';
+                }
+                if (Array.isArray(uConfig)) return uConfig.includes(type);
+                return false;
+            };
+
+            const setUtilField = (fieldId, utilKey, labelElId, labelText, containerId) => {
+                const el = document.getElementById(fieldId);
+                const lbl = document.getElementById(labelElId);
+                const container = document.getElementById(containerId);
+                if (isInc(utilKey)) {
+                    el.value = 0;
+                    el.disabled = true;
+                    if (container) container.style.display = 'none';
+                } else {
+                    el.value = 0;
+                    el.disabled = false;
+                    if (container) container.style.display = 'flex';
+                    if (lbl) lbl.innerHTML = `${labelText} <span style="font-size:0.75rem;color:var(--landlord);font-weight:700;">(Billed Separately)</span>`;
+                }
+            };
+
+            setUtilField('formWater', 'water', 'lblFormWater', 'Water Utility (₱)', 'rowWater');
+            setUtilField('formElectricity', 'electricity', 'lblFormElectricity', 'Electricity (₱)', 'rowElectricity');
+            setUtilField('formInternet', 'internet', 'lblFormInternet', 'Internet (₱)', 'rowInternet');
+            setUtilField('formOther', 'association_fee', 'lblFormOther', 'Association Fee / Other (₱)', 'rowOther');
+
+            // Check Parking policy
+            const rowParking = document.getElementById('rowParking');
+            if (rowParking) {
+                const hasParking = lease.parking_policy && !['Not Applicable', 'Not Included'].includes(lease.parking_policy);
+                rowParking.style.display = hasParking ? 'flex' : 'none';
+            }
+            document.getElementById('formParking').value = 0;
+            document.getElementById('formPenalty').value = 0;
+            document.getElementById('formRemarks').value = '';
+            document.getElementById('errorMessage').classList.add('hidden');
+
+            calculateTotal();
+            document.getElementById('generateBillModal').classList.remove('hidden');
+        }
+
+        // Open Edit Modal for Billing modification
+        async function openEditModal(billId) {
+            const bill = allBillings.find(b => b.id === billId);
+            if (!bill) return;
+
+            editBillId = bill.id;
+            
+            // Set header
+            document.getElementById('generateBillModal').querySelector('h3').textContent = 'Modify Billing Statement';
+
+            document.getElementById('formLeaseId').value = bill.lease_id;
+            document.getElementById('lblLeaseNumber').textContent = bill.lease_records?.lease_number || 'DRAFT';
+            document.getElementById('lblTenantName').textContent = bill.users?.full_name || '—';
+            document.getElementById('lblPropertyName').textContent = bill.properties?.property_name || '—';
+
+            // Enforce lease utility configuration rules on edit
+            const lease = activeLeases.find(l => l.id === bill.lease_id) || bill.lease_records || {};
+            const dueDay = lease.payment_due_day || 5;
+            document.getElementById('lblDueDay').textContent = `${dueDay}th day of month`;
+            
+            currentFormBaseRent = parseFloat(bill.rent_amount || 0);
+            document.getElementById('lblBaseRent').textContent = `₱${currentFormBaseRent.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+
+            document.getElementById('formBillingMonth').value = bill.billing_month;
+            document.getElementById('formDueDate').value = bill.due_date;
+            
+            // Disable changing billing month on edit to prevent unique constraint conflicts
+            document.getElementById('formBillingMonth').disabled = true;
+
+            const uConfig = parseUtilitiesConfig(lease.utilities_covered);
+            const isInc = (type) => {
+                if (typeof uConfig === 'object' && uConfig !== null && !Array.isArray(uConfig)) {
+                    return uConfig[type] === 'included';
+                }
+                if (Array.isArray(uConfig)) return uConfig.includes(type);
+                return false;
+            };
+
+            const setUtilFieldEdit = (fieldId, utilKey, labelElId, labelText, containerId, val) => {
+                const el = document.getElementById(fieldId);
+                const lbl = document.getElementById(labelElId);
+                const container = document.getElementById(containerId);
+                if (isInc(utilKey)) {
+                    el.value = 0;
+                    el.disabled = true;
+                    if (container) container.style.display = 'none';
+                } else {
+                    el.value = val;
+                    el.disabled = false;
+                    if (container) container.style.display = 'flex';
+                    if (lbl) lbl.innerHTML = `${labelText} <span style="font-size:0.75rem;color:var(--landlord);font-weight:700;">(Billed Separately)</span>`;
+                }
+            };
+
+            setUtilFieldEdit('formWater', 'water', 'lblFormWater', 'Water Utility (₱)', 'rowWater', bill.water || 0);
+            setUtilFieldEdit('formElectricity', 'electricity', 'lblFormElectricity', 'Electricity (₱)', 'rowElectricity', bill.electricity || 0);
+            setUtilFieldEdit('formInternet', 'internet', 'lblFormInternet', 'Internet (₱)', 'rowInternet', bill.internet || 0);
+            setUtilFieldEdit('formOther', 'association_fee', 'lblFormOther', 'Association Fee / Other (₱)', 'rowOther', bill.other_charges || 0);
+
+            const rowParkingEdit = document.getElementById('rowParking');
+            if (rowParkingEdit) {
+                const hasParking = (lease.parking_policy && !['Not Applicable', 'Not Included'].includes(lease.parking_policy)) || parseFloat(bill.parking || 0) > 0;
+                rowParkingEdit.style.display = hasParking ? 'flex' : 'none';
+            }
+            document.getElementById('formParking').value = bill.parking || 0;
+            document.getElementById('formPenalty').value = bill.penalty_amount || 0;
+            document.getElementById('formRemarks').value = bill.remarks || '';
+            document.getElementById('errorMessage').classList.add('hidden');
+
+            // Set button text styles
+            document.getElementById('btnSaveDraft').textContent = 'Update Draft';
+            document.getElementById('btnSendBill').textContent = 'Update & Send';
+
+            calculateTotal();
+            document.getElementById('generateBillModal').classList.remove('hidden');
+        }
+
+        async function handleDeleteBilling(billId) {
+            const bill = allBillings.find(b => b.id === billId);
+            if (!bill) return;
+
+            if (bill.billing_month && bill.billing_month.includes('Move-In')) {
+                alert('Initial Move-In Billing Statements cannot be deleted as they are bound to the active lease agreement.');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete the pending billing statement for ${bill.billing_month}?`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/billings/${billId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    alert('Billing statement deleted successfully.');
+                    loadBillingDashboard();
+                } else {
+                    alert(result.message || 'Failed to delete billing statement.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error deleting billing statement.');
+            }
+        }
+
+        function calculateTotal() {
+            const w = parseFloat(document.getElementById('formWater').value) || 0;
+            const e = parseFloat(document.getElementById('formElectricity').value) || 0;
+            const i = parseFloat(document.getElementById('formInternet').value) || 0;
+            const p = parseFloat(document.getElementById('formParking').value) || 0;
+            const other = parseFloat(document.getElementById('formOther').value) || 0;
+            const penalty = parseFloat(document.getElementById('formPenalty').value) || 0;
+
+            const total = currentFormBaseRent + w + e + i + p + other + penalty;
+            document.getElementById('valTotalDue').textContent = `₱${total.toLocaleString(undefined, { minimumFractionDigits: 2 })} PHP`;
+        }
+
+        async function submitBillingForm(status) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.classList.add('hidden');
+
+            const leaseId = document.getElementById('formLeaseId').value;
+            const billingMonth = document.getElementById('formBillingMonth').value;
+            const dueDate = document.getElementById('formDueDate').value;
+
+            if (!billingMonth || !dueDate) {
+                errorDiv.textContent = 'Please fill out all date parameters.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            const bodyData = {
+                lease_id: leaseId,
+                billing_month: billingMonth,
+                rent_amount: currentFormBaseRent,
+                water: parseFloat(document.getElementById('formWater').value) || 0,
+                electricity: parseFloat(document.getElementById('formElectricity').value) || 0,
+                internet: parseFloat(document.getElementById('formInternet').value) || 0,
+                parking: parseFloat(document.getElementById('formParking').value) || 0,
+                other_charges: parseFloat(document.getElementById('formOther').value) || 0,
+                penalty_amount: parseFloat(document.getElementById('formPenalty').value) || 0,
+                due_date: dueDate,
+                billing_status: status,
+                remarks: document.getElementById('formRemarks').value.trim()
+            };
+
+            let apiUrl = '/api/billings';
+            let method = 'POST';
+
+            if (editBillId) {
+                apiUrl = `/api/billings/${editBillId}`;
+                method = 'PUT';
+            }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(bodyData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(editBillId ? `Billing updated successfully as ${status.toUpperCase()}.` : `Billing generated successfully as ${status.toUpperCase()}.`);
+                    closeGenerateModal();
+                    loadBillingDashboard();
+                } else {
+                    errorDiv.textContent = result.message || 'Failed to submit billing details.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = 'Connection error transmitting billing payload.';
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        function closeGenerateModal() {
+            document.getElementById('generateBillModal').classList.add('hidden');
+            document.getElementById('billingForm').reset();
+            
+            // Restore modal title & labels
+            document.getElementById('generateBillModal').querySelector('h3').textContent = 'Generate Monthly Billing';
+            document.getElementById('btnSaveDraft').textContent = 'Save Draft';
+            document.getElementById('btnSendBill').textContent = 'Send Bill';
+            document.getElementById('formBillingMonth').disabled = false;
+            
+            currentFormBaseRent = 0;
+            editBillId = null;
+        }
+
+        // Open bill logs detail modal
+        async function openViewModal(billId) {
+            const modal = document.getElementById('viewBillModal');
+            const content = document.getElementById('viewModalContent');
+            
+            document.getElementById('viewModalLeaseNum').textContent = 'Billing Statement';
+            content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading billing specifications...</div>';
+            modal.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`/api/billings/${billId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const { data: bill } = await res.json();
+
+                document.getElementById('viewModalLeaseNum').textContent = `Statement: ${bill.lease_records?.lease_number || 'DRAFT'}`;
+                
+                const tenantName = bill.tenant?.full_name || '—';
+                const propertyName = bill.properties?.property_name || '—';
+                const baseRent = parseFloat(bill.rent_amount || 0);
+                const water = parseFloat(bill.water || 0);
+                const electricity = parseFloat(bill.electricity || 0);
+                const internet = parseFloat(bill.internet || 0);
+                const parking = parseFloat(bill.parking || 0);
+                const other = parseFloat(bill.other_charges || 0);
+                const penalty = parseFloat(bill.penalty_amount || 0);
+                const total = parseFloat(bill.total_amount || 0);
+
+                // Build dynamic breakdown rows matching lease terms
+                const uConfig = (bill.lease_records && bill.lease_records.utilities_covered) || {};
+                const isInc = (type) => {
+                    if (typeof uConfig === 'object' && uConfig !== null && !Array.isArray(uConfig)) {
+                        return uConfig[type] === 'included';
+                    }
+                    if (Array.isArray(uConfig)) return uConfig.includes(type);
+                    return false;
+                };
+
+                const isMoveInBill = bill.billing_month && bill.billing_month.includes('Move-In');
+                let breakdownRows = [];
+
+                // 1. Base Rent (Always)
+                breakdownRows.push(`<div class="calc-row"><span>Monthly Base Rent</span><span style="font-weight:700;">₱${baseRent.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+
+                // 2. Water
+                if (!isInc('water') || water > 0) {
+                    breakdownRows.push(`<div class="calc-row"><span>Water Utility Charge <small style="color:var(--landlord);font-weight:700;">(Billed Separately)</small></span><span>₱${water.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 3. Electricity
+                if (!isInc('electricity') || electricity > 0) {
+                    breakdownRows.push(`<div class="calc-row"><span>Electricity Utility Charge <small style="color:var(--landlord);font-weight:700;">(Billed Separately)</small></span><span>₱${electricity.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 4. Internet
+                if (!isInc('internet') || internet > 0) {
+                    breakdownRows.push(`<div class="calc-row"><span>Internet Subscription Charge <small style="color:var(--landlord);font-weight:700;">(Billed Separately)</small></span><span>₱${internet.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 5. Parking
+                if (parking > 0) {
+                    breakdownRows.push(`<div class="calc-row"><span>Parking Slot Fee</span><span>₱${parking.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 6. Security Deposit & Advance / Other Charges
+                if (isMoveInBill || (!isInc('association_fee') && (other > 0 || isMoveInBill))) {
+                    const label = isMoveInBill ? 'Security Deposit & Advance Payment' : 'Other Charges / Association Fee';
+                    breakdownRows.push(`<div class="calc-row"><span style="${isMoveInBill ? 'font-weight:700;color:var(--landlord);' : ''}">${label}</span><span style="font-weight:700;">₱${other.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 7. Late Penalty
+                if (penalty > 0) {
+                    breakdownRows.push(`<div class="calc-row"><span style="color:#ef4444;font-weight:700;">Late Penalty Fine</span><span style="color:#ef4444;font-weight:700;">₱${penalty.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 8. Total Amount Due
+                breakdownRows.push(`<div class="calc-row total"><span>TOTAL AMOUNT DUE:</span><span>₱${total.toLocaleString(undefined, {minimumFractionDigits:2})} PHP</span></div>`);
+
+                content.innerHTML = `
+                    <div class="bill-details-grid">
+                        <div class="bill-details-item"><span class="bill-details-lbl">Tenant</span><span class="bill-details-val">${tenantName}</span></div>
+                        <div class="bill-details-item"><span class="bill-details-lbl">Property Unit</span><span class="bill-details-val">${propertyName}</span></div>
+                        <div class="bill-details-item"><span class="bill-details-lbl">Billing Cycle Month</span><span class="bill-details-val">${bill.billing_month}</span></div>
+                        <div class="bill-details-item"><span class="bill-details-lbl">Payment Due Date</span><span class="bill-details-val">${new Date(bill.due_date).toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' })}</span></div>
+                    </div>
+
+                    <h4 style="border-bottom:1px solid var(--border-color);padding-bottom:0.4rem;margin-bottom:0.75rem;">Billing Calculations Breakdown</h4>
+                    
+                    ${breakdownRows.join('')}
+
+                    ${bill.remarks ? `<div style="margin-top:1.5rem;"><span class="bill-details-lbl">Landlord Remarks & Breakdown Details</span><div class="contract-textarea" style="padding:0.75rem;background-color:var(--bg-primary);border-radius:4px;font-size:0.85rem;margin-top:0.25rem;border:1px solid var(--border-color);">${bill.remarks}</div></div>` : ''}
+                `;
+
+            } catch (err) {
+                console.error(err);
+                content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--error);">Failed to load details.</div>';
+            }
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewBillModal').classList.add('hidden');
+            document.getElementById('viewModalContent').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

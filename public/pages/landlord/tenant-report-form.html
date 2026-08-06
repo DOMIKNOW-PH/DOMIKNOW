@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Tenant – DomiKnow</title>
+    <meta name="description" content="File a formal incident report against a tenant for admin review.">
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        /* ── Page layout ── */
+        .report-wrapper {
+            max-width: 920px;
+            margin: 0 auto;
+        }
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .page-header .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 0.4rem 0.85rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+        }
+        .page-header .back-link:hover { background-color: var(--border-color); }
+
+        /* ── Cards ── */
+        .report-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* ── Auto-fill grid ── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .info-item { display: flex; flex-direction: column; }
+        .info-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+        .info-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ── Severity buttons ── */
+        .severity-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .severity-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.7rem 1rem;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-align: center;
+            transition: all 0.18s ease;
+        }
+        .severity-btn:hover   { border-color: var(--primary); color: var(--primary); }
+        .severity-btn.active  { border-color: currentColor; background-color: currentColor; color: white !important; }
+        .severity-btn[data-v="minor"]    { --c: #10b981; }
+        .severity-btn[data-v="moderate"] { --c: #f59e0b; }
+        .severity-btn[data-v="major"]    { --c: #f97316; }
+        .severity-btn[data-v="critical"] { --c: #ef4444; }
+        .severity-btn[data-v="minor"].active    { background-color: #10b981; border-color: #10b981; }
+        .severity-btn[data-v="moderate"].active { background-color: #f59e0b; border-color: #f59e0b; }
+        .severity-btn[data-v="major"].active    { background-color: #f97316; border-color: #f97316; }
+        .severity-btn[data-v="critical"].active { background-color: #ef4444; border-color: #ef4444; }
+
+        /* ── Evidence Upload Zone ── */
+        .evidence-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg-primary);
+            position: relative;
+        }
+        .evidence-zone:hover, .evidence-zone.drag-over {
+            border-color: var(--primary);
+            background: rgba(99,102,241,0.04);
+        }
+        .evidence-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .evidence-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .evidence-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; }
+
+        /* ── Evidence Preview Grid ── */
+        .evidence-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .evidence-item {
+            position: relative;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--bg-primary);
+        }
+        .evidence-item img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            display: block;
+        }
+        .evidence-item .ev-name {
+            font-size: 0.65rem;
+            padding: 0.3rem 0.5rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .evidence-item .ev-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(239,68,68,0.85);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .evidence-item .ev-icon-placeholder {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        /* ── Status banners ── */
+        .alert-box {
+            padding: 0.9rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            display: none;
+        }
+        .alert-error   { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .alert-success { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+
+        /* ── Submit btn ── */
+        #submitReportBtn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-color: #dc2626;
+            width: 100%;
+            padding: 0.85rem;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            transition: all 0.2s;
+        }
+        #submitReportBtn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(239,68,68,0.35);
+        }
+        #submitReportBtn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration:none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap:wrap;gap:0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Screening</a>
+                <a href="leases.html" class="navbar-menu-link">Leases</a>
+                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link">Billings</a>
+                <a href="payments.html" class="navbar-menu-link">Payments</a>
+                <a href="maintenance.html" class="navbar-menu-link">Maintenance</a>
+                <a href="reports.html" class="navbar-menu-link active">Reports</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes</a>
+                <a href="policy-violations.html" class="navbar-menu-link">Violations</a>
+                <a href="feedback.html" class="navbar-menu-link">Feedback</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="report-wrapper">
+            <!-- Header -->
+            <div class="page-header">
+                <a href="reports.html" class="back-link">← Back to Reports</a>
+                <div>
+                    <h2 style="margin:0;">⚑ Report Tenant</h2>
+                    <p style="color:var(--text-muted);font-size:0.875rem;margin:0.25rem 0 0;">File a formal incident report. Admin will review before any action is taken.</p>
+                </div>
+            </div>
+
+            <!-- Alert messages -->
+            <div id="alertError"   class="alert-box alert-error"></div>
+            <div id="alertSuccess" class="alert-box alert-success"></div>
+
+            <!-- ── SECTION 1: Basic Information (Auto-filled) ── -->
+            <div class="report-card">
+                <div class="section-title">📋 Basic Information — Auto-filled from Lease</div>
+                <div id="leaseInfoLoading" style="color:var(--text-muted);font-style:italic;">Loading lease details...</div>
+                <div id="leaseInfoGrid" class="info-grid" style="display:none;">
+                    <div class="info-item">
+                        <span class="info-label">Tenant Name</span>
+                        <span class="info-value" id="infoTenantName">—</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Lease Number</span>
+                        <span class="info-value" id="infoLeaseNumber">—</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Property</span>
+                        <span class="info-value" id="infoProperty">—</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Unit Number</span>
+                        <span class="info-value" id="infoUnit">—</span>
+                    </div>
+                    <div class="info-item" style="grid-column: 1/-1;">
+                        <span class="info-label">Rental Address</span>
+                        <span class="info-value" id="infoAddress">—</span>
+                    </div>
+                </div>
+                <input type="hidden" id="hiddenLeaseId">
+                <input type="hidden" id="hiddenTenantId">
+                <input type="hidden" id="hiddenPropertyId">
+            </div>
+
+            <!-- ── SECTION 2: Incident Information ── -->
+            <div class="report-card">
+                <div class="section-title">📌 Incident Information</div>
+
+                <div class="form-group">
+                    <label class="form-label" for="reportCategory">Report Category <span style="color:#ef4444;">*</span></label>
+                    <select id="reportCategory" class="form-input" required>
+                        <option value="">— Select Category —</option>
+                        <option value="non_payment">Non-payment of Rent</option>
+                        <option value="property_damage">Property Damage</option>
+                        <option value="house_rule_violation">House Rule Violation</option>
+                        <option value="noise_complaint">Noise Complaint</option>
+                        <option value="illegal_activity">Illegal Activity</option>
+                        <option value="unauthorized_occupants">Unauthorized Occupants</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="unsanitary_behavior">Unsanitary Behavior</option>
+                        <option value="utility_abuse">Utility Abuse</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="incidentDate">Incident Date <span style="color:#ef4444;">*</span></label>
+                    <input type="date" id="incidentDate" class="form-input" required max="">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="incidentDescription">Incident Description <span style="color:#ef4444;">*</span></label>
+                    <textarea id="incidentDescription" class="form-input" style="height:140px;resize:vertical;"
+                        placeholder="Describe the incident in detail — what happened, when, where, and any witnesses..."></textarea>
+                    <div id="descCharCount" style="font-size:0.72rem;color:var(--text-muted);text-align:right;margin-top:0.25rem;">0 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Severity Level <span style="color:#ef4444;">*</span></label>
+                    <div class="severity-group">
+                        <button type="button" class="severity-btn" data-v="minor">🟢 Minor</button>
+                        <button type="button" class="severity-btn" data-v="moderate">🟡 Moderate</button>
+                        <button type="button" class="severity-btn" data-v="major">🟠 Major</button>
+                        <button type="button" class="severity-btn" data-v="critical">🔴 Critical</button>
+                    </div>
+                    <input type="hidden" id="selectedSeverity">
+                </div>
+            </div>
+
+            <!-- ── SECTION 3: Evidence Upload ── -->
+            <div class="report-card">
+                <div class="section-title">📎 Supporting Evidence <span style="color:#ef4444;">*</span></div>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">
+                    Upload at least one evidence file. Accepted: <strong>Photos, Videos, PDFs, Chat Screenshots, Billing Records, CCTV Clips</strong>.
+                    Max 50 MB per file.
+                </p>
+
+                <div class="evidence-zone" id="evidenceZone">
+                    <input type="file" id="evidenceInput" multiple
+                        accept="image/*,video/mp4,video/quicktime,video/webm,application/pdf,text/plain">
+                    <div class="evidence-icon">📂</div>
+                    <div style="font-weight:600;color:var(--text-primary);">Click to upload or drag & drop files here</div>
+                    <div class="evidence-hint">Photos · Videos · PDFs · Screenshots · Billing records · CCTV clips</div>
+                </div>
+
+                <div id="evidencePreview" class="evidence-preview"></div>
+
+                <div id="evidenceOtherNote" style="display:none;margin-top:0.75rem;padding:0.7rem 1rem;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-md);font-size:0.82rem;color:#b45309;">
+                    ⚠️ <strong>Note:</strong> You selected "Other" category without evidence. Your description must be at least 50 characters for the report to be accepted.
+                </div>
+            </div>
+
+            <!-- ── Submit ── -->
+            <div class="report-card">
+                <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:0.85rem;color:var(--text-secondary);">
+                    ⚖️ <strong>Reminder:</strong> This report will be sent to the administrator for review. The tenant will <strong>not</strong> be immediately affected. False reports may result in your account being penalized.
+                </div>
+                <button id="submitReportBtn" class="btn-primary" disabled>
+                    Submit Report for Admin Review
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        // ── State ──────────────────────────────────────────────────────────────
+        const evidenceFiles = []; // { file: File, base64: string, preview: string }
+        let selectedSeverity = '';
+        let leaseLoaded = false;
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+        const $ = id => document.getElementById(id);
+        function showError(msg)   { const el = $('alertError');   el.textContent = msg; el.style.display = 'block'; $('alertSuccess').style.display = 'none'; window.scrollTo({top:0,behavior:'smooth'}); }
+        function showSuccess(msg) { const el = $('alertSuccess'); el.textContent = msg; el.style.display = 'block'; $('alertError').style.display = 'none'; window.scrollTo({top:0,behavior:'smooth'}); }
+
+        // Today's date for incident date max
+        $('incidentDate').max = new Date().toISOString().split('T')[0];
+
+        // ── Load lease info from URL param ────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!token) return;
+
+            const params  = new URLSearchParams(window.location.search);
+            const leaseId = params.get('lease_id');
+
+            if (!leaseId) {
+                $('leaseInfoLoading').textContent = '⚠️ No lease selected. Please go back and click "Report Tenant" from your leases.';
+                return;
+            }
+
+            $('hiddenLeaseId').value = leaseId;
+
+            try {
+                const res  = await fetch(`/api/leases`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const json = await res.json();
+                const leases = json.data || [];
+                const lease  = leases.find(l => l.id === leaseId);
+
+                if (!lease) {
+                    $('leaseInfoLoading').textContent = '⚠️ Lease not found or you are not authorised to report on this lease.';
+                    return;
+                }
+
+                // Populate auto-fill fields
+                $('infoTenantName').textContent   = lease.users?.full_name || '—';
+                $('infoLeaseNumber').textContent  = lease.lease_number || 'N/A';
+                $('infoProperty').textContent     = lease.properties?.property_name || '—';
+                $('infoUnit').textContent         = lease.properties?.unit_number || '—';
+                $('infoAddress').textContent      = lease.properties?.address || '—';
+                $('hiddenTenantId').value         = lease.tenant_id || '';
+                $('hiddenPropertyId').value       = lease.property_id || '';
+
+                $('leaseInfoLoading').style.display = 'none';
+                $('leaseInfoGrid').style.display    = 'grid';
+                leaseLoaded = true;
+                validateForm();
+
+            } catch (err) {
+                console.error(err);
+                $('leaseInfoLoading').textContent = 'Failed to load lease details. Please try again.';
+            }
+        });
+
+        // ── Severity selection ────────────────────────────────────────────────
+        document.querySelectorAll('.severity-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.severity-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedSeverity = btn.dataset.v;
+                $('selectedSeverity').value = selectedSeverity;
+                validateForm();
+            });
+        });
+
+        // ── Description character count ────────────────────────────────────────
+        $('incidentDescription').addEventListener('input', () => {
+            const len = $('incidentDescription').value.trim().length;
+            $('descCharCount').textContent = `${len} characters`;
+            validateForm();
+        });
+
+        $('reportCategory').addEventListener('change', () => {
+            updateOtherNote();
+            validateForm();
+        });
+
+        function updateOtherNote() {
+            const isOther = $('reportCategory').value === 'other';
+            $('evidenceOtherNote').style.display = isOther && evidenceFiles.length === 0 ? 'block' : 'none';
+        }
+
+        // ── Evidence drag-and-drop ─────────────────────────────────────────────
+        const zone = $('evidenceZone');
+        zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', ()  => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            processFiles([...e.dataTransfer.files]);
+        });
+
+        $('evidenceInput').addEventListener('change', e => {
+            processFiles([...e.target.files]);
+            e.target.value = ''; // allow re-selecting same file
+        });
+
+        function processFiles(files) {
+            files.forEach(file => {
+                if (evidenceFiles.length >= 10) { showError('Maximum 10 evidence files allowed.'); return; }
+                if (file.size > 50 * 1024 * 1024) { showError(`"${file.name}" exceeds 50 MB limit.`); return; }
+
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const entry = { file, base64: ev.target.result, preview: null };
+                    if (file.type.startsWith('image/')) entry.preview = ev.target.result;
+                    evidenceFiles.push(entry);
+                    renderEvidencePreviews();
+                    updateOtherNote();
+                    validateForm();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderEvidencePreviews() {
+            const container = $('evidencePreview');
+            container.innerHTML = '';
+            evidenceFiles.forEach((entry, idx) => {
+                const item = document.createElement('div');
+                item.className = 'evidence-item';
+
+                const icon = getFileIcon(entry.file.type);
+                const mediaHtml = entry.preview
+                    ? `<img src="${entry.preview}" alt="${entry.file.name}">`
+                    : `<div class="ev-icon-placeholder">${icon}</div>`;
+
+                item.innerHTML = `
+                    ${mediaHtml}
+                    <div class="ev-name" title="${entry.file.name}">${entry.file.name}</div>
+                    <button class="ev-remove" data-idx="${idx}" title="Remove">✕</button>
+                `;
+                container.appendChild(item);
+            });
+
+            // Remove buttons
+            container.querySelectorAll('.ev-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    evidenceFiles.splice(parseInt(btn.dataset.idx), 1);
+                    renderEvidencePreviews();
+                    updateOtherNote();
+                    validateForm();
+                });
+            });
+        }
+
+        function getFileIcon(mimeType) {
+            if (mimeType.startsWith('image/'))       return '🖼️';
+            if (mimeType.startsWith('video/'))       return '🎥';
+            if (mimeType === 'application/pdf')      return '📄';
+            if (mimeType === 'text/plain')           return '📝';
+            return '📎';
+        }
+
+        // ── Form validation ───────────────────────────────────────────────────
+        function validateForm() {
+            const category    = $('reportCategory').value;
+            const date        = $('incidentDate').value;
+            const description = $('incidentDescription').value.trim();
+            const severity    = $('selectedSeverity').value;
+
+            const hasEvidence = evidenceFiles.length > 0;
+            const descOk = description.length >= 10;
+            const evidenceOk = hasEvidence || (category === 'other' && description.length >= 50);
+
+            const ready = leaseLoaded && category && date && descOk && severity && evidenceOk;
+            $('submitReportBtn').disabled = !ready;
+        }
+
+        // ── Form submission ───────────────────────────────────────────────────
+        $('submitReportBtn').addEventListener('click', handleSubmit);
+
+        async function handleSubmit() {
+            const btn = $('submitReportBtn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+            $('alertError').style.display   = 'none';
+            $('alertSuccess').style.display = 'none';
+
+            const leaseId     = $('hiddenLeaseId').value;
+            const category    = $('reportCategory').value;
+            const date        = $('incidentDate').value;
+            const description = $('incidentDescription').value.trim();
+            const severity    = $('selectedSeverity').value;
+
+            if (!leaseId || !category || !date || !description || !severity) {
+                showError('Please fill in all required fields.');
+                btn.disabled = false;
+                btn.textContent = 'Submit Report for Admin Review';
+                return;
+            }
+
+            // Build files array for backend
+            const filesPayload = evidenceFiles.map(ev => ({
+                base64_content: ev.base64,
+                file_name:      ev.file.name,
+                mime_type:      ev.file.type,
+                file_size:      ev.file.size
+            }));
+
+            const body = {
+                lease_id:             leaseId,
+                report_category:      category,
+                incident_date:        date,
+                incident_description: description,
+                severity:             severity,
+                files:                filesPayload.length > 0 ? filesPayload : undefined
+            };
+
+            try {
+                const res = await fetch('/api/tenant-reports', {
+                    method:  'POST',
+                    headers: {
+                        'Content-Type':  'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const json = await res.json();
+
+                if (res.ok) {
+                    showSuccess('✅ ' + (json.message || 'Report submitted successfully! Redirecting...'));
+                    setTimeout(() => {
+                        window.location.href = 'reports.html';
+                    }, 1800);
+                } else {
+                    showError(json.message || 'Failed to submit report. Please try again.');
+                }
+
+            } catch (err) {
+                console.error(err);
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit Report for Admin Review';
+            }
+        }
+
+        // Input events
+        $('reportCategory').addEventListener('change', validateForm);
+        $('incidentDate').addEventListener('change', validateForm);
+    </script>
+</body>
+</html>

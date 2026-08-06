@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Violations - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .violations-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+            .violations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .form-card, .history-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            height: fit-content;
+        }
+        .history-card {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Tenant Screening</a>
+                <a href="leases.html" class="navbar-menu-link">Lease Agreements</a>
+                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link">Billings</a>
+                <a href="payments.html" class="navbar-menu-link">Payments Registry</a>
+                <a href="maintenance.html" class="navbar-menu-link">Maintenance</a>
+                <a href="reports.html" class="navbar-menu-link">Reports</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes</a>
+                <a href="policy-violations.html" class="navbar-menu-link active">Violations</a>
+                <a href="feedback.html" class="navbar-menu-link">Feedback</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Policy Violations Registry</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Log formal misconduct reports regarding late payments, property damage, unauthorized occupants, or noise complaints against tenants.</p>
+
+        <div class="violations-grid">
+            <!-- Submit Form -->
+            <div class="form-card">
+                <h3 style="margin-bottom: 1.5rem; color: var(--primary);">File Violation Record</h3>
+                <div id="errorMessage" class="status-badge status-rejected hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
+                <div id="successMessage" class="status-badge status-active hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
+
+                <form id="violationForm">
+                    <div class="form-group">
+                        <label class="form-label" for="leaseSelector">Select Tenant Lease</label>
+                        <select id="leaseSelector" name="lease_id" class="form-input" required>
+                            <option value="">-- Select Active Lease --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="violationType">Violation Category</label>
+                        <select id="violationType" name="violation_type" class="form-input" required>
+                            <option value="">-- Select Category --</option>
+                            <option value="property_rule_violation">House Rule Violation</option>
+                            <option value="late_payment">Late Payment / Arrears</option>
+                            <option value="unauthorized_occupant">Unauthorized Occupant</option>
+                            <option value="property_damage">Property Damage / Vandalism</option>
+                            <option value="noise_complaint">Noise Complaint / Nuisance</option>
+                            <option value="misconduct">Tenant Misconduct / Harassment</option>
+                            <option value="other">Other Violation Type</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="violationDescription">Evidence Description</label>
+                        <textarea id="violationDescription" name="violation_description" class="form-input" placeholder="Explain the violation in detail, specifying dates, rules breached, and warnings given..." style="height: 120px;" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="evidenceFile">Upload Photo / Evidence Proof (Optional)</label>
+                        <input type="file" id="evidenceFile" accept="image/*,application/pdf" class="form-input">
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-primary" style="background-color: var(--landlord); border-color: var(--landlord); width: 100%;">
+                        Submit Violation Record
+                    </button>
+                </form>
+            </div>
+
+            <!-- History List -->
+            <div class="history-card">
+                <h3 style="margin-bottom: 1.5rem;">Policy Violation Records</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tenant & Property</th>
+                            <th>Category & Description</th>
+                            <th>Status & Action Taken</th>
+                            <th>Date Filed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="violationsTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading violations history...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let activeLeasesMap = new Map();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchActiveLeases();
+            fetchMyViolations();
+
+            document.getElementById('violationForm').addEventListener('submit', handleSubmitViolation);
+        });
+
+        async function fetchActiveLeases() {
+            const selectEl = document.getElementById('leaseSelector');
+            try {
+                const response = await fetch('/api/landlord/leases', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+
+                const result = await response.json();
+                const leases = result.data || [];
+                const activeLeases = leases.filter(l => l.lease_status === 'active');
+
+                activeLeases.forEach(lease => {
+                    activeLeasesMap.set(lease.id, lease);
+                    const option = document.createElement('option');
+                    option.value = lease.id;
+                    option.textContent = `${lease.property_name} (Tenant: ${lease.tenant_name || 'N/A'})`;
+                    selectEl.appendChild(option);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function fetchMyViolations() {
+            const tableBody = document.getElementById('violationsTableBody');
+            try {
+                const response = await fetch('/api/policy-violations/my', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--error);">Failed to load history.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const violations = result.data || [];
+
+                if (violations.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">No violation records logged.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                violations.forEach(viol => {
+                    let statusBadgeClass = 'status-pending';
+                    if (viol.status === 'resolved') statusBadgeClass = 'status-active';
+                    if (viol.status === 'dismissed') statusBadgeClass = 'status-rejected';
+                    if (viol.status === 'under_review') statusBadgeClass = 'status-pending';
+
+                    const createdDate = new Date(viol.created_at).toLocaleDateString();
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary);">🏢 ${viol.properties?.property_name || 'Property'}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">
+                                👤 Reporter: ${viol.reporter?.full_name || 'You'}<br>
+                                👤 Violator: ${viol.violator?.full_name || 'Tenant'}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-transform:capitalize; font-size:0.8rem;"><strong>${viol.violation_type.replace('_', ' ')}</strong></div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${viol.violation_description.substring(0, 50)}...</div>
+                        </td>
+                        <td>
+                            <span class="status-badge ${statusBadgeClass}" style="text-transform:capitalize;">${viol.status.replace('_', ' ')}</span>
+                            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">
+                                🛡️ Action: ${viol.action_taken || 'Under panel review'}
+                            </div>
+                        </td>
+                        <td>${createdDate}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--error);">Error reaching API.</td></tr>`;
+            }
+        }
+
+        async function handleSubmitViolation(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            const formData = new FormData(e.target);
+            const leaseId = formData.get('lease_id');
+            const lease = activeLeasesMap.get(leaseId);
+
+            if (!lease) {
+                errorDiv.textContent = 'Invalid Lease Selected.';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Violation Record';
+                return;
+            }
+
+            const fileInput = document.getElementById('evidenceFile');
+            const file = fileInput.files[0];
+
+            const bodyData = {
+                lease_id: leaseId,
+                property_id: lease.property_id,
+                violator_id: lease.tenant_id, // Tenant is the violator for landlord-filed violations
+                violation_type: formData.get('violation_type'),
+                violation_description: formData.get('violation_description')
+            };
+
+            const submitPayload = async (base64String, fileName, mimeType, fileSize) => {
+                if (base64String) {
+                    bodyData.base64_content = base64String;
+                    bodyData.file_name = fileName;
+                    bodyData.mime_type = mimeType;
+                    bodyData.file_size = fileSize;
+                }
+
+                try {
+                    const response = await fetch('/api/policy-violations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(bodyData)
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        successDiv.textContent = result.message || 'Violation report submitted!';
+                        successDiv.classList.remove('hidden');
+                        e.target.reset();
+                        fetchMyViolations();
+                    } else {
+                        errorDiv.textContent = result.message || 'Submission failed.';
+                        errorDiv.classList.remove('hidden');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    errorDiv.textContent = 'An error occurred during submission.';
+                    errorDiv.classList.remove('hidden');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Violation Record';
+                }
+            };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    submitPayload(reader.result, file.name, file.type, file.size);
+                };
+                reader.onerror = () => {
+                    errorDiv.textContent = 'Failed to read file.';
+                    errorDiv.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Violation Record';
+                };
+            } else {
+                submitPayload(null);
+            }
+        }
+    </script>
+</body>
+</html>

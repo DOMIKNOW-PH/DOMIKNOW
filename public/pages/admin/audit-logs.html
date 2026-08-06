@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs Monitoring - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .filter-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-top: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        .list-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-admin">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-admin">Admin</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="users.html" class="navbar-menu-link">Users</a>
+                <a href="property-review.html" class="navbar-menu-link">Property Review</a>
+                <a href="reservations.html" class="navbar-menu-link">Reservation Monitoring</a>
+                <a href="screening.html" class="navbar-menu-link">Screening Monitor</a>
+                <a href="leases.html" class="navbar-menu-link">Lease Monitor</a>
+                <a href="billings.html" class="navbar-menu-link">Billing Monitor</a>
+                <a href="payments.html" class="navbar-menu-link">Payment Monitor</a>
+                <a href="maintenance.html" class="navbar-menu-link">Maintenance Monitor</a>
+                <a href="reports.html" class="navbar-menu-link">Reports Monitor</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes Monitor</a>
+                <a href="policy-violations.html" class="navbar-menu-link">Violations Monitor</a>
+                <a href="feedback.html" class="navbar-menu-link">Feedback Monitor</a>
+                <a href="audit-logs.html" class="navbar-menu-link active">Audit Logs</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>System Audit Trails</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Review security logs, transactional events, and administrative activities.</p>
+
+        <!-- Filters Form -->
+        <div class="filter-card">
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="filterRole">User Role</label>
+                <select id="filterRole" class="form-input" style="height:38px;">
+                    <option value="">-- All Roles --</option>
+                    <option value="tenant">Tenant</option>
+                    <option value="landlord">Landlord</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="admin">Administrator</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="filterAction">Action Query</label>
+                <input type="text" id="filterAction" class="form-input" style="height:38px;" placeholder="e.g. LOGIN, SUBMIT">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="filterDateFrom">Date From</label>
+                <input type="date" id="filterDateFrom" class="form-input" style="height:38px;">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="filterDateTo">Date To</label>
+                <input type="date" id="filterDateTo" class="form-input" style="height:38px;">
+            </div>
+            <button id="filterBtn" class="btn-primary" style="height:38px; padding: 0 1.5rem; background-color: var(--admin); border-color: var(--admin); cursor: pointer;">
+                Apply Filters
+            </button>
+        </div>
+
+        <!-- Logs Registry List -->
+        <div class="list-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User Name</th>
+                        <th>User Role</th>
+                        <th>Action Logged</th>
+                        <th>Description Details</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="logsTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading audit trails...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchAuditTrails();
+
+            document.getElementById('filterBtn').addEventListener('click', fetchAuditTrails);
+        });
+
+        async function fetchAuditTrails() {
+            const tableBody = document.getElementById('logsTableBody');
+            
+            const role = document.getElementById('filterRole').value;
+            const action = document.getElementById('filterAction').value;
+            const from = document.getElementById('filterDateFrom').value;
+            const to = document.getElementById('filterDateTo').value;
+
+            // Build query params
+            const params = new URLSearchParams();
+            if (role) params.append('user_role', role);
+            if (action) params.append('action', action);
+            if (from) params.append('date_from', from);
+            if (to) params.append('date_to', to);
+
+            try {
+                const response = await fetch(`/api/admin/audit-logs?${params.toString()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--error);">Failed to load audit trails.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const logs = result.data || [];
+
+                if (logs.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">No logs matching search criteria found.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                logs.forEach(log => {
+                    let roleBadgeClass = 'status-pending';
+                    if (log.users?.role === 'admin') roleBadgeClass = 'status-active';
+                    if (log.users?.role === 'tenant') roleBadgeClass = 'status-active';
+                    if (log.users?.role === 'landlord') roleBadgeClass = 'status-pending';
+
+                    const timestampStr = new Date(log.created_at).toLocaleString();
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${log.users?.full_name || 'N/A'}</strong></td>
+                        <td>
+                            <span class="status-badge ${roleBadgeClass}" style="text-transform: capitalize; font-size: 0.8rem;">
+                                ${log.users?.role || 'N/A'}
+                            </span>
+                        </td>
+                        <td><code style="background-color: var(--bg-primary); padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-weight:700; color: var(--primary);">${log.action}</code></td>
+                        <td>${log.description || 'No description provided.'}</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">${timestampStr}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--error);">Error contacting service API.</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Management - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .list-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9375rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1.15rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+        
+        .filters-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .filter-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.45rem 1rem;
+            font-size: 0.8125rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .filter-btn.active {
+            background: var(--landlord);
+            color: white;
+            border-color: var(--landlord);
+        }
+        .action-btn {
+            padding: 0.45rem 1.1rem;
+            font-size: 0.8125rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            border: 1px solid transparent;
+            text-decoration: none;
+            display: inline-block;
+            background-color: var(--landlord);
+            color: white;
+        }
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Tenant Screening</a>
+                <a href="leases.html" class="navbar-menu-link">Leases</a>
+                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link">Billings</a>
+                <a href="payments.html" class="navbar-menu-link">Payments</a>
+                <a href="maintenance.html" class="navbar-menu-link active">Maintenance</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Maintenance Coordination Center</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Review requests submitted by tenants, allocate technicians, and audit repair reports.</p>
+
+        <div class="filters-group">
+            <button class="filter-btn active" data-filter="all">All Requests</button>
+            <button class="filter-btn" data-filter="pending">Pending Approval</button>
+            <button class="filter-btn" data-filter="approved">Approved Pool</button>
+            <button class="filter-btn" data-filter="assigned">Assigned</button>
+            <button class="filter-btn" data-filter="accepted">Accepted Job</button>
+            <button class="filter-btn" data-filter="in_progress">In Progress</button>
+            <button class="filter-btn" data-filter="completed">Completed Report</button>
+            <button class="filter-btn" data-filter="closed">Closed / Verified</button>
+            <button class="filter-btn" data-filter="rejected">Rejected</button>
+        </div>
+
+        <div class="list-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property & Unit</th>
+                        <th>Tenant Reporter</th>
+                        <th>Problem Details</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Assigned technician</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="maintenanceQueueBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading maintenance coordination reports...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let requestQueue = [];
+        let activeFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchMaintenanceQueue();
+
+            // Filters delegation
+            document.querySelector('.filters-group').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-filter]');
+                if (!btn) return;
+
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                activeFilter = btn.dataset.filter;
+                renderQueueTable();
+            });
+        });
+
+        async function fetchMaintenanceQueue() {
+            const tableBody = document.getElementById('maintenanceQueueBody');
+            try {
+                const response = await fetch('/api/maintenance/requests/landlord', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Failed to load maintenance queue.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                requestQueue = result.data || [];
+                renderQueueTable();
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Error reaching service api.</td></tr>`;
+            }
+        }
+
+        function renderQueueTable() {
+            const tableBody = document.getElementById('maintenanceQueueBody');
+            
+            // Filter queue logic
+            const filtered = requestQueue.filter(req => {
+                if (activeFilter === 'all') return true;
+                if (activeFilter === 'in_progress') {
+                    return ['travelling', 'arrived', 'repairing'].includes(req.status);
+                }
+                if (activeFilter === 'closed') {
+                    return ['verified', 'closed'].includes(req.status);
+                }
+                return req.status === activeFilter;
+            });
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">No requests match the selected status category.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = '';
+            filtered.forEach(req => {
+                let priorityBadgeClass = 'status-pending';
+                if (req.priority_level === 'high' || req.priority_level === 'emergency') priorityBadgeClass = 'status-rejected';
+                else if (req.priority_level === 'low') priorityBadgeClass = 'status-active';
+
+                let statusBadgeClass = 'status-pending';
+                if (['completed', 'verified', 'closed'].includes(req.status)) statusBadgeClass = 'status-active';
+                else if (req.status === 'rejected') statusBadgeClass = 'status-rejected';
+
+                let technicianName = req.assigned_maintenance?.full_name || 'Unassigned';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div style="font-weight:750; color:var(--text-primary);">${req.properties?.property_name || 'Property'}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Unit: ${req.unit_number || 'N/A'}</div>
+                    </td>
+                    <td>${req.users?.full_name || 'Tenant'}</td>
+                    <td>
+                        <div style="font-weight:700; color:var(--primary);">${req.issue_title}</div>
+                        <div style="font-size:0.72rem; color:var(--text-secondary); max-width: 180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Pref. Sch: ${req.preferred_schedule || '—'}</div>
+                    </td>
+                    <td style="text-transform: capitalize;">${req.issue_category}</td>
+                    <td><span class="status-badge ${priorityBadgeClass}" style="text-transform:capitalize;">${req.priority_level}</span></td>
+                    <td><span class="status-badge ${statusBadgeClass}" style="text-transform:capitalize;">${req.status.replace('_', ' ')}</span></td>
+                    <td style="font-weight:600; color:var(--text-secondary);">${technicianName}</td>
+                    <td>
+                        <a href="maintenance-details.html?id=${req.id}" class="action-btn">Manage</a>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>

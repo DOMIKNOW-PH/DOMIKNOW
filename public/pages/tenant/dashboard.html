@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Dashboard - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+</head>
+<body class="app-loading" data-role="tenant" data-page-title="Tenant Dashboard">
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <!-- Status Header -->
+        <div class="status-card status-card-tenant">
+            <div class="status-card-info">
+                <h2>Dashboard</h2>
+                <p>Manage your rental experience.</p>
+            </div>
+            <div class="status-badge-container">
+                <span class="status-badge-label">Account Status</span>
+                <span id="accountStatus" class="status-badge status-pending">LOADING</span>
+            </div>
+        </div>
+
+        <!-- Profile Placeholder -->
+        <div class="profile-card">
+            <h3 class="profile-card-title">Basic Profile</h3>
+            <div class="profile-info-row">
+                <p><strong>Name:</strong> <span class="user-name">Loading...</span></p>
+            </div>
+            <p class="profile-card-footer">Full profile editing coming soon.</p>
+        </div>
+
+        <!-- Coming Soon Features Grid -->
+        <div class="feature-grid">
+            <!-- Feature Card 1 -->
+            <div class="feature-card">
+                <div class="feature-card-header">
+                    <h3 class="feature-card-title">Property Discovery</h3>
+                    <span class="feature-card-badge" style="background-color: var(--success); color: white;">Active</span>
+                </div>
+                <p class="feature-card-desc">Browse and search for available rental properties in your area.</p>
+                <button onclick="window.location.href='properties.html'" class="feature-card-btn" style="background-color: var(--tenant); color: white; cursor: pointer;">Explore Properties</button>
+            </div>
+
+            <!-- Feature Card 2 -->
+            <div class="feature-card">
+                <div class="feature-card-header">
+                    <h3 class="feature-card-title">Recommendations</h3>
+                    <span class="feature-card-badge" style="background-color: var(--success); color: white;">Active</span>
+                </div>
+                <p class="feature-card-desc">Get smart property recommendations based on your preferences.</p>
+                <button onclick="window.location.href='recommendations.html'" class="feature-card-btn" style="background-color: var(--tenant); color: white; cursor: pointer;">View Matches</button>
+            </div>
+
+
+
+            <!-- Feature Card 4 -->
+            <div class="feature-card">
+                <div class="feature-card-header">
+                    <h3 class="feature-card-title">Rental Applications</h3>
+                    <span class="feature-card-badge" style="background-color: var(--success); color: white;">Active</span>
+                </div>
+                <p class="feature-card-desc">Track status and upload verification files for lease registration.</p>
+                <button onclick="window.location.href='applications.html'" class="feature-card-btn" style="background-color: var(--tenant); color: white; cursor: pointer;">My Applications</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/navigationConfig.js"></script>
+    <script src="../../js/layout.js"></script>
+</body>
+</html>

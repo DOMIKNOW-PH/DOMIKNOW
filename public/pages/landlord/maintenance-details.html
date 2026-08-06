@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Task - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .details-card, .timeline-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            height: fit-content;
+        }
+        
+        .action-panel-box {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .action-row-btn {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .btn-action {
+            padding: 0.55rem 1.25rem;
+            font-size: 0.85rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            border: 1px solid transparent;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-approve {
+            background-color: var(--success);
+            color: white;
+        }
+        .btn-reject {
+            background-color: var(--error);
+            color: white;
+        }
+        .btn-assign {
+            background-color: var(--landlord);
+            color: white;
+        }
+
+        /* Timeline logs visual styling */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-top: 1rem;
+            border-left: 2px solid var(--border-color);
+            padding-left: 1.25rem;
+            margin-left: 0.5rem;
+        }
+        .timeline-item {
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -27px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            border: 2px solid var(--bg-secondary);
+        }
+        .timeline-item.active::before {
+            background-color: var(--landlord);
+        }
+        .timeline-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .timeline-notes {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            margin-top: 0.15rem;
+        }
+        
+        .cost-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Tenant Screening</a>
+                <a href="leases.html" class="navbar-menu-link">Leases</a>
+                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link">Billings</a>
+                <a href="payments.html" class="navbar-menu-link">Payments</a>
+                <a href="maintenance.html" class="navbar-menu-link active">Maintenance</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Manage Maintenance Task</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Process tenant requests, dispatch qualified technicians, and verify completed maintenance reports.</p>
+
+        <div class="details-grid">
+            <!-- Details Column -->
+            <div class="details-card">
+                <h3 id="requestTitle" style="color: var(--primary); margin-bottom: 1.25rem;">Maintenance request</h3>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; background:var(--bg-primary); border:1px solid var(--border-color); padding:1.25rem; border-radius:var(--radius-md); margin-bottom:1.5rem;">
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PROPERTY NAME</span><div style="font-weight:600;" id="propertyName">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">UNIT / ROOM NO.</span><div style="font-weight:600;" id="unitNumber">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">TENANT REPORTER</span><div style="font-weight:600;" id="tenantName">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PREFERRED ENTRY SCHEDULE</span><div style="font-weight:600;" id="preferredSchedule">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CATEGORY</span><div style="font-weight:600; text-transform:capitalize;" id="issueCategory">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">URGENCY PRIORITY</span><div style="font-weight:600; text-transform:capitalize;" id="priorityLevel">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CURRENT STATUS</span><div style="font-weight:800; text-transform:capitalize; color:var(--landlord);" id="requestStatus">Loading...</div></div>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Tenant Description Details</span>
+                    <div id="issueDescription" style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); border:1px solid var(--border-color); padding:0.75rem; border-radius:4px; margin-top:0.25rem; white-space:pre-wrap;"></div>
+                </div>
+
+                <div id="imageContainer" class="hidden" style="margin-bottom:1.5rem;">
+                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Tenant Uploaded Photo</span>
+                    <div><a id="issueImgLink" target="_blank"><img id="issueImg" style="max-width:100%; max-height:220px; border:1px solid var(--border-color); border-radius:4px; margin-top:0.25rem;"></a></div>
+                </div>
+
+                <!-- Report view (loads only if report exists) -->
+                <div id="reportSection" class="hidden" style="border-top:1px solid var(--border-color); padding-top:1.5rem; margin-top:1.5rem;">
+                    <h3 style="margin-bottom:1rem; color:var(--primary);">Technician Completion Report</h3>
+                    <div style="background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem;">
+                        <p><strong>Problem Diagnosed:</strong> <span id="reportProblem">Loading...</span></p>
+                        <p><strong>Action Performed:</strong> <span id="reportAction">Loading...</span></p>
+                        <p><strong>Materials Recorded:</strong> <span id="reportMaterials">Loading...</span></p>
+                        <p><strong>Recommendations / Safety Notes:</strong> <span id="reportNotes">Loading...</span></p>
+                        
+                        <div class="cost-group">
+                            <div><strong>Materials Cost:</strong> <div id="lblMaterialCost" style="font-size:1.15rem; font-weight:800; color:var(--landlord);">₱0.00</div></div>
+                            <div><strong>Labor Services Cost:</strong> <div id="lblLaborCost" style="font-size:1.15rem; font-weight:800; color:var(--landlord);">₱0.00</div></div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;">
+                            <div id="beforePhotoBlock" class="hidden">
+                                <strong>Before Photo</strong>
+                                <div><a id="beforeLink" target="_blank"><img id="beforeImg" style="max-width:100%; max-height:150px; border:1px solid var(--border-color); border-radius:4px;"></a></div>
+                            </div>
+                            <div id="afterPhotoBlock" class="hidden">
+                                <strong>After Photo</strong>
+                                <div><a id="afterLink" target="_blank"><img id="afterImg" style="max-width:100%; max-height:150px; border:1px solid var(--border-color); border-radius:4px;"></a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Decision Panel (Approve/Reject or Assign or Verify) -->
+                <div id="landlordActionPanel" class="action-panel-box hidden">
+                    <h4 style="margin:0;" id="actionPanelTitle">Action Verification Panel</h4>
+                    <div id="panelFormContainer"></div>
+                </div>
+            </div>
+
+            <!-- Timeline logs -->
+            <div class="timeline-card">
+                <h3>Coordination Log Timeline</h3>
+                <div class="timeline" id="timelineLogs">
+                    <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No logs documented yet.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestId = urlParams.get('id');
+        let requestDetails = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token || !requestId) return;
+            fetchRequestDetails();
+
+            // Set container level event listeners for form and actions to avoid CSP issues
+            const actionPanel = document.getElementById('landlordActionPanel');
+            
+            // Delegate clicks on actions
+            actionPanel.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                
+                const action = btn.dataset.action;
+                const decision = btn.dataset.decision;
+
+                if (action === 'respond') handleRespond(decision);
+                if (action === 'verify') handleVerify(decision);
+            });
+
+            // Delegate submit
+            actionPanel.addEventListener('submit', (e) => {
+                if (e.target.id === 'landlordAssignForm') {
+                    e.preventDefault();
+                    handleAssign();
+                }
+            });
+        });
+
+        async function fetchRequestDetails() {
+            try {
+                const response = await fetch(`/api/maintenance/requests/${requestId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+
+                const result = await response.json();
+                const data = result.data;
+                const req = data.request;
+                requestDetails = req;
+
+                document.getElementById('propertyName').textContent = req.properties?.property_name;
+                document.getElementById('unitNumber').textContent = req.unit_number || 'N/A';
+                document.getElementById('tenantName').textContent = `${req.tenant?.full_name || 'N/A'} (${req.tenant?.contact_number || 'No phone'})`;
+                document.getElementById('preferredSchedule').textContent = req.preferred_schedule || '—';
+                document.getElementById('issueCategory').textContent = req.issue_category;
+                document.getElementById('priorityLevel').textContent = req.priority_level;
+                document.getElementById('requestStatus').textContent = req.status.replace('_', ' ');
+                document.getElementById('issueDescription').textContent = req.issue_description;
+
+                if (req.image_url) {
+                    document.getElementById('imageContainer').classList.remove('hidden');
+                    document.getElementById('issueImg').src = req.image_url;
+                    document.getElementById('issueImgLink').href = req.image_url;
+                } else {
+                    document.getElementById('imageContainer').classList.add('hidden');
+                }
+
+                // Render Timeline logs
+                const timeline = document.getElementById('timelineLogs');
+                if (data.updates && data.updates.length > 0) {
+                    timeline.innerHTML = '';
+                    data.updates.forEach(u => {
+                        const dt = new Date(u.created_at).toLocaleString();
+                        const div = document.createElement('div');
+                        div.className = 'timeline-item active';
+                        div.innerHTML = `
+                            <span class="timeline-meta">${dt} - ${u.status_update.replace('_', ' ').toUpperCase()}</span>
+                            <div class="timeline-notes">${u.notes}</div>
+                        `;
+                        timeline.appendChild(div);
+                    });
+                } else {
+                    timeline.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 1rem;">No updates logged.</p>';
+                }
+
+                // Render Report Section if completed
+                const report = data.report;
+                if (report && report.problem_found) {
+                    document.getElementById('reportSection').classList.remove('hidden');
+                    document.getElementById('reportProblem').textContent = report.problem_found;
+                    document.getElementById('reportAction').textContent = report.repair_performed;
+                    document.getElementById('reportMaterials').textContent = report.materials_used || 'None';
+                    document.getElementById('reportNotes').textContent = report.recommendations || 'None';
+                    
+                    document.getElementById('lblMaterialCost').textContent = `₱${parseFloat(report.material_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+                    document.getElementById('lblLaborCost').textContent = `₱${parseFloat(report.labor_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+
+                    if (req.before_photo_url) {
+                        document.getElementById('beforePhotoBlock').classList.remove('hidden');
+                        document.getElementById('beforeImg').src = req.before_photo_url;
+                        document.getElementById('beforeLink').href = req.before_photo_url;
+                    }
+                    if (req.after_photo_url) {
+                        document.getElementById('afterPhotoBlock').classList.remove('hidden');
+                        document.getElementById('afterImg').src = req.after_photo_url;
+                        document.getElementById('afterLink').href = req.after_photo_url;
+                    }
+                } else {
+                    document.getElementById('reportSection').classList.add('hidden');
+                }
+
+                // Render Action Panels
+                renderActionPanel(req);
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function renderActionPanel(req) {
+            const panel = document.getElementById('landlordActionPanel');
+            const title = document.getElementById('actionPanelTitle');
+            const container = document.getElementById('panelFormContainer');
+
+            panel.classList.add('hidden');
+            container.innerHTML = '';
+
+            // Status: pending -> approve/reject options
+            if (req.status === 'pending') {
+                title.textContent = 'Approve or Reject Tenant Request';
+                container.innerHTML = `
+                    <div style="margin-top:1rem;">
+                        <label class="form-label" for="rejectionReason">Rejection Reason (Required on Rejection)</label>
+                        <textarea id="rejectionReason" class="form-input" placeholder="e.g. Incomplete information, outside of contract coverage..." style="height:70px;"></textarea>
+                    </div>
+                    <div class="action-row-btn">
+                        <button class="btn-action btn-reject" data-action="respond" data-decision="reject">Reject Request</button>
+                        <button class="btn-action btn-approve" data-action="respond" data-decision="approve">Approve Request</button>
+                    </div>
+                `;
+                panel.classList.remove('hidden');
+            }
+            // Status: approved -> assign technician options
+            else if (req.status === 'approved') {
+                title.textContent = 'Dispatch Maintenance technician';
+                container.innerHTML = `
+                    <form id="landlordAssignForm">
+                        <div class="form-group" style="margin-top:0.75rem;">
+                            <label class="form-label" for="workerSelect">Select Maintenance Worker</label>
+                            <select id="workerSelect" class="form-input" required>
+                                <option value="">-- Select Worker --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="dueDate">Completion Target Due Date</label>
+                            <input type="date" id="dueDate" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="assignInstructions">Job Directives / Instructions</label>
+                            <textarea id="assignInstructions" class="form-input" placeholder="e.g. Replace faucet, clean aircon filter..." style="height:70px;"></textarea>
+                        </div>
+                        <button type="submit" class="btn-action btn-assign" style="width:100%; margin-top:0.5rem;">Assign technician</button>
+                    </form>
+                `;
+                panel.classList.remove('hidden');
+                
+                // Fetch active workers
+                try {
+                    const res = await fetch('/api/maintenance/personnel', { headers: { 'Authorization': `Bearer ${token}` } });
+                    const { data } = await res.json();
+                    const select = document.getElementById('workerSelect');
+                    data.forEach(w => {
+                        const opt = document.createElement('option');
+                        opt.value = w.id;
+                        opt.textContent = `${w.full_name} (${w.email})`;
+                        select.appendChild(opt);
+                    });
+                } catch(e) {
+                    console.error(e);
+                }
+            }
+            // Status: completed -> verify repair options
+            else if (req.status === 'completed') {
+                title.textContent = 'Assess Technician Work Evidence';
+                container.innerHTML = `
+                    <div style="margin-top:1rem;">
+                        <label class="form-label" for="verifyRemarks">Rework notes / remarks (Required on Rework request)</label>
+                        <textarea id="verifyRemarks" class="form-input" placeholder="Feedback notes for the technician..." style="height:70px;"></textarea>
+                    </div>
+                    <div class="action-row-btn">
+                        <button class="btn-action btn-reject" data-action="verify" data-decision="rework">Request Rework</button>
+                        <button class="btn-action btn-approve" data-action="verify" data-decision="accept">Accept Work Completion</button>
+                    </div>
+                `;
+                panel.classList.remove('hidden');
+            }
+        }
+
+        async function handleRespond(decision) {
+            const reason = document.getElementById('rejectionReason').value.trim();
+            if (decision === 'reject' && !reason) {
+                alert('Please state a reason for rejecting the request.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/maintenance/requests/${requestId}/landlord-respond`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ decision, rejection_reason: reason })
+                });
+
+                if (response.ok) {
+                    alert(`Request has been evaluated and marked as ${decision === 'approve' ? 'Approved' : 'Rejected'}.`);
+                    fetchRequestDetails();
+                } else {
+                    const result = await response.json();
+                    alert(result.message || 'Operation failed.');
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Connection failure updating request.');
+            }
+        }
+
+        async function handleAssign() {
+            const submitBtn = document.querySelector('#landlordAssignForm button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Dispatching worker...';
+
+            const payload = {
+                assigned_maintenance_id: document.getElementById('workerSelect').value,
+                due_date: document.getElementById('dueDate').value,
+                instructions: document.getElementById('assignInstructions').value
+            };
+
+            try {
+                const response = await fetch(`/api/maintenance/requests/${requestId}/landlord-assign`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert('Job assigned successfully to the technician.');
+                    fetchRequestDetails();
+                } else {
+                    const result = await response.json();
+                    alert(result.message || 'Dispatching worker failed.');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Network issue dispatching technician.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Assign technician';
+            }
+        }
+
+        async function handleVerify(decision) {
+            const remarks = document.getElementById('verifyRemarks').value.trim();
+            if (decision === 'rework' && !remarks) {
+                alert('Please write comments indicating why rework is requested.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/maintenance/requests/${requestId}/landlord-verify`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ decision, remarks })
+                });
+
+                if (response.ok) {
+                    alert(`Work completion verified: ${decision === 'accept' ? 'Verified' : 'Rework requested'}.`);
+                    fetchRequestDetails();
+                } else {
+                    const result = await response.json();
+                    alert(result.message || 'Verification update failed.');
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Network error verifying completion.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Recommendations - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link active">Recommendations</a>
+                <a href="compare.html" class="navbar-menu-link">Compare</a>
+                <a href="reservations.html" class="navbar-menu-link">My Reservations</a>
+                <a href="applications.html" class="navbar-menu-link">My Applications</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Smart Property Recommendations</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Input your traits and preferences to find highly suitable rentals sorted by our rule-based matching score.</p>
+
+        <div class="wizard-grid">
+            <!-- Left Column: Preference Input Form -->
+            <div class="filter-card">
+                <h3 class="filter-title">My Preferences</h3>
+                <form id="recoForm">
+                    <div class="filter-section">
+                        <label class="form-label" for="prefTenantType">Tenant Type</label>
+                        <select id="prefTenantType" required class="form-select">
+                            <option value="student">Student</option>
+                            <option value="worker">Worker</option>
+                            <option value="family">Family</option>
+                            <option value="general">General / Other</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <label class="form-label" for="prefBarangay">Preferred Barangay</label>
+                        <select id="prefBarangay" required class="form-select">
+                            <option value="G. Redor">G. Redor</option>
+                            <option value="Halayhayin">Halayhayin</option>
+                            <option value="Pandeño">Pandeño</option>
+                            <option value="Macasipac">Macasipac</option>
+                            <option value="Acevida">Acevida</option>
+                            <option value="Mendiola">Mendiola</option>
+                            <option value="Salubungan">Salubungan</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <label class="form-label" for="prefBudget">Maximum Budget (Monthly)</label>
+                        <input type="number" id="prefBudget" placeholder="₱ Max budget" required min="500" class="form-input">
+                    </div>
+
+                    <div class="filter-section">
+                        <label class="form-label">Must-Have Amenities</label>
+                        <div class="amenity-checkbox-grid">
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="WiFi"> WiFi</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="CCTV"> CCTV</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="Parking"> Parking</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="Kitchen Access"> Kitchen Access</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="Laundry Area"> Laundry Area</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="Air Conditioning"> Aircon</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="Own CR"> Own CR</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="Study Area"> Study Area</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="Near School"> Near School</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="Near Market"> Near Market</label>
+                            <label class="checkbox-label"><input type="checkbox" class="amenity-pref" value="Pet Friendly"> Pet Friendly</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnGetRecommendations" class="btn-primary" style="margin-top: 0.5rem;">⚡ Generate Matches</button>
+                </form>
+            </div>
+
+            <!-- Right Column: Results list -->
+            <div>
+                <h3 style="margin-bottom: 1.25rem;">Recommendations Results</h3>
+                <div id="recoResultsList" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <p style="text-align: center; color: var(--text-muted); padding: 4rem 0;">Input your preferences on the left and click Generate Matches to calculate scores.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reservation Modal Form -->
+    <div id="reservationModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <button id="modalClose" class="modal-close">×</button>
+            <h3 class="modal-title">Submit Reservation Request</h3>
+            <p id="modalPropName" class="modal-desc" style="font-weight: 700; color: var(--primary);">Property Name</p>
+            
+            <form id="reservationForm">
+                <input type="hidden" id="reservePropId">
+                <div class="form-group">
+                    <label for="moveInDate" class="form-label">Expected Move-in Date</label>
+                    <input type="date" id="moveInDate" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="reserveMessage" class="form-label">Message for Landlord (Optional)</label>
+                    <textarea id="reserveMessage" rows="3" placeholder="Tell the landlord about yourself..." class="form-textarea"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" id="btnSubmitReserve" class="btn-primary">Confirm Reservation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+
+            document.getElementById('recoForm').addEventListener('submit', getRecommendations);
+            document.getElementById('modalClose').addEventListener('click', closeReserveModal);
+            document.getElementById('reservationForm').addEventListener('submit', submitReservation);
+            
+            // Auto fill based on logged-in user profile details (Objective 1)
+            fetchUserProfileDetails();
+        });
+
+        async function fetchUserProfileDetails() {
+            try {
+                const response = await fetch('/api/users/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    const user = result.data;
+                    // Seed some default traits based on name or addresses (just a tip for better UX)
+                    if (user.address && user.address.toLowerCase().includes('student')) {
+                        document.getElementById('prefTenantType').value = 'student';
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function getRecommendations(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnGetRecommendations');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Analyzing...';
+
+            const tenantType = document.getElementById('prefTenantType').value;
+            const barangay = document.getElementById('prefBarangay').value;
+            const budget = document.getElementById('prefBudget').value;
+            
+            // Get selected amenities
+            const activeAmenities = [];
+            document.querySelectorAll('.amenity-pref:checked').forEach(cb => {
+                activeAmenities.push(cb.value);
+            });
+
+            // Build query params
+            let queryParams = `tenant_type=${tenantType}&preferred_barangay=${barangay}&max_budget=${budget}`;
+            activeAmenities.forEach(a => {
+                queryParams += `&amenities=${encodeURIComponent(a)}`;
+            });
+
+            try {
+                const response = await fetch(`/api/properties/recommended?${queryParams}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    document.getElementById('recoResultsList').innerHTML = `<p style="text-align: center; color: var(--error); padding: 4rem 0;">Failed to calculate recommendations.</p>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const recommended = result.data || [];
+                renderRecommendations(recommended);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('recoResultsList').innerHTML = `<p style="text-align: center; color: var(--error); padding: 4rem 0;">Error calculating match scores.</p>`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '⚡ Generate Matches';
+            }
+        }
+
+        function renderRecommendations(recommended) {
+            const list = document.getElementById('recoResultsList');
+            list.innerHTML = '';
+
+            if (recommended.length === 0) {
+                list.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 4rem 0;">No approved properties currently seeded to compute match rankings.</p>`;
+                return;
+            }
+
+            recommended.forEach(item => {
+                const prop = item.property;
+                const score = item.score;
+                const reasons = item.reasons;
+
+                // Build reason bullet list
+                let reasonsHtml = '';
+                reasons.forEach(r => {
+                    reasonsHtml += `<span style="display: block;">• ${r}</span>`;
+                });
+
+                const card = document.createElement('div');
+                card.className = 'prop-card';
+                card.style.flexDirection = 'row';
+                card.style.flexWrap = 'wrap';
+
+                // Responsive side columns styling
+                card.innerHTML = `
+                    <div class="prop-img-wrapper" style="width: 240px; height: 100%; min-height: 200px;">
+                        <img src="${prop.main_image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80'}" alt="${prop.property_name}" class="prop-img" style="height: 100%;">
+                        <span class="prop-type-badge">${prop.property_type.replace('_', ' ')}</span>
+                        <span class="reco-score-badge">Score: ${score}/100</span>
+                    </div>
+                    
+                    <div class="prop-content" style="flex-grow: 1; padding: 1.5rem;">
+                        <div class="prop-rating-bar">
+                            ★ ${parseFloat(prop.average_rating).toFixed(1)} <span style="color: var(--text-muted); font-weight: 500;">(${prop.feedback_count} reviews)</span>
+                        </div>
+                        <h4 class="prop-title" style="font-size: 1.25rem;">${prop.property_name}</h4>
+                        <p class="prop-address">📍 Address: ${prop.barangay}, Siniloan, Laguna (₱${parseInt(prop.monthly_rent).toLocaleString()}/mo)</p>
+                        
+                        <div class="reco-reason-box">
+                            <span class="reco-reason-title">Suitability Match Assessment:</span>
+                            ${reasonsHtml}
+                        </div>
+
+                        <div class="prop-footer" style="margin-top: 1rem; border-top: none; padding-top: 0; justify-content: flex-start; gap: 1rem;">
+                            <a href="property-details.html?id=${prop.id}" class="btn-prop-detail" style="flex-grow: 0; min-width: 120px;">View Details</a>
+                            <button onclick="openReserveModal('${prop.id}', '${prop.property_name.replace(/'/g, "\\'")}')" class="btn-primary" style="width: auto; padding: 0.5rem 1.5rem;">Reserve</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Reservation Modal Operations
+        function openReserveModal(propId, propName) {
+            document.getElementById('reservePropId').value = propId;
+            document.getElementById('modalPropName').textContent = propName;
+            document.getElementById('reservationModal').classList.remove('hidden');
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('moveInDate').setAttribute('min', today);
+        }
+
+        function closeReserveModal() {
+            document.getElementById('reservationModal').classList.add('hidden');
+            document.getElementById('reservationForm').reset();
+        }
+
+        async function submitReservation(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnSubmitReserve');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const payload = {
+                property_id: document.getElementById('reservePropId').value,
+                move_in_date: document.getElementById('moveInDate').value,
+                message: document.getElementById('reserveMessage').value
+            };
+
+            try {
+                const response = await fetch('/api/reservations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert('Reservation request submitted successfully!');
+                    closeReserveModal();
+                    window.location.href = 'reservations.html';
+                } else {
+                    const result = await response.json();
+                    alert(result.message || 'Submission failed.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred during submission.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Confirm Reservation';
+            }
+        }
+    </script>
+</body>
+</html>

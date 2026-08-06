@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Discovery - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <!-- Leaflet.js GIS map components -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .compare-bar {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+        }
+        .compare-bar.hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link active">Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
+                <a href="applications.html" class="navbar-menu-link">My Applications</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h2>Explore Approved Listings</h2>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div id="generalFeedback" class="alert alert-success hidden" style="margin-bottom: 0; padding: 0.5rem 1rem;"></div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label for="sortBy" style="font-size: 0.875rem; font-weight: 600; color: var(--text-secondary);">Sort by:</label>
+                    <select id="sortBy" class="form-select" style="width: auto; padding: 0.375rem 0.75rem;">
+                        <option value="newest">Newest First</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="rating_desc">Highest Rated</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Find the best rental suited to your requirements in Siniloan, Laguna.</p>
+
+
+
+        <div class="properties-layout">
+            <!-- Left Column: Filters -->
+            <aside class="filter-card">
+                <h3 class="filter-title">Filter Options</h3>
+                
+                <div class="filter-section">
+                    <label class="form-label" for="searchBar">Search Keywords</label>
+                    <input type="text" id="searchBar" placeholder="Search name or rules..." class="form-input">
+                </div>
+
+                <div class="filter-section">
+                    <label class="form-label" for="filterBarangay">Barangay</label>
+                    <select id="filterBarangay" class="form-select">
+                        <option value="">All Barangays</option>
+                        <option value="G. Redor">G. Redor</option>
+                        <option value="Halayhayin">Halayhayin</option>
+                        <option value="Pandeño">Pandeño</option>
+                        <option value="Macasipac">Macasipac</option>
+                        <option value="Acevida">Acevida</option>
+                        <option value="Mendiola">Mendiola</option>
+                        <option value="Salubungan">Salubungan</option>
+                    </select>
+                </div>
+
+                <div class="filter-section">
+                    <label class="form-label" for="filterType">Property Type</label>
+                    <select id="filterType" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="apartment">Apartment</option>
+                        <option value="boarding_house">Boarding House</option>
+                        <option value="bedspace">Bedspace</option>
+                    </select>
+                </div>
+
+
+                <div class="filter-section">
+                    <label class="form-label" for="filterSuit">Tenant Suitability</label>
+                    <select id="filterSuit" class="form-select">
+                        <option value="">All Suitability</option>
+                        <option value="student">Student</option>
+                        <option value="worker">Worker</option>
+                        <option value="family">Family</option>
+                        <option value="general">General</option>
+                    </select>
+                </div>
+
+                <div class="filter-section">
+                    <label class="form-label">Price Bounds (Monthly)</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="number" id="filterMinPrice" placeholder="Min ₱" class="form-input" style="padding: 0.5rem;">
+                        <span style="color: var(--text-muted); font-size: 0.8125rem;">to</span>
+                        <input type="number" id="filterMaxPrice" placeholder="Max ₱" class="form-input" style="padding: 0.5rem;">
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <label class="form-label" for="filterRating">Minimum Rating</label>
+                    <select id="filterRating" class="form-select">
+                        <option value="">No Minimum</option>
+                        <option value="4.5">★ 4.5 & up</option>
+                        <option value="4.0">★ 4.0 & up</option>
+                        <option value="3.5">★ 3.5 & up</option>
+                    </select>
+                </div>
+
+                <div class="filter-section">
+                    <label class="form-label">Key Amenities</label>
+                    <div class="amenity-checkbox-grid">
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="WiFi"> WiFi</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="CCTV"> CCTV</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="Parking"> Parking</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="Kitchen Access"> Kitchen Access</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="Laundry Area"> Laundry Area</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="Air Conditioning"> Aircon</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="Own CR"> Own CR</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="Study Area"> Study Area</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="Near School"> Near School</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="Near Market"> Near Market</label>
+                        <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="Pet Friendly"> Pet Friendly</label>
+                    </div>
+                </div>
+
+                <button id="btnClearFilters" class="navbar-btn" style="width: 100%; margin-top: 0.5rem; justify-content: center; font-weight: 700; color: var(--primary);">Clear All Filters</button>
+            </aside>
+
+            <!-- Right Column: Map and Listings -->
+            <div class="discovery-main">
+                <!-- GIS Map Card -->
+                <div class="map-card">
+                    <div id="map"></div>
+                </div>
+
+                <!-- Catalog Grid -->
+                <div id="propertiesGrid" class="property-grid">
+                    <p style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">Searching properties...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let mapInstance = null;
+        let markersGroup = null;
+        let userLocationMarker = null;
+        let selectedPropertyIds = [];
+        let allProperties = [];
+        let currentPage = 1;
+        let totalPages = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Leaflet Map centered in Siniloan, Laguna
+            mapInstance = L.map('map').setView([14.425, 121.440], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mapInstance);
+            
+            markersGroup = L.layerGroup().addTo(mapInstance);
+
+            // Try to get user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+                        
+                        // Add user location marker
+                        userLocationMarker = L.marker([userLat, userLng], {
+                            icon: L.icon({
+                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                popupAnchor: [1, -34],
+                                shadowSize: [41, 41]
+                            })
+                        }).addTo(mapInstance)
+                          .bindPopup('<strong>Your Current Location</strong>')
+                          .openPopup();
+                        
+                        // Center map on user location
+                        mapInstance.setView([userLat, userLng], 13);
+                    },
+                    (error) => {
+                        console.log('Location access denied or unavailable');
+                    }
+                );
+            }
+
+            // Bind Event Listeners for Filters
+            document.getElementById('searchBar').addEventListener('input', applyFilters);
+            document.getElementById('filterBarangay').addEventListener('change', applyFilters);
+            document.getElementById('filterType').addEventListener('change', applyFilters);
+            document.getElementById('filterSuit').addEventListener('change', applyFilters);
+            document.getElementById('filterMinPrice').addEventListener('input', applyFilters);
+            document.getElementById('filterMaxPrice').addEventListener('input', applyFilters);
+            document.getElementById('filterRating').addEventListener('change', applyFilters);
+            document.querySelectorAll('.amenity-filter').forEach(cb => cb.addEventListener('change', applyFilters));
+            document.getElementById('sortBy').addEventListener('change', applyFilters);
+            
+            document.getElementById('btnClearFilters').addEventListener('click', clearFilters);
+            
+            if (document.getElementById('btnCompareGo')) {
+                document.getElementById('btnCompareGo').addEventListener('click', goCompare);
+            }
+
+            // Event delegation for compare checkboxes (bypasses CSP)
+            document.getElementById('propertiesGrid').addEventListener('change', (e) => {
+                const cb = e.target.closest('.compare-cb');
+                if (cb) {
+                    const id = cb.value;
+                    toggleCompare(cb, id);
+                }
+            });
+
+            // Initial Fetch
+            fetchProperties();
+        });
+
+        async function fetchProperties() {
+            try {
+                // Build query params (PUBLIC API - no auth required for browsing)
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch('/api/properties', { headers });
+
+                if (!response.ok) {
+                    document.getElementById('propertiesGrid').innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--error);">Failed to load listings.</p>`;
+                    return;
+                }
+
+                const result = await response.json();
+                
+                // Handle new pagination response structure
+                if (result.data && result.data.properties) {
+                    allProperties = result.data.properties;
+                    if (result.data.pagination) {
+                        currentPage = result.data.pagination.page;
+                        totalPages = result.data.pagination.totalPages;
+                    }
+                } else {
+                    allProperties = result.data || [];
+                }
+                
+                renderUI(allProperties);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('propertiesGrid').innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--error);">Error contacting properties api.</p>`;
+            }
+        }
+
+        function renderUI(properties) {
+            const grid = document.getElementById('propertiesGrid');
+            grid.innerHTML = '';
+            
+            // Clear prior markers
+            markersGroup.clearLayers();
+
+            if (properties.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No approved properties match your active filters.</p>`;
+                return;
+            }
+
+            // Create markers array to bounds fit
+            const markers = [];
+
+            properties.forEach(prop => {
+                // 1. Create property card
+                const card = document.createElement('div');
+                card.className = 'prop-card';
+                
+                // Amenities HTML preview
+                let amenHtml = '';
+                const preview = prop.amenities.slice(0, 3);
+                preview.forEach(a => {
+                    amenHtml += `<span class="badge-amenity">${a}</span>`;
+                });
+                if (prop.amenities.length > 3) {
+                    amenHtml += `<span class="badge-amenity">+${prop.amenities.length - 3}</span>`;
+                }
+
+                // Format Rent Price Display (Accurate starting price or range)
+                let rentDisplay = '';
+                const minR = parseFloat(prop.min_monthly_rent || prop.monthly_rent || 0);
+                const maxR = parseFloat(prop.max_monthly_rent || prop.monthly_rent || 0);
+                if (minR === maxR) {
+                    rentDisplay = `₱${parseInt(minR).toLocaleString()}/mo`;
+                } else {
+                    rentDisplay = `₱${parseInt(minR).toLocaleString()} - ₱${parseInt(maxR).toLocaleString()}/mo`;
+                }
+
+                card.innerHTML = `
+                    <div class="prop-img-wrapper">
+                        <img src="${prop.main_image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80'}" alt="${prop.property_name}" class="prop-img">
+                    </div>
+                    <div class="prop-content">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                            <span style="font-size: 0.725rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
+                                ${prop.property_type.replace('_', ' ')}
+                            </span>
+                            <div class="prop-rating-bar" style="margin: 0;">
+                                ★ ${parseFloat(prop.average_rating).toFixed(1)} <span style="color: var(--text-muted); font-weight: 500;">(${prop.feedback_count})</span>
+                            </div>
+                        </div>
+                        <h4 class="prop-title" style="margin: 0.25rem 0;">${prop.property_name}</h4>
+                        <p class="prop-address" style="margin-bottom: 0.75rem;">Barangay ${prop.barangay}, Siniloan</p>
+                        
+                        <div class="prop-amenities-preview" style="margin-bottom: 0.75rem;">${amenHtml}</div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
+                            <div>
+                                <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em;">Monthly Rent</div>
+                                <div style="font-weight: 800; font-size: 1rem; color: var(--landlord);">${rentDisplay}</div>
+                            </div>
+                            <a href="property-details.html?id=${prop.id}" class="btn-prop-detail" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.875rem; font-weight: 700; border-radius: var(--radius-md); text-decoration: none; text-align: center;">View</a>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                // 2. Add Leaflet Marker
+                if (prop.latitude && prop.longitude) {
+                    const marker = L.marker([prop.latitude, prop.longitude])
+                        .bindPopup(`
+                            <div style="font-family: var(--font-family); padding: 0.25rem;">
+                                <h4 style="margin-bottom: 0.25rem; font-weight: 700; color: var(--primary);">${prop.property_name}</h4>
+                                <p style="margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);">Rent: ${rentDisplay}</p>
+                                <p style="margin: 0 0 0.5rem 0; font-size: 0.8125rem; color: #d97706;">Rating: ${parseFloat(prop.average_rating).toFixed(1)}</p>
+                                <a href="property-details.html?id=${prop.id}" style="font-size: 0.75rem; font-weight: 700; text-decoration: underline; color: var(--primary);">Open Profile →</a>
+                            </div>
+                        `);
+                    markersGroup.addLayer(marker);
+                    markers.push(marker);
+                }
+            });
+
+            // Adjust map view to fit markers if there are any
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                mapInstance.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        // Apply filters dynamically
+        function applyFilters() {
+            const search = document.getElementById('searchBar').value.toLowerCase();
+            const barangay = document.getElementById('filterBarangay').value;
+            const type = document.getElementById('filterType').value;
+            const suit = document.getElementById('filterSuit').value;
+            const minPrice = document.getElementById('filterMinPrice').value;
+            const maxPrice = document.getElementById('filterMaxPrice').value;
+            const rating = document.getElementById('filterRating').value;
+
+            // Get selected amenities
+            const activeAmenities = [];
+            document.querySelectorAll('.amenity-filter:checked').forEach(cb => {
+                activeAmenities.push(cb.value);
+            });
+
+            let filtered = allProperties;
+
+            if (search) {
+                filtered = filtered.filter(p => 
+                    p.property_name.toLowerCase().includes(search) || 
+                    (p.description && p.description.toLowerCase().includes(search)) ||
+                    p.house_rules.toLowerCase().includes(search)
+                );
+            }
+            if (barangay) {
+                filtered = filtered.filter(p => p.barangay === barangay);
+            }
+            if (type) {
+                filtered = filtered.filter(p => p.property_type === type);
+            }
+            if (suit) {
+                filtered = filtered.filter(p => p.tenant_type_suitability === suit);
+            }
+            if (minPrice) {
+                filtered = filtered.filter(p => parseFloat(p.monthly_rent) >= parseFloat(minPrice));
+            }
+            if (maxPrice) {
+                filtered = filtered.filter(p => parseFloat(p.monthly_rent) <= parseFloat(maxPrice));
+            }
+            if (rating) {
+                filtered = filtered.filter(p => parseFloat(p.average_rating) >= parseFloat(rating));
+            }
+            if (activeAmenities.length > 0) {
+                filtered = filtered.filter(p => 
+                    activeAmenities.every(amen => p.amenities.includes(amen))
+                );
+            }
+
+            renderUI(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('searchBar').value = '';
+            document.getElementById('filterBarangay').value = '';
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterSuit').value = '';
+            document.getElementById('filterMinPrice').value = '';
+            document.getElementById('filterMaxPrice').value = '';
+            document.getElementById('filterRating').value = '';
+            document.querySelectorAll('.amenity-filter').forEach(cb => cb.checked = false);
+            
+            renderUI(allProperties);
+        }
+
+        // Comparison Handler
+        function toggleCompare(cb, id) {
+            if (cb.checked) {
+                if (selectedPropertyIds.length >= 4) {
+                    cb.checked = false;
+                    alert('You can compare maximum 4 properties.');
+                    return;
+                }
+                selectedPropertyIds.push(id);
+            } else {
+                selectedPropertyIds = selectedPropertyIds.filter(pid => pid !== id);
+            }
+
+            updateCompareBar();
+        }
+
+        function updateCompareBar() {
+            const bar = document.getElementById('compareBar');
+            const count = document.getElementById('compareCount');
+            
+            count.textContent = selectedPropertyIds.length;
+
+            if (selectedPropertyIds.length >= 2) {
+                bar.classList.remove('hidden');
+            } else {
+                bar.classList.add('hidden');
+            }
+        }
+
+        function goCompare() {
+            if (selectedPropertyIds.length < 2) return;
+            const query = selectedPropertyIds.map(id => `id=${id}`).join('&');
+            window.location.href = `compare.html?${query}`;
+        }
+
+
+    </script>
+</body>
+</html>

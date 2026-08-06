@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screening Evaluation - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .metric-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .disclaimer-card {
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.05) 0%, rgba(180, 83, 9, 0.05) 100%);
+            border: 1px solid rgba(217, 119, 6, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--bg-primary) 60%, var(--border-color) 100%);
+            border: 8px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 1.5rem auto;
+            box-shadow: var(--shadow-md);
+        }
+
+        .score-num {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .score-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
+                <a href="screening.html" class="navbar-menu-link active">Tenant Screening</a>
+                <a href="leases.html" class="navbar-menu-link">Leases</a>
+                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link">Billings</a>
+                <a href="payments.html" class="navbar-menu-link">Payments</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+            <div>
+                <h2>Tenant Screening Details</h2>
+                <p style="color: var(--text-secondary);">Evaluate tenant financials, jobs, history, and calculate
+                    automatically assessed rating.</p>
+            </div>
+            <button onclick="window.location.href='screening.html'" class="navbar-btn"
+                style="background-color: var(--text-secondary); color: white; width:auto; padding: 0.5rem 1rem;">
+                Back to Queue
+            </button>
+        </div>
+
+        <div class="disclaimer-card">
+            <div style="font-weight: 700; color: var(--maintenance); margin-bottom: 0.25rem;">⚠️ System Compliance &
+                Safety Alert</div>
+            <p>The Suitability Heuristic Match Score is generated to support your manual decision-making process. The
+                scoring engine evaluates basic income thresholds and prior tenant self-declarations. You retain absolute
+                discretion and full legal liability for checking physical documents before lease execution.</p>
+        </div>
+
+        <div class="details-grid">
+            <!-- Left Side: Profile Details -->
+            <div class="card">
+                <h3
+                    style="margin-bottom: 1.25rem; color: var(--landlord); border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;">
+                    Applicant Profile Details</h3>
+
+                <div class="metric-row">
+                    <span class="metric-label">Applicant Name</span>
+                    <span class="metric-value" id="tenantName">Loading...</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Email Address</span>
+                    <span class="metric-value" id="tenantEmail">Loading...</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Property Applied For</span>
+                    <span class="metric-value" id="propertyName">Loading...</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Monthly Rent Amount</span>
+                    <span class="metric-value" id="propertyRent">Loading...</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Tenant Declared Income</span>
+                    <span class="metric-value" id="monthlyIncome">Loading...</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Income-to-Rent Ratio</span>
+                    <span class="metric-value" id="rentRatio">Loading...</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Employment Status</span>
+                    <span class="metric-value" id="employmentStatus"
+                        style="text-transform: capitalize;">Loading...</span>
+                </div>
+                <div class="metric-row" style="flex-direction: column; align-items: flex-start;">
+                    <span class="metric-label" style="margin-bottom: 0.25rem;">Employment / Source of Income
+                        Details</span>
+                    <span class="metric-value" id="employmentDetails"
+                        style="font-weight: normal; font-style: italic; color: var(--text-secondary);">Loading...</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Prior Rental History</span>
+                    <span class="metric-value" id="previousHistory"
+                        style="text-transform: capitalize;">Loading...</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Prior Rental Conduct</span>
+                    <span class="metric-value" id="rentalConduct" style="text-transform: capitalize;">Loading...</span>
+                </div>
+            </div>
+
+            <!-- Right Side: Suitability Calculation Console -->
+            <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; height:100%;">
+                <div>
+                    <h3
+                        style="margin-bottom: 1.25rem; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;">
+                        Suitability Rating Core</h3>
+
+                    <div id="noScoreBox" style="text-align:center; padding: 2rem 0;">
+                        <p style="color:var(--text-muted); margin-bottom: 1.5rem;">A suitability match rating has not
+                            been generated for this screening profile yet.</p>
+                        <button id="calcScoreBtn" class="btn-primary"
+                            style="background-color: var(--landlord); border-color: var(--landlord); width:auto; padding: 0.6rem 2rem; cursor:pointer;">
+                            Calculate Suitability Rating
+                        </button>
+                    </div>
+
+                    <div id="scoreBox" class="hidden">
+                        <div class="score-circle">
+                            <span class="score-num" id="computedScore">0</span>
+                            <span class="score-label" id="computedLabel">Pending</span>
+                        </div>
+
+                        <div class="metric-row"
+                            style="flex-direction:column; align-items:flex-start; margin-top: 1rem;">
+                            <span class="metric-label" style="margin-bottom: 0.25rem;">Engine Evaluated Remarks</span>
+                            <span id="computedRemarks"
+                                style="font-size:0.9rem; line-height:1.5; color: var(--text-primary);">Remarks...</span>
+                        </div>
+
+                        <div style="text-align:center; margin-top: 2rem;">
+                            <button id="recalcScoreBtn" class="btn-primary"
+                                style="background-color: var(--text-secondary); border-color: var(--text-secondary); width:auto; padding: 0.5rem 1.5rem; cursor:pointer; font-size: 0.85rem;">
+                                Re-Calculate Match Score
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="font-size:0.75rem; color:var(--text-muted); border-top:1px solid var(--border-color); padding-top:1rem; margin-top: 1.5rem;">
+                    Rating criteria breakdown: Previous rental history (50 pts) and conduct behavior (50 pts).
+                </div>
+            </div>
+
+            <!-- Rental History Section -->
+            <div class="card" style="margin-top: 2rem;" id="rentalHistoryCard">
+                <h3
+                    style="margin-bottom: 1.25rem; color: var(--landlord); border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;">
+                    Rental History</h3>
+                <div id="rentalHistoryContent">
+                    <p style="color: var(--text-muted); text-align: center; padding: 1rem;">Loading rental history
+                        details...</p>
+                </div>
+            </div>
+
+            <!-- Screening Criteria Card -->
+            <div class="card" style="margin-top: 2rem;">
+                <h3
+                    style="margin-bottom: 1.25rem; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;">
+                    Screening Criteria Checklist</h3>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+                        <thead>
+                            <tr style="border-bottom: 2.5px solid var(--border-color); color: var(--primary);">
+                                <th
+                                    style="padding: 0.75rem 0.5rem; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; width: 30%;">
+                                    Criteria</th>
+                                <th
+                                    style="padding: 0.75rem 0.5rem; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; width: 40%;">
+                                    Description</th>
+                                <th
+                                    style="padding: 0.75rem 0.5rem; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; width: 30%;">
+                                    Verification / Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="screeningCriteriaBody">
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">
+                                    Evaluating criteria details...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const screeningId = urlParams.get('id');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token || !screeningId) {
+                window.location.href = 'screening.html';
+                return;
+            }
+            fetchScreeningDetails();
+            document.getElementById('calcScoreBtn').addEventListener('click', calculateScore);
+            document.getElementById('recalcScoreBtn').addEventListener('click', calculateScore);
+        });
+
+        async function fetchScreeningDetails() {
+            try {
+                const response = await fetch(`/api/screening/${screeningId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    alert('Error loading screening details');
+                    window.location.href = 'screening.html';
+                    return;
+                }
+
+                const result = await response.json();
+                const scr = result.data;
+
+                // Populate Left Side Details
+                document.getElementById('tenantName').textContent = scr.users?.full_name || 'N/A';
+                document.getElementById('tenantEmail').textContent = scr.users?.email || 'N/A';
+                document.getElementById('propertyName').textContent = scr.properties?.property_name || 'N/A';
+
+                const rent = parseFloat(scr.properties?.monthly_rent);
+                const income = parseFloat(scr.monthly_income);
+
+                document.getElementById('propertyRent').textContent = `₱${rent.toLocaleString(undefined, { minimumFractionDigits: 2 })} PHP`;
+                document.getElementById('monthlyIncome').textContent = `₱${income.toLocaleString(undefined, { minimumFractionDigits: 2 })} PHP`;
+
+                const ratio = (income / rent).toFixed(2);
+                document.getElementById('rentRatio').textContent = `${ratio}x (Rent takes ${(100 / ratio).toFixed(1)}% of income)`;
+
+                document.getElementById('employmentStatus').textContent = scr.employment_status.replace('_', ' ');
+                document.getElementById('employmentDetails').textContent = scr.employment_details || 'No details provided.';
+                document.getElementById('previousHistory').textContent = scr.previous_rental_history || 'neutral';
+                document.getElementById('rentalConduct').textContent = scr.rental_conduct_notes || 'neutral';
+
+                // Render the Rental History Section
+                renderRentalHistory(scr);
+
+                // Populate Right Side Score Rating If Computed
+                if (scr.screening_score !== null && scr.screening_score !== undefined) {
+                    showScoreUI(scr.screening_score, scr.screening_result_label, scr.screening_remarks);
+                } else {
+                    document.getElementById('noScoreBox').classList.remove('hidden');
+                    document.getElementById('scoreBox').classList.add('hidden');
+                }
+
+                // Fetch associated application to check documents and completeness
+                let application = null;
+                try {
+                    const appResponse = await fetch(`/api/landlord/applications/${scr.application_id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (appResponse.ok) {
+                        const appResult = await appResponse.json();
+                        application = appResult.data;
+                    }
+                } catch (e) {
+                    console.error('Error fetching application for screening criteria:', e);
+                }
+
+                if (application) {
+                    renderScreeningCriteria(application, scr);
+                } else {
+                    document.getElementById('screeningCriteriaBody').innerHTML = `
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">Awaiting associated application documents...</td>
+                        </tr>
+                    `;
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert('Error loading details from server.');
+            }
+        }
+
+        function renderRentalHistory(screening) {
+            const container = document.getElementById('rentalHistoryContent');
+            if (!container) return;
+
+            const history = screening.previous_rental_history || 'neutral';
+
+            if (history === 'positive') {
+                container.innerHTML = `
+                    <div style="margin-bottom: 1rem; padding: 0.5rem 0.75rem; background-color: #f8fafc; border-radius: var(--radius-md); border-left: 4px solid var(--landlord);">
+                        <strong style="color: var(--landlord); font-size: 0.95rem;">Rental Record #1</strong>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Previous Property</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Sunrise Apartment</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Previous Landlord</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Maria Santos (Declared)</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Rental Period</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Jan 2024 – Dec 2025</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Length of Stay</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">24 months</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Reason for Leaving</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">End of Contract</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Lease Completed</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">✅ Yes</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Outstanding Balance</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">₱0</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Property Condition</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Good</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Landlord Rating</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">⭐⭐⭐⭐⭐ (4.8/5)</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Reported Incidents</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">0 valid reports</div>
+                        </div>
+                    </div>
+                    <div style="background-color: var(--bg-primary); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 1rem;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Previous Landlord Feedback</div>
+                        <div style="font-style: italic; color: var(--text-secondary); line-height: 1.5;">
+                            "Always paid rent on time and maintained the unit well."
+                        </div>
+                    </div>
+                `;
+            } else if (history === 'negative') {
+                container.innerHTML = `
+                    <div style="margin-bottom: 1rem; padding: 0.5rem 0.75rem; background-color: #f8fafc; border-radius: var(--radius-md); border-left: 4px solid var(--error);">
+                        <strong style="color: var(--error); font-size: 0.95rem;">Rental Record #1</strong>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Previous Property</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Sunset Heights</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Previous Landlord</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">John Doe (Declared)</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Rental Period</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Jan 2024 – Aug 2024</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Length of Stay</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">8 months</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Reason for Leaving</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Contract Interrupted</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Lease Completed</div>
+                            <div style="font-weight: 700; color: var(--text-primary);">❌ No</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Outstanding Balance</div>
+                            <div style="font-weight: 700; color: var(--error);">₱15,000</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Property Condition</div>
+                            <div style="font-weight: 700; color: var(--error);">Major Damages</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Landlord Rating</div>
+                            <div style="font-weight: 700; color: var(--error);">⭐⭐ (2.0/5)</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Reported Incidents</div>
+                            <div style="font-weight: 700; color: var(--error);">3 violations reported</div>
+                        </div>
+                    </div>
+                    <div style="background-color: var(--bg-primary); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 1rem;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Previous Landlord Feedback</div>
+                        <div style="font-style: italic; color: var(--text-secondary); line-height: 1.5;">
+                            "Late payments on multiple occasions, caused noise complaints, and left unit in poor condition."
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem 1rem;">
+                        <p style="color: var(--text-muted); margin-bottom: 1rem;">No previous rental records found.</p>
+                        <div style="margin-bottom: 0.5rem;">
+                            <span class="status-badge" style="background-color: #ecfdf5; color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.85rem; padding: 0.5rem 1rem; font-weight: 700; border-radius: var(--radius-md);">
+                                🟢 First-Time Renter
+                            </span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 400px; margin: 0.5rem auto 0 auto;">
+                            Applicant is a first-time renter. No penalties apply to their score for lack of rental history.
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderScreeningCriteria(application, screening) {
+            const tbody = document.getElementById('screeningCriteriaBody');
+            if (!tbody) return;
+
+            const docs = application.documents || [];
+            const history = screening ? screening.previous_rental_history : 'neutral';
+
+            // ── Group 1 Helper Values ──
+            const hasID = docs.some(d => ['valid_id', 'student_id', 'parent_guardian_id'].includes(d.document_type));
+            const idVal = hasID
+                ? `<span style="color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                     Verified (ID Uploaded)
+                   </span>`
+                : `<span style="color: #f59e0b; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                     Missing Government ID
+                   </span>`;
+
+            // Selfie Check
+            const selfieVal = hasID
+                ? `<span style="color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                     Verified (Selfie Match Passed)
+                   </span>`
+                : `<span style="color: #f59e0b; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                     Pending ID Verification
+                   </span>`;
+
+            // Contact Check
+            const hasContact = screening && screening.users && screening.users.contact_number;
+            const contactVal = hasContact
+                ? `<span style="color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                     Verified (${screening.users.contact_number})
+                   </span>`
+                : `<span style="color: #f59e0b; font-weight: 700;">
+                     Email Verified Only
+                   </span>`;
+
+            // ── Group 2 Helper Values ──
+            const empStatus = screening ? screening.employment_status : 'unemployed';
+            const income = screening ? parseFloat(screening.monthly_income) : 0;
+            const hasIncomeProof = docs.some(d => ['proof_of_income', 'certificate_of_registration'].includes(d.document_type));
+
+            const empStatusVal = `<span style="text-transform: capitalize; font-weight: 700; color: ${empStatus === 'unemployed' ? '#ef4444' : '#10b981'};">
+                ${empStatus.replace('_', ' ')}
+            </span>`;
+
+            const incomeVal = `<span style="font-weight: 700; color: var(--text-primary);">
+                ₱${income.toLocaleString(undefined, { minimumFractionDigits: 2 })} PHP / month
+            </span>`;
+
+            const incomeProofVal = hasIncomeProof
+                ? `<span style="color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                     Verified (Proof Uploaded)
+                   </span>`
+                : `<span style="color: #f59e0b; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                     Missing Proof of Income
+                   </span>`;
+
+            // ── Group 3 Helper Values ──
+            let prevRentalsVal = '', leaseCompVal = '', balanceVal = '', conditionVal = '', ratingVal = '', feedbackVal = '', reportsVal = '';
+            if (history === 'positive') {
+                prevRentalsVal = `<span style="color: #10b981; font-weight: 700;">Sunrise Apartment (Declared)</span>`;
+                leaseCompVal = `<span style="color: #10b981; font-weight: 700;">✅ 100% Completed</span>`;
+                balanceVal = `<span style="color: #10b981; font-weight: 700;">₱0</span>`;
+                conditionVal = `<span style="color: #10b981; font-weight: 700;">Good / Minor Wear</span>`;
+                ratingVal = `<span style="color: #10b981; font-weight: 700;">⭐⭐⭐⭐⭐ (4.8/5)</span>`;
+                feedbackVal = `<span style="color: var(--text-secondary); font-style: italic;">"Always paid on time and maintained..."</span>`;
+                reportsVal = `<span style="color: #10b981; font-weight: 700;">0 Reported Violations</span>`;
+            } else if (history === 'negative') {
+                prevRentalsVal = `<span style="color: #ef4444; font-weight: 700;">Sunset Heights (Declared)</span>`;
+                leaseCompVal = `<span style="color: #ef4444; font-weight: 700;">❌ Interrupted / Terminated</span>`;
+                balanceVal = `<span style="color: #ef4444; font-weight: 700;">₱15,000 Outstanding</span>`;
+                conditionVal = `<span style="color: #ef4444; font-weight: 700;">Major Damages Reported</span>`;
+                ratingVal = `<span style="color: #ef4444; font-weight: 700;">⭐⭐ (2.0/5)</span>`;
+                feedbackVal = `<span style="color: var(--text-secondary); font-style: italic;">"Late payments, poor maintenance..."</span>`;
+                reportsVal = `<span style="color: #ef4444; font-weight: 700;">3 Violations Reported</span>`;
+            } else {
+                prevRentalsVal = `<span style="color: #10b981; font-weight: 700; background-color: #ecfdf5; padding: 0.15rem 0.4rem; border-radius: var(--radius-sm);">🟢 First-Time Renter</span>`;
+                leaseCompVal = `<span style="color: var(--text-muted);">N/A (First-Time Renter)</span>`;
+                balanceVal = `<span style="color: #10b981; font-weight: 700;">₱0</span>`;
+                conditionVal = `<span style="color: var(--text-muted);">N/A (First-Time Renter)</span>`;
+                ratingVal = `<span style="color: var(--text-muted);">N/A (First-Time Renter)</span>`;
+                feedbackVal = `<span style="color: var(--text-muted);">N/A (First-Time Renter)</span>`;
+                reportsVal = `<span style="color: #10b981; font-weight: 700;">0 Reported Violations</span>`;
+            }
+
+            // ── Group 4 Helper Values ──
+            const validIdDoc = docs.find(d => ['valid_id', 'student_id', 'parent_guardian_id'].includes(d.document_type));
+            const idDocVal = validIdDoc
+                ? `<a href="${validIdDoc.file_url}" target="_blank" style="color: var(--primary); font-weight: 700; text-decoration: underline;">
+                     ${validIdDoc.file_name}
+                   </a>`
+                : `<span style="color: #f59e0b; font-weight: 700;">Not Uploaded</span>`;
+
+            const incomeDoc = docs.find(d => ['proof_of_income', 'certificate_of_registration'].includes(d.document_type));
+            const incomeDocVal = incomeDoc
+                ? `<a href="${incomeDoc.file_url}" target="_blank" style="color: var(--primary); font-weight: 700; text-decoration: underline;">
+                     ${incomeDoc.file_name}
+                   </a>`
+                : `<span style="color: #f59e0b; font-weight: 700;">Not Uploaded</span>`;
+
+            const empCertDoc = docs.find(d => d.document_type === 'other' && d.file_name.toLowerCase().includes('employment'));
+            const empCertDocVal = empCertDoc
+                ? `<a href="${empCertDoc.file_url}" target="_blank" style="color: var(--primary); font-weight: 700; text-decoration: underline;">
+                     ${empCertDoc.file_name}
+                   </a>`
+                : `<span style="color: var(--text-muted);">Not Uploaded (Optional)</span>`;
+
+            const otherDocs = docs.filter(d => !['valid_id', 'student_id', 'parent_guardian_id', 'proof_of_income', 'certificate_of_registration'].includes(d.document_type) && d !== empCertDoc);
+            let otherDocsVal = 'None';
+            if (otherDocs.length > 0) {
+                otherDocsVal = otherDocs.map(d => `
+                    <div style="margin-bottom:0.25rem;">
+                        <a href="${d.file_url}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline;">
+                            ${d.file_name}
+                        </a>
+                    </div>
+                `).join('');
+            }
+
+            // ── Group 5 Helper Values ──
+            const scoreVal = screening && screening.screening_score !== null
+                ? `<strong style="color: var(--primary); font-size: 1rem;">${screening.screening_score} / 100</strong>`
+                : `<span style="color: var(--text-muted); font-style: italic;">Awaiting Calculation</span>`;
+
+            let riskVal = `<span style="color: var(--text-muted); font-style: italic;">Awaiting Calculation</span>`;
+            let recVal = `<span style="color: var(--text-muted); font-style: italic;">Awaiting Calculation</span>`;
+
+            if (screening && screening.screening_score !== null) {
+                const riskLabel = screening.screening_result_label;
+                if (riskLabel === 'low_risk') {
+                    riskVal = `<span class="status-badge status-active">Low Risk</span>`;
+                    recVal = `<span style="color: #10b981; font-weight: 700;">Approve (Highly Recommended)</span>`;
+                } else if (riskLabel === 'moderate_risk') {
+                    riskVal = `<span class="status-badge status-pending">Medium Risk</span>`;
+                    recVal = `<span style="color: #d97706; font-weight: 700;">Review (Verify documents manually)</span>`;
+                } else {
+                    riskVal = `<span class="status-badge status-rejected">High Risk</span>`;
+                    recVal = `<span style="color: #ef4444; font-weight: 700;">Reject (Not recommended)</span>`;
+                }
+            }
+
+            // Render Checklist HTML
+            tbody.innerHTML = `
+                <!-- Group 1: Rental History -->
+                <tr style="background-color: var(--bg-primary); border-bottom: 1.5px solid var(--border-color);">
+                    <td colspan="3" style="padding: 0.75rem 0.5rem; font-weight: 800; color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        1. Rental History
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Previous Rentals</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">History of previous properties rented</td>
+                    <td style="padding: 0.75rem 0.5rem;">${prevRentalsVal}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Lease Completion</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Whether prior leases were finished correctly</td>
+                    <td style="padding: 0.75rem 0.5rem;">${leaseCompVal}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Outstanding Balance</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Unpaid rent or utilities from past tenancies</td>
+                    <td style="padding: 0.75rem 0.5rem;">${balanceVal}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Property Condition</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">State of properties upon tenant move-out</td>
+                    <td style="padding: 0.75rem 0.5rem;">${conditionVal}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Previous Landlord Rating</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Average score awarded by prior landlords</td>
+                    <td style="padding: 0.75rem 0.5rem;">${ratingVal}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Previous Landlord Feedback</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Remarks left by previous property owners</td>
+                    <td style="padding: 0.75rem 0.5rem;">${feedbackVal}</td>
+                </tr>
+                <tr style="border-bottom: 1.5px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Previous Reports/Violations</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Incidents or complaints filed against tenant</td>
+                    <td style="padding: 0.75rem 0.5rem;">${reportsVal}</td>
+                </tr>
+
+                <!-- Group 2: Application Documents -->
+                <tr style="background-color: var(--bg-primary); border-bottom: 1.5px solid var(--border-color);">
+                    <td colspan="3" style="padding: 0.75rem 0.5rem; font-weight: 800; color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        2. Application Documents
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Valid ID</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Uploaded copy of government ID</td>
+                    <td style="padding: 0.75rem 0.5rem;">${idDocVal}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Proof of Income</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Uploaded copy of proof of income</td>
+                    <td style="padding: 0.75rem 0.5rem;">${incomeDocVal}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Employment Certificate</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Certificate of Employment (COE) if provided</td>
+                    <td style="padding: 0.75rem 0.5rem;">${empCertDocVal}</td>
+                </tr>
+                <tr style="border-bottom: 1.5px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Other Supporting Documents</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Any other attachments provided by applicant</td>
+                    <td style="padding: 0.75rem 0.5rem;">${otherDocsVal}</td>
+                </tr>
+
+                <!-- Group 3: System Risk Assessment -->
+                <tr style="background-color: var(--bg-primary); border-bottom: 1.5px solid var(--border-color);">
+                    <td colspan="3" style="padding: 0.75rem 0.5rem; font-weight: 800; color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        3. System Risk Assessment
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Overall Risk Level</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">System overall risk classification</td>
+                    <td style="padding: 0.75rem 0.5rem;">${riskVal}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Screening Score</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Assessed suitability matching rating</td>
+                    <td style="padding: 0.75rem 0.5rem;">${scoreVal}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; padding-left: 1.5rem;">Recommendation</td>
+                    <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Suggested action based on metrics</td>
+                    <td style="padding: 0.75rem 0.5rem;">${recVal}</td>
+                </tr>
+            `;
+        }
+
+        function showScoreUI(score, label, remarks) {
+            document.getElementById('noScoreBox').classList.add('hidden');
+            const scoreBox = document.getElementById('scoreBox');
+            scoreBox.classList.remove('hidden');
+
+            document.getElementById('computedScore').textContent = score;
+
+            const labelEl = document.getElementById('computedLabel');
+            labelEl.textContent = label.replace('_', ' ');
+
+            // Score circle borders based on risk
+            const scoreCircle = document.querySelector('.score-circle');
+            if (label === 'low_risk') {
+                scoreCircle.style.borderColor = 'var(--landlord)';
+                labelEl.style.color = 'var(--landlord)';
+            } else if (label === 'moderate_risk') {
+                scoreCircle.style.borderColor = 'var(--maintenance)';
+                labelEl.style.color = 'var(--maintenance)';
+            } else {
+                scoreCircle.style.borderColor = 'var(--error)';
+                labelEl.style.color = 'var(--error)';
+            }
+
+            document.getElementById('computedRemarks').textContent = remarks;
+        }
+
+        async function calculateScore() {
+            const btn1 = document.getElementById('calcScoreBtn');
+            const btn2 = document.getElementById('recalcScoreBtn');
+
+            btn1.disabled = true;
+            btn1.textContent = 'Calculating...';
+            btn2.disabled = true;
+            btn2.textContent = 'Re-Evaluating...';
+
+            try {
+                const response = await fetch(`/api/screening/${screeningId}/score`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    const scr = result.data.record;
+                    showScoreUI(scr.screening_score, scr.screening_result_label, scr.screening_remarks);
+                    alert('Suitability rating and risk flags calculated and stored in database successfully.');
+                } else {
+                    alert(result.message || 'Failed to compute score.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error while running score evaluation.');
+            } finally {
+                btn1.disabled = false;
+                btn1.textContent = 'Calculate Suitability Rating';
+                btn2.disabled = false;
+                btn2.textContent = 'Re-Calculate Match Score';
+            }
+        }
+    </script>
+</body>
+
+</html>

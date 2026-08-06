@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Screening - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .screening-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+            .screening-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .form-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            height: fit-content;
+        }
+        .history-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .disclaimer-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(79, 70, 229, 0.05) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .disclaimer-title {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
+                <a href="compare.html" class="navbar-menu-link">Compare</a>
+                <a href="reservations.html" class="navbar-menu-link">My Reservations</a>
+                <a href="applications.html" class="navbar-menu-link">My Applications</a>
+                <a href="screening.html" class="navbar-menu-link active">Screening</a>
+                <a href="leases.html" class="navbar-menu-link">My Lease</a>
+                <a href="billings.html" class="navbar-menu-link">My Billings</a>
+                <a href="payments.html" class="navbar-menu-link">My Payments</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Tenant Screening Profile</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Complete your screening metrics to get matching suitability rating assessments.</p>
+
+        <div class="screening-grid">
+            <!-- Screening Form -->
+            <div class="form-card">
+                <h3 style="margin-bottom: 1rem; color: var(--primary);">Submit Screening Info</h3>
+                
+                <div class="disclaimer-box">
+                    <div class="disclaimer-title">
+                        <span>ℹ️</span> Smart Decision Disclaimer
+                    </div>
+                    <p>Screening suitability scores are calculated using a decision-support heuristic only. Final evaluation and lease approval are performed manually by landlords.</p>
+                </div>
+
+                <div id="errorMessage" class="status-badge status-rejected hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
+                <div id="successMessage" class="status-badge status-active hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
+
+                <form id="screeningForm">
+                    <div class="form-group">
+                        <label class="form-label" for="applicationId">Select Approved Application</label>
+                        <select id="applicationId" name="application_id" class="form-input" required>
+                            <option value="">-- Select Approved Application --</option>
+                        </select>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            Note: Screening can only be submitted for rental applications approved by landlords.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="monthlyIncome">Monthly Income (₱ PHP)</label>
+                        <input type="number" id="monthlyIncome" name="monthly_income" class="form-input" placeholder="e.g. 50000" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="employmentStatus">Employment Status</label>
+                        <select id="employmentStatus" name="employment_status" class="form-input" required>
+                            <option value="">-- Select Status --</option>
+                            <option value="regular">Regular / Permanent</option>
+                            <option value="contractual">Contractual</option>
+                            <option value="self_employed">Self Employed</option>
+                            <option value="student">Student</option>
+                            <option value="unemployed">Unemployed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="employmentDetails">Employment / Source of Income Details</label>
+                        <textarea id="employmentDetails" name="employment_details" class="form-input" placeholder="e.g. Software Engineer at Tech Corp, freelance designer, etc." style="height: 80px;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="previousRentalHistory">Prior Rental Payment History</label>
+                        <select id="previousRentalHistory" name="previous_rental_history" class="form-input">
+                            <option value="neutral">Neutral / No Previous Record</option>
+                            <option value="positive">Always paid on time (Positive)</option>
+                            <option value="negative">Had late payments previously (Negative)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="rentalConductNotes">Prior Rental Conduct</label>
+                        <select id="rentalConductNotes" name="rental_conduct_notes" class="form-input">
+                            <option value="neutral">Neutral / No Previous Record</option>
+                            <option value="positive">No issues/damages reported (Positive)</option>
+                            <option value="negative">Had property damage or noise warnings (Negative)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-primary" style="background-color: var(--tenant); border-color: var(--tenant); width: 100%;">
+                        Submit Screening Profile
+                    </button>
+                </form>
+            </div>
+
+            <!-- History List -->
+            <div class="history-card">
+                <h3 style="margin-bottom: 1rem;">Submitted Profiles</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Income & Job</th>
+                            <th>Suitability Rating</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="screeningTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading screening list...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchApprovedApplications();
+            fetchScreeningHistory();
+
+            document.getElementById('screeningForm').addEventListener('submit', handleSubmitScreening);
+        });
+
+        async function fetchApprovedApplications() {
+            const selectEl = document.getElementById('applicationId');
+            try {
+                const response = await fetch('/api/tenant/applications/my', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+
+                const result = await response.json();
+                const apps = result.data || [];
+                const approvedApps = apps.filter(a => a.status === 'approved');
+
+                approvedApps.forEach(app => {
+                    const option = document.createElement('option');
+                    option.value = app.id;
+                    option.textContent = `${app.property_name} (Landlord: ${app.landlord_name || 'N/A'})`;
+                    selectEl.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Error fetching applications:', err);
+            }
+        }
+
+        async function fetchScreeningHistory() {
+            const tableBody = document.getElementById('screeningTableBody');
+            try {
+                const response = await fetch('/api/screening/my', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--error);">Failed to load screenings.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const screenings = result.data || [];
+
+                if (screenings.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">No screening records found. Select an approved application above to get started.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                screenings.forEach(scr => {
+                    let ratingBadge = '';
+                    if (scr.screening_score !== null && scr.screening_score !== undefined) {
+                        let badgeClass = 'status-pending';
+                        if (scr.screening_result_label === 'low_risk') badgeClass = 'status-active';
+                        if (scr.screening_result_label === 'high_risk') badgeClass = 'status-rejected';
+                        ratingBadge = `<div style="font-weight:700; color:var(--primary);">${scr.screening_score}/100</div>
+                                       <span class="status-badge ${badgeClass}">${(scr.screening_result_label || 'Pending').replace('_', ' ')}</span>`;
+                    } else {
+                        ratingBadge = `<span style="font-style:italic; color:var(--text-muted);">Awaiting landlord evaluation</span>`;
+                    }
+
+                    const income = parseFloat(scr.monthly_income).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    const statusClass = scr.status === 'reviewed' ? 'status-active' : 'status-pending';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary);">${scr.properties?.property_name || 'Property'}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">📍 ${scr.properties?.address || 'N/A'}</div>
+                        </td>
+                        <td>
+                            <div>₱${income}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); text-transform:capitalize;">${scr.employment_status.replace('_', ' ')}</div>
+                        </td>
+                        <td>${ratingBadge}</td>
+                        <td><span class="status-badge ${statusClass}">${scr.status}</span></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--error);">Error reaching screening API.</td></tr>`;
+            }
+        }
+
+        async function handleSubmitScreening(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            const formData = new FormData(e.target);
+            const bodyData = {
+                application_id: formData.get('application_id'),
+                monthly_income: parseFloat(formData.get('monthly_income')),
+                employment_status: formData.get('employment_status'),
+                employment_details: formData.get('employment_details'),
+                previous_rental_history: formData.get('previous_rental_history'),
+                rental_conduct_notes: formData.get('rental_conduct_notes')
+            };
+
+            try {
+                const response = await fetch('/api/screening', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(bodyData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    successDiv.textContent = result.message || 'Screening submitted successfully!';
+                    successDiv.classList.remove('hidden');
+                    e.target.reset();
+                    fetchScreeningHistory();
+                } else {
+                    errorDiv.textContent = result.message || 'Submission failed.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = 'An error occurred during submission.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Screening Profile';
+            }
+        }
+    </script>
+</body>
+</html>

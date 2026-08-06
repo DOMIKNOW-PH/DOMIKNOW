@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Lease Agreement - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .lease-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        .lease-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; }
+        .lease-header { padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--tenant, #6366f1) 0%, #4f46e5 100%); color: white; }
+        .lease-header.pending  { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .lease-header.rejected { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .lease-header.active   { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .lease-body { padding: 2rem; }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
+        .detail-item { display: flex; flex-direction: column; }
+        .detail-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.2rem; }
+        .detail-value { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+        .notice-banner { background-color: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-lg); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+
+        .action-btn { padding: 0.5rem 1.25rem; font-size: 0.875rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; border: 1px solid transparent; transition: all 0.2s ease; }
+        .btn-view   { background-color: #6366f1; color: white; }
+        .btn-view:hover { background-color: #4f46e5; }
+        .btn-review { background-color: #f59e0b; color: white; }
+        .btn-review:hover { background-color: #d97706; }
+        .btn-accept { background-color: #10b981; color: white; }
+        .btn-accept:hover { background-color: #059669; }
+        .btn-reject { background-color: #ef4444; color: white; }
+        .btn-reject:hover { background-color: #dc2626; }
+        .btn-close  { background-color: #6b7280; color: white; }
+        .btn-close:hover { background-color: #4b5563; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(15,23,42,0.65); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1.5rem; }
+        .modal-container { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 100%; max-width: 860px; max-height: 92vh; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+        .modal-header { padding: 1.25rem 2rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-primary); flex-shrink: 0; }
+        .modal-body { padding: 2rem; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 1rem 2rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-primary); flex-shrink: 0; gap: 1rem; flex-wrap: wrap; }
+        .modal-close-btn { background: transparent; border: none; font-size: 1.6rem; cursor: pointer; color: var(--text-secondary); line-height: 1; padding: 0.25rem 0.5rem; border-radius: 4px; }
+        .modal-close-btn:hover { background-color: var(--border-color); }
+
+        .contract-section { margin-bottom: 2rem; }
+        .contract-section-title { font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); border-bottom: 2px solid var(--border-color); padding-bottom: 0.4rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.06em; }
+        .contract-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 1.15rem; }
+        .contract-item { display: flex; flex-direction: column; }
+        .contract-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+        .contract-value { font-size: 0.92rem; font-weight: 600; color: var(--text-primary); }
+        .contract-textarea { background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem 1rem; font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; }
+        .parties-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        .party-box { background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem 1.25rem; }
+        .party-role { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.35rem; }
+        .party-name { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem; }
+        .party-detail { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.7; }
+        .signature-sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 1.5rem; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+        .signature-box { text-align: center; border-top: 1px dashed var(--border-color); padding-top: 1rem; margin-top: 1.5rem; }
+        .signature-name { font-family: 'Brush Script MT', cursive; font-size: 1.8rem; color: var(--primary); }
+        .sig-date { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .sig-input { width: 100%; padding: 0.6rem 0.9rem; border: 2px solid #10b981; border-radius: var(--radius-sm); font-size: 0.9rem; background-color: var(--bg-secondary); color: var(--text-primary); margin-top: 0.4rem; }
+        .sig-input:focus { outline: none; border-color: #059669; box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration:none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">Property Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
+                <a href="compare.html" class="navbar-menu-link">Compare Properties</a>
+                <a href="applications.html" class="navbar-menu-link">My Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Screening</a>
+                <a href="leases.html" class="navbar-menu-link active">My Lease</a>
+                <a href="billings.html" class="navbar-menu-link">My Billings</a>
+                <a href="payments.html" class="navbar-menu-link">My Payments</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <h2>My Lease Agreement</h2>
+        <p style="color:var(--text-secondary);margin-bottom:1.5rem;">Review your legally binding tenancy agreements and deposit information.</p>
+        <div id="leasesContainer" class="lease-grid">
+            <div style="text-align:center;padding:3rem;color:var(--text-muted);background:var(--bg-secondary);border-radius:var(--radius-lg);border:1px solid var(--border-color);">
+                Loading your lease agreement...
+            </div>
+        </div>
+    </main>
+
+    <!-- Lease Contract Modal -->
+    <div id="contractModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div>
+                    <h3 style="margin:0;color:var(--text-primary);" id="modalLeaseNumber">Lease Contract</h3>
+                    <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;" id="modalLeaseDate"></div>
+                </div>
+                <button id="modalCloseX" class="modal-close-btn" title="Close">&times;</button>
+            </div>
+            <div class="modal-body" id="modalContent">
+                <div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading contract details...</div>
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let activeLease = null; // holds the full lease object for accept/reject
+
+        // ── Static modal close button (always in DOM) ────────────────────────
+        document.getElementById('modalCloseX').addEventListener('click', closeModal);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            loadLeases();
+        });
+
+        // ── Event delegation on leasesContainer (for View/Review card buttons) ──
+        document.getElementById('leasesContainer').addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const action   = btn.dataset.action;
+            const leaseId  = btn.dataset.leaseId;
+            const isPending = btn.dataset.pending === 'true';
+            if (action === 'view') openContract(leaseId, isPending);
+        });
+
+        // ── Event delegation on modal footer (for Accept/Reject/Close buttons) ──
+        document.getElementById('modalFooter').addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-footer-action]');
+            if (!btn) return;
+            const action = btn.dataset.footerAction;
+            if (action === 'close')  closeModal();
+            if (action === 'accept') handleRespond('accept');
+            if (action === 'reject') handleRespond('reject');
+        });
+
+        async function loadLeases() {
+            const container = document.getElementById('leasesContainer');
+            try {
+                const res = await fetch('/api/leases/my', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) {
+                    container.innerHTML = `<div style="text-align:center;padding:3rem;color:#ef4444;background:var(--bg-secondary);border-radius:var(--radius-lg);">Failed to load lease. (${res.status})</div>`;
+                    return;
+                }
+                const { data: leases } = await res.json();
+
+                if (!leases || leases.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center;padding:4rem 2rem;color:var(--text-muted);background:var(--bg-secondary);border-radius:var(--radius-lg);border:1px solid var(--border-color);">
+                            <h3 style="margin-bottom:0.5rem;">No Lease Contract Found</h3>
+                            <p style="color:var(--text-secondary);margin-bottom:1.5rem;">Your lease will appear here once your application is approved and drafted by the landlord.</p>
+                            <a href="applications.html" class="btn-primary" style="text-decoration:none;padding:0.6rem 1.5rem;display:inline-block;width:auto;background-color:#6366f1;">Check Application Status</a>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                leases.forEach(lease => {
+                    const status = lease.lease_status;
+                    const propName  = lease.properties?.property_name || '—';
+                    const propAddr  = lease.properties?.address || '—';
+                    const start     = fmtDate(lease.lease_start_date);
+                    const end       = fmtDate(lease.lease_end_date);
+                    const rent      = fmtMoney(lease.monthly_rent);
+                    const deposit   = fmtMoney(lease.security_deposit);
+
+                    let targetUnitText = '';
+                    if (lease.property_units) {
+                        targetUnitText = `Room ${lease.property_units.unit_number}`;
+                        if (lease.unit_beds) {
+                            targetUnitText += ` - ${lease.unit_beds.bed_label}`;
+                        }
+                    }
+
+                    let headerClass = '';
+                    let statusClass = 'status-pending';
+                    let statusLabel = status.replace(/_/g,' ').toUpperCase();
+                    let isPending   = false;
+
+                    if (status === 'active') {
+                        headerClass = 'active'; statusClass = 'status-active'; statusLabel = 'ACTIVE';
+                    } else if (status === 'pending_tenant_acceptance') {
+                        headerClass = 'pending'; statusClass = 'status-pending'; statusLabel = 'AWAITING YOUR SIGNATURE'; isPending = true;
+                        // Warning banner
+                        const banner = document.createElement('div');
+                        banner.className = 'notice-banner';
+                        banner.innerHTML = `
+                            <div>
+                                <strong style="color:#d97706;">Action Required</strong>
+                                <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.2rem;">The landlord drafted a lease for <strong>${propName}</strong>. Please review and sign it.</div>
+                            </div>
+                            <button class="action-btn btn-review" data-action="view" data-lease-id="${lease.id}" data-pending="true">Sign Agreement</button>
+                        `;
+                        container.appendChild(banner);
+                    } else if (status === 'rejected') {
+                        headerClass = 'rejected'; statusClass = 'status-rejected'; statusLabel = 'REJECTED (RETURNED TO LANDLORD)';
+                    } else {
+                        headerClass = 'rejected'; statusClass = 'status-rejected';
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'lease-card';
+
+                    let actionBtnHtml = '';
+                    if (status === 'pending_tenant_acceptance') {
+                        actionBtnHtml = `<button class="action-btn btn-review" data-action="view" data-lease-id="${lease.id}" data-pending="true">Review & Sign Agreement</button>`;
+                    } else {
+                        actionBtnHtml = `<button class="action-btn btn-view" data-action="view" data-lease-id="${lease.id}" data-pending="false">View Lease Agreement</button>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="lease-header ${headerClass}">
+                            <div>
+                                <h3 style="color:white;margin:0;font-size:1.05rem;">Lease: ${lease.lease_number || 'DRAFT'}</h3>
+                                <div style="font-size:0.85rem;opacity:0.9;margin-top:0.2rem;">${propName}</div>
+                            </div>
+                            <span class="status-badge ${statusClass}">${statusLabel}</span>
+                        </div>
+                        <div class="lease-body">
+                            <div class="detail-grid">
+                                <div class="detail-item"><span class="detail-label">Property Address</span><span class="detail-value">${propAddr}</span></div>
+                                ${targetUnitText ? `<div class="detail-item"><span class="detail-label">Assigned Space</span><span class="detail-value" style="color:var(--accent);font-weight:700;">${targetUnitText}</span></div>` : ''}
+                                <div class="detail-item"><span class="detail-label">Tenancy Duration</span><span class="detail-value">${start} to ${end}</span></div>
+                                <div class="detail-item"><span class="detail-label">Monthly Rent</span><span class="detail-value" style="color:#10b981;">₱${rent} PHP</span></div>
+                                <div class="detail-item"><span class="detail-label">Security Deposit</span><span class="detail-value">₱${deposit} PHP</span></div>
+                            </div>
+                            <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:1.5rem;">
+                                ${actionBtnHtml}
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error('loadLeases error:', err);
+                container.innerHTML = `<div style="text-align:center;padding:3rem;color:#ef4444;background:var(--bg-secondary);border-radius:var(--radius-lg);">Connection error loading leases.</div>`;
+            }
+        }
+
+        function renderUtilitiesConfigHTML(uConfig) {
+            if (typeof uConfig === 'object' && !Array.isArray(uConfig) && uConfig !== null) {
+                const fmtSetup = (val) => val === 'included' 
+                    ? '<span class="status-badge status-active" style="font-size:0.75rem;">Included in Monthly Rent</span>' 
+                    : '<span class="status-badge status-pending" style="font-size:0.75rem;background:rgba(99,102,241,0.1);color:var(--primary);border:1px solid rgba(99,102,241,0.25);">Billed Separately</span>';
+                
+                let customHTML = '';
+                if (Array.isArray(uConfig.custom_utilities) && uConfig.custom_utilities.length > 0) {
+                    customHTML = uConfig.custom_utilities.map(item => `
+                        <div style="background:var(--bg-primary);padding:0.75rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
+                            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;display:flex;align-items:center;gap:0.25rem;">
+                                <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-secondary);"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <span>${(item.name || 'Custom Utility').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
+                            </div>
+                            <div style="margin-top:0.3rem;">${fmtSetup(item.setup || 'separate')}</div>
+                        </div>
+                    `).join('');
+                }
+
+                return `
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.75rem;margin-top:0.5rem;">
+                        <div style="background:var(--bg-primary);padding:0.75rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
+                            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;display:flex;align-items:center;gap:0.25rem;">
+                                <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#f59e0b;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg> Electricity
+                            </div>
+                            <div style="margin-top:0.3rem;">${fmtSetup(uConfig.electricity || 'separate')}</div>
+                        </div>
+                        <div style="background:var(--bg-primary);padding:0.75rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
+                            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;display:flex;align-items:center;gap:0.25rem;">
+                                <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#3b82f6;"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg> Water
+                            </div>
+                            <div style="margin-top:0.3rem;">${fmtSetup(uConfig.water || 'separate')}</div>
+                        </div>
+                        <div style="background:var(--bg-primary);padding:0.75rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
+                            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;display:flex;align-items:center;gap:0.25rem;">
+                                <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#10b981;"><path d="M5 12.55a11 11 0 0 1 14 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg> Internet
+                            </div>
+                            <div style="margin-top:0.3rem;">${fmtSetup(uConfig.internet || 'separate')}</div>
+                        </div>
+                        <div style="background:var(--bg-primary);padding:0.75rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
+                            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;display:flex;align-items:center;gap:0.25rem;">
+                                <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#8b5cf6;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Association Fee
+                            </div>
+                            <div style="margin-top:0.3rem;">${fmtSetup(uConfig.association_fee || 'separate')}</div>
+                        </div>
+                        ${customHTML}
+                    </div>
+                `;
+            }
+            const legacyList = Array.isArray(uConfig) ? uConfig : [];
+            return `<div class="contract-value">${legacyList.length ? legacyList.join(', ') : 'None'}</div>`;
+        }
+
+        async function openContract(leaseId, isPending) {
+            const modal   = document.getElementById('contractModal');
+            const content = document.getElementById('modalContent');
+            const footer  = document.getElementById('modalFooter');
+
+            document.getElementById('modalLeaseNumber').textContent = 'Lease Contract';
+            document.getElementById('modalLeaseDate').textContent   = '';
+            content.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading contract details...</div>';
+            footer.innerHTML  = '';
+            modal.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`/api/leases/${leaseId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) {
+                    content.innerHTML = `<div style="text-align:center;padding:2rem;color:#ef4444;">Failed to load contract details. (${res.status})</div>`;
+                    footer.innerHTML  = `<div></div><button class="action-btn btn-close" data-footer-action="close">Close</button>`;
+                    return;
+                }
+                const { data: lease } = await res.json();
+                activeLease = lease; // Store locally for responses
+
+                document.getElementById('modalLeaseNumber').textContent = `Agreement: ${lease.lease_number || 'DRAFT'}`;
+                document.getElementById('modalLeaseDate').textContent   = `Created ${fmtDateLong(lease.created_at)} · Status: ${lease.lease_status.replace(/_/g,' ').toUpperCase()}`;
+
+                const landlord = lease.landlord   || {};
+                const tenant   = lease.tenant     || {};
+                const prop     = lease.properties || {};
+                const utilities = Array.isArray(lease.utilities_covered) ? lease.utilities_covered : [];
+                const utiltiesStr = utilities.length ? utilities.join(', ') + (lease.utilities_other ? `, ${lease.utilities_other}` : '') : 'None';
+
+                const sigStatusColor = lease.lease_status === 'active' ? '#10b981' : lease.lease_status === 'rejected' ? '#ef4444' : '#f59e0b';
+                const sigStatusLabel = lease.lease_status === 'active' ? 'ACCEPTED & SIGNED' : lease.lease_status === 'rejected' ? 'REJECTED' : 'PENDING YOUR SIGNATURE';
+
+                content.innerHTML = `
+                    <!-- Tenant Concern / Appeal Alert -->
+                    ${lease.lease_status === 'rejected' && lease.terms_and_conditions ? `
+                        <div style="background:rgba(239, 68, 68, 0.08);border:1px solid rgba(239, 68, 68, 0.25);border-radius:var(--radius-md);padding:1rem;margin-bottom:1.5rem;">
+                            <div style="font-weight:700;color:#ef4444;font-size:0.9rem;display:flex;align-items:center;gap:0.4rem;margin-bottom:0.35rem;">
+                                <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                Your Appeal & Rejection Concerns
+                            </div>
+                            <div style="font-size:0.85rem;color:var(--text-primary);white-space:pre-wrap;line-height:1.4;">${(lease.terms_and_conditions).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.35rem;">Returned to landlord for review and adjustments.</div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Parties -->
+                    <div class="contract-section">
+                        <div class="contract-section-title">Contracting Parties</div>
+                        <div class="parties-grid">
+                            <div class="party-box">
+                                <div class="party-role">Landlord (Lessor)</div>
+                                <div class="party-name">${landlord.full_name || '—'}</div>
+                                <div class="party-detail">Phone: ${landlord.contact_number || '—'}<br>Email: ${landlord.email || '—'}</div>
+                            </div>
+                            <div class="party-box">
+                                <div class="party-role">Tenant (Lessee) — You</div>
+                                <div class="party-name">${tenant.full_name || '—'}</div>
+                                <div class="party-detail">Phone: ${tenant.contact_number || '—'}<br>Email: ${tenant.email || '—'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Property -->
+                    <div class="contract-section">
+                        <div class="contract-section-title">Leased Property</div>
+                        <div class="contract-grid">
+                            <div class="contract-item"><span class="contract-label">Property Name</span><span class="contract-value">${prop.property_name || '—'}</span></div>
+                            <div class="contract-item"><span class="contract-label">Unit Number</span><span class="contract-value" style="color:#6366f1;">${
+                                lease.property_units ? `Room ${lease.property_units.unit_number}${lease.unit_beds ? ` (Bed Space: ${lease.unit_beds.bed_label})` : ''}` : 'N/A'
+                            }</span></div>
+                            <div class="contract-item"><span class="contract-label">Property Type</span><span class="contract-value">${(prop.property_type || '').replace(/_/g,' ').toUpperCase() || '—'}</span></div>
+                        </div>
+                        <div style="margin-top:0.75rem;"><span class="contract-label">Full Address</span><div class="contract-value" style="font-weight:500;margin-top:0.2rem;">${buildAddress(prop)}</div></div>
+                    </div>
+
+                    <!-- Financial & Duration -->
+                    <div class="contract-section">
+                        <div class="contract-section-title">Tenancy Period & Financial Terms</div>
+                        <div class="contract-grid">
+                            <div class="contract-item"><span class="contract-label">Lease Start</span><span class="contract-value">${fmtDateLong(lease.lease_start_date)}</span></div>
+                            <div class="contract-item"><span class="contract-label">Lease End</span><span class="contract-value">${fmtDateLong(lease.lease_end_date)}</span></div>
+                            <div class="contract-item"><span class="contract-label">Duration</span><span class="contract-value">${monthDiff(lease.lease_start_date, lease.lease_end_date)} Month(s)</span></div>
+                            <div class="contract-item"><span class="contract-label">Monthly Rent</span><span class="contract-value" style="color:#10b981;font-size:1.05rem;">₱${fmtMoney(lease.monthly_rent)}</span></div>
+                            <div class="contract-item"><span class="contract-label">Security Deposit</span><span class="contract-value">₱${fmtMoney(lease.security_deposit)}</span></div>
+                            <div class="contract-item"><span class="contract-label">Advance Payment</span><span class="contract-value">₱${fmtMoney(lease.advance_payment || 0)}</span></div>
+                            <div class="contract-item"><span class="contract-label">Payment Due</span><span class="contract-value">${lease.payment_due_day || 5}th of every month</span></div>
+                            <div class="contract-item"><span class="contract-label">Late Fee / Grace Period</span><span class="contract-value">${lease.late_fee_amount || 'None'} / ${lease.grace_period || 0} days</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Utilities Configuration -->
+                    <div class="contract-section">
+                        <div class="contract-section-title">Utilities Configuration (Legal Arrangement)</div>
+                        ${renderUtilitiesConfigHTML(lease.utilities_covered)}
+                    </div>
+
+                    <!-- Included Property & Unit Amenities -->
+                    ${(() => {
+                        const amenList = (prop && prop.amenities) || [];
+                        if (!amenList.length) return '';
+                        return `
+                            <div class="contract-section">
+                                <div class="contract-section-title">Included Property Amenities & Facilities</div>
+                                <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;">
+                                    ${amenList.map(a => `
+                                        <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:0.4rem 0.75rem;font-size:0.8rem;font-weight:700;color:var(--text-primary);display:inline-flex;align-items:center;gap:0.35rem;">
+                                            <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            <span>${a}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    })()}
+
+                    <!-- Rules & Policies -->
+                    <div class="contract-section">
+                        <div class="contract-section-title">Rules & Policies</div>
+                        <div class="contract-grid">
+                            <div class="contract-item"><span class="contract-label">Max Occupants</span><span class="contract-value">${lease.max_occupants || 1} person(s)</span></div>
+                            ${(() => {
+                                const uCov = typeof lease.utilities_covered === 'object' && lease.utilities_covered !== null ? lease.utilities_covered : {};
+                                const customPols = lease.custom_policies || uCov.custom_policies || [];
+                                if (!Array.isArray(customPols) || !customPols.length) {
+                                    return `
+                                        <div class="contract-item"><span class="contract-label">Pet Policy</span><span class="contract-value">${lease.pet_policy || '—'}${lease.pet_conditions ? ` — ${lease.pet_conditions}` : ''}</span></div>
+                                        <div class="contract-item"><span class="contract-label">Smoking Policy</span><span class="contract-value">${lease.smoking_policy || '—'}</span></div>
+                                    `;
+                                }
+                                return customPols.map(cp => {
+                                    if (!cp || !cp.name) return '';
+                                    const isAllowed = cp.value === 'Allowed';
+                                    const valColor = isAllowed ? '#10b981' : '#ef4444';
+                                    return `
+                                        <div class="contract-item">
+                                            <span class="contract-label">${(cp.name).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
+                                            <span class="contract-value" style="color:${valColor};font-weight:700;">${cp.value || 'Not Allowed'}</span>
+                                        </div>
+                                    `;
+                                }).join('');
+                            })()}
+                        </div>
+                        <div style="margin-top:0.85rem;padding-top:0.75rem;border-top:1px dashed var(--border-color);">
+                            <div class="contract-label" style="margin-bottom:0.35rem;font-weight:700;">Additional House Rules & Specific Premises Guidelines</div>
+                            <div class="contract-textarea">${lease.house_rules || 'No specific house rules outlined.'}</div>
+                        </div>
+                    </div>
+
+                    <!-- Maintenance -->
+                    <div class="contract-section">
+                        <div class="contract-section-title">Maintenance Responsibilities</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                            <div><div class="contract-label" style="margin-bottom:0.4rem;">Landlord</div><div class="contract-textarea">${lease.landlord_responsibilities || '—'}</div></div>
+                            <div><div class="contract-label" style="margin-bottom:0.4rem;">Tenant (You)</div><div class="contract-textarea">${lease.tenant_responsibilities || '—'}</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Termination -->
+                    <div class="contract-section">
+                        <div class="contract-section-title">Termination & Extra Terms</div>
+                        <div class="contract-label" style="margin-bottom:0.4rem;">Termination Policy</div>
+                        <div class="contract-textarea">${lease.termination_policy || '—'}</div>
+                        ${lease.additional_terms ? `<div class="contract-label" style="margin-top:1rem;margin-bottom:0.4rem;">Additional Terms</div><div class="contract-textarea">${lease.additional_terms}</div>` : ''}
+                    </div>
+
+                    <!-- Signatures -->
+                    <div class="contract-section">
+                        <div class="contract-section-title">Electronic Signatures</div>
+                        <div class="signature-sheet">
+                            <div>
+                                <div class="contract-label">Landlord (Lessor)</div>
+                                <div style="font-weight:700;color:#10b981;font-size:0.85rem;margin:0.3rem 0;">SIGNED & VERIFIED</div>
+                                <div class="signature-box">
+                                    <div class="signature-name">${lease.landlord_signature_name || '—'}</div>
+                                    <div class="sig-date">Signed on ${lease.landlord_signature_date ? fmtDateTimeLocal(lease.landlord_signature_date) : '—'}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="contract-label">Tenant (Lessee — You)</div>
+                                <div style="font-weight:700;color:${sigStatusColor};font-size:0.85rem;margin:0.3rem 0;">${sigStatusLabel}</div>
+                                <div class="signature-box">
+                                    <div class="signature-name" style="color:${lease.lease_status === 'rejected' ? '#ef4444' : '#6366f1'};">${lease.tenant_signature_name || '— Awaiting —'}</div>
+                                    <div class="sig-date">${lease.tenant_signature_date ? `Signed on ${fmtDateTimeLocal(lease.tenant_signature_date)}` : 'Not yet signed.'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Footer — always render Close; add signature input + accept/reject only in pending mode
+                if (isPending) {
+                    footer.innerHTML = `
+                        <div style="flex:1;min-width:200px;">
+                            <label style="font-size:0.75rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;">Type your full name to sign electronically:</label>
+                            <input type="text" id="sigNameInput" class="sig-input" placeholder="${tenant.full_name || 'Your Full Name'}" autocomplete="off">
+                        </div>
+                        <div style="display:flex;gap:0.6rem;align-items:flex-end;flex-shrink:0;">
+                            <button class="action-btn btn-reject" data-footer-action="reject">Reject</button>
+                            <button class="action-btn btn-accept" data-footer-action="accept">Sign & Accept</button>
+                        </div>
+                    `;
+                } else {
+                    footer.innerHTML = `
+                        <div></div>
+                        <button class="action-btn btn-close" data-footer-action="close">Close</button>
+                    `;
+                }
+
+            } catch (err) {
+                console.error('openContract error:', err);
+                content.innerHTML = `<div style="text-align:center;padding:2rem;color:#ef4444;">Unexpected error loading contract.</div>`;
+                footer.innerHTML  = `<div></div><button class="action-btn btn-close" data-footer-action="close">Close</button>`;
+            }
+        }
+
+        async function handleRespond(decision) {
+            if (!activeLease) return;
+            const acceptBtn = document.querySelector('[data-footer-action="accept"]');
+            const rejectBtn = document.querySelector('[data-footer-action="reject"]');
+
+            if (decision === 'accept') {
+                const sigInput = document.getElementById('sigNameInput');
+                const sigVal = sigInput ? sigInput.value.trim() : '';
+                if (!sigVal) {
+                    alert('Please type your signature name to sign the contract.');
+                    return;
+                }
+                if (!confirm(`Are you sure you want to sign this contract as "${sigVal}"? This represents a legally binding agreement.`)) return;
+
+                if (acceptBtn) { acceptBtn.disabled = true; acceptBtn.textContent = 'Signing...'; }
+                try {
+                    const res = await fetch(`/api/leases/${activeLease.id}/accept`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ signature_name: sigVal })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) { alert(data.message || 'Signature execution failed.'); return; }
+
+                    alert('Lease agreement successfully signed and accepted!');
+                    closeModal();
+                    loadLeases();
+                } catch (e) {
+                    console.error(e);
+                    alert('Network error signing agreement: ' + (e.message || e));
+                } finally {
+                    if (acceptBtn) { acceptBtn.disabled = false; acceptBtn.textContent = 'Sign & Accept'; }
+                }
+            } else {
+                const reason = prompt('Please provide your concern or reason for rejecting/appealing this lease draft (will be sent to landlord for review):');
+                if (reason === null) return;
+                if (!reason.trim()) { alert('A concern note or rejection reason is required.'); return; }
+
+                if (rejectBtn) { rejectBtn.disabled = true; rejectBtn.textContent = 'Submitting Appeal...'; }
+                try {
+                    const res = await fetch(`/api/leases/${activeLease.id}/reject`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({
+                            signature_name: 'Rejected with concerns',
+                            tenant_notes: reason.trim(),
+                            rejection_reason: reason.trim()
+                        })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) { alert(data.message || 'Rejection failed.'); return; }
+
+                    alert('Lease agreement draft rejected and returned to landlord with your concern notes.');
+                    closeModal();
+                    loadLeases();
+                } catch (e) {
+                    console.error(e);
+                    alert('Network error rejecting agreement: ' + (e.message || e));
+                } finally {
+                    if (rejectBtn) { rejectBtn.disabled = false; rejectBtn.textContent = 'Reject & Appeal Draft'; }
+                }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('contractModal').classList.add('hidden');
+            activeLease = null;
+        }
+
+        // ── Utility helpers ─────────────────────────────────────────────────
+        function fmtMoney(v) {
+            return parseFloat(v || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+        }
+        function fmtDate(d) {
+            if (!d) return '—';
+            return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' });
+        }
+        function fmtDateLong(d) {
+            if (!d) return '—';
+            const dt = d.includes('T') ? new Date(d) : new Date(d + 'T00:00:00');
+            return dt.toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' });
+        }
+        function fmtDateTimeLocal(d) {
+            if (!d) return '—';
+            return new Date(d).toLocaleString('en-PH');
+        }
+        function monthDiff(start, end) {
+            if (!start || !end) return '?';
+            const s = new Date(start + 'T00:00:00'), e = new Date(end + 'T00:00:00');
+            return (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+        }
+        function buildAddress(prop) {
+            if (!prop) return '—';
+            const parts = [prop.address, prop.barangay ? `Brgy. ${prop.barangay}` : null, prop.municipality, prop.province].filter(Boolean);
+            return parts.join(', ') || '—';
+        }
+    </script>
+</body>
+</html>

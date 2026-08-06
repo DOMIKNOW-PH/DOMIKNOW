@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property & Landlord Ratings - DomiKnow</title>
+    <meta name="description" content="View tenant ratings and feedback submitted for your rental properties and yourself.">
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        /* ── Summary Strip ──────────────────────────────────── */
+        .summary-strip {
+            display: flex;
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.75rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            min-width: 160px;
+            flex: 1;
+        }
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        .summary-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        .star-avg {
+            color: #f59e0b;
+            font-size: 1.1rem;
+            letter-spacing: 0.08em;
+        }
+
+        /* ── Tabs Styling ─────────────────────────────────────── */
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin: 1.5rem 0;
+            gap: 1rem;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: color var(--transition-fast), border-color var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab-btn:hover {
+            color: var(--landlord);
+        }
+        .tab-btn.active {
+            color: var(--landlord);
+            border-bottom-color: var(--landlord);
+        }
+
+        /* ── List Card ──────────────────────────────────────── */
+        .list-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: top;
+        }
+        tr:hover td { background: var(--bg-primary); }
+
+        .star-display { color: #f59e0b; font-size: 1rem; letter-spacing: 0.05em; }
+
+        /* ── Modal ──────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 540px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-premium);
+            animation: mIn 0.2s ease;
+        }
+        @keyframes mIn {
+            from { opacity:0; transform: translateY(10px) scale(0.97); }
+            to   { opacity:1; transform: translateY(0) scale(1); }
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .modal-close-x {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0.25rem;
+            border-radius: var(--radius-sm);
+            transition: color var(--transition-fast);
+        }
+        .modal-close-x:hover { color: var(--text-primary); }
+        
+        .detail-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 0.5rem 1rem;
+            margin-bottom: 0.9rem;
+            align-items: start;
+        }
+        .detail-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding-top: 0.05rem;
+        }
+        .detail-value {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+        .detail-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 1rem 0;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .modal-breakdown-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1.1rem;
+            margin-top: 0.75rem;
+        }
+        .modal-breakdown-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .modal-breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            padding: 0.35rem 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        .modal-breakdown-row:last-child {
+            border-bottom: none;
+        }
+        .modal-breakdown-val {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ── Property filter bar ───────────────────────────── */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .filter-bar label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* ── Empty state ────────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 3.5rem 1rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .empty-state svg { opacity: 0.25; }
+
+        /* ── Feedback snippet ───────────────────────────────── */
+        .feedback-snippet {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            max-width: 360px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Tenant Screening</a>
+                <a href="leases.html" class="navbar-menu-link">Lease Agreements</a>
+                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link">Billings</a>
+                <a href="payments.html" class="navbar-menu-link">Payments Registry</a>
+                <a href="maintenance.html" class="navbar-menu-link">Maintenance</a>
+                <a href="reports.html" class="navbar-menu-link">Reports</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes</a>
+                <a href="policy-violations.html" class="navbar-menu-link">Violations</a>
+                <a href="feedback.html" class="navbar-menu-link active">Feedback</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="dashboard-container">
+        <h2>Ratings &amp; Reviews</h2>
+        <p style="color: var(--text-secondary);">
+            Tenant-submitted reviews and scores. Select a tab below to inspect Property evaluations (Module A) or Landlord management ratings (Module B).
+        </p>
+
+        <!-- Tabs -->
+        <div class="tabs-header">
+            <button class="tab-btn active" id="tabPropertyBtn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                Property Ratings (Module A)
+            </button>
+            <button class="tab-btn" id="tabLandlordBtn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                Landlord Ratings (Module B)
+            </button>
+        </div>
+
+        <!-- Summary Strip -->
+        <div class="summary-strip">
+            <div class="summary-card">
+                <span class="summary-value" id="totalRatingsCount">—</span>
+                <span class="summary-label">Total Ratings</span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-value" id="avgRatingValue" style="color:#f59e0b;">—</span>
+                <span class="summary-label">Average Rating</span>
+                <span class="star-avg" id="avgStarDisplay"></span>
+            </div>
+            <div class="summary-card">
+                <span class="summary-value" id="fiveStarCount" style="color:var(--success);">—</span>
+                <span class="summary-label">5-Star Reviews</span>
+            </div>
+        </div>
+
+        <!-- Ratings Table -->
+        <div class="list-card">
+            <div class="filter-bar">
+                <div id="propFilterContainer" style="display:inline-flex; align-items:center; gap:0.5rem;">
+                    <label for="propertyFilter">Filter by Property:</label>
+                    <select id="propertyFilter" class="form-input" style="max-width:260px; padding:0.45rem 0.85rem; font-size:0.85rem;">
+                        <option value="">All Properties</option>
+                    </select>
+                </div>
+                <label for="starFilter" style="margin-left:0.5rem;">Rating:</label>
+                <select id="starFilter" class="form-input" style="max-width:160px; padding:0.45rem 0.85rem; font-size:0.85rem;">
+                    <option value="">All Stars</option>
+                    <option value="5">5 Stars</option>
+                    <option value="4">4 Stars</option>
+                    <option value="3">3 Stars</option>
+                    <option value="2">2 Stars</option>
+                    <option value="1">1 Star</option>
+                </select>
+            </div>
+            <table>
+                <thead>
+                    <tr id="tableHeaderRow">
+                        <!-- Populated dynamically -->
+                    </tr>
+                </thead>
+                <tbody id="ratingsTableBody">
+                    <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Loading ratings...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Details Modal -->
+    <div class="modal-overlay hidden" id="detailsModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 style="margin:0; font-size:1.05rem; color:var(--text-primary);" id="modalTitle">Rating Details</h3>
+                <button class="modal-close-x" id="closeModalBtn" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalBody"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary action-btn" id="closeModalFooterBtn" style="padding:0.5rem 1.1rem;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        
+        let currentTab = 'property'; // 'property' or 'landlord'
+        let allRatings = [];
+
+        const STAR_LABELS = { 1: 'Very Poor', 2: 'Poor', 3: 'Fair', 4: 'Good', 5: 'Excellent' };
+
+        const PROPERTY_CRITERIA = [
+            { id: 'cleanliness', name: 'Cleanliness' },
+            { id: 'safety', name: 'Safety' },
+            { id: 'comfort', name: 'Comfort' },
+            { id: 'amenities', name: 'Amenities' },
+            { id: 'location', name: 'Location' },
+            { id: 'internet_availability', name: 'Internet Availability' },
+            { id: 'water_supply', name: 'Water Supply' },
+            { id: 'electricity_reliability', name: 'Electricity Reliability' },
+            { id: 'noise_level', name: 'Noise Level' },
+            { id: 'overall_satisfaction', name: 'Overall Property Satisfaction' }
+        ];
+
+        const LANDLORD_CRITERIA = [
+            { id: 'communication', name: 'Communication' },
+            { id: 'responsiveness', name: 'Responsiveness' },
+            { id: 'professionalism', name: 'Professionalism' },
+            { id: 'fairness', name: 'Fairness' },
+            { id: 'maintenance_response', name: 'Maintenance Response' },
+            { id: 'respectfulness', name: 'Respectfulness' },
+            { id: 'reliability', name: 'Reliability' },
+            { id: 'overall_satisfaction', name: 'Overall Landlord Satisfaction' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+
+            // Wire up tab buttons using addEventListener (avoids CSP inline handler issues)
+            const tabPropertyBtn = document.getElementById('tabPropertyBtn');
+            const tabLandlordBtn = document.getElementById('tabLandlordBtn');
+            if (tabPropertyBtn) tabPropertyBtn.addEventListener('click', () => switchLandlordTab('property'));
+            if (tabLandlordBtn) tabLandlordBtn.addEventListener('click', () => switchLandlordTab('landlord'));
+
+            switchLandlordTab('property');
+
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('closeModalFooterBtn').addEventListener('click', closeModal);
+            document.getElementById('detailsModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('detailsModal')) closeModal();
+            });
+
+            document.getElementById('propertyFilter').addEventListener('change', renderTable);
+            document.getElementById('starFilter').addEventListener('change', renderTable);
+
+            document.getElementById('ratingsTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-rating-id]');
+                if (btn) openModal(btn.dataset.ratingId);
+            });
+        });
+
+        // ── Tab Management ──────────────────────────────────────────────────
+        function switchLandlordTab(tabName) {
+            currentTab = tabName;
+            
+            document.getElementById('tabPropertyBtn').classList.toggle('active', tabName === 'property');
+            document.getElementById('tabLandlordBtn').classList.toggle('active', tabName === 'landlord');
+
+            // Show/hide property filter container (landlord ratings are about the landlord, not specific property)
+            document.getElementById('propFilterContainer').style.display = tabName === 'property' ? 'inline-flex' : 'none';
+
+            // Reset filters
+            document.getElementById('propertyFilter').value = '';
+            document.getElementById('starFilter').value = '';
+
+            // Setup table headers
+            const headerRow = document.getElementById('tableHeaderRow');
+            if (tabName === 'property') {
+                headerRow.innerHTML = `
+                    <th>Property &amp; Tenant</th>
+                    <th>Feedback Preview</th>
+                    <th>Average Score</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                `;
+            } else {
+                headerRow.innerHTML = `
+                    <th>Tenant Details</th>
+                    <th>Feedback Preview</th>
+                    <th>Average Score</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                `;
+            }
+
+            fetchRatings();
+        }
+
+        // ── Fetch ───────────────────────────────────────────────────────────
+        async function fetchRatings() {
+            const tbody = document.getElementById('ratingsTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Loading ratings...</td></tr>';
+            
+            const url = currentTab === 'property' 
+                ? '/api/landlord/property-ratings' 
+                : '/api/landlord/landlord-ratings';
+
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--error);">Failed to load ratings.</td></tr>`;
+                    return;
+                }
+                const result = await res.json();
+                allRatings = result.data || [];
+                populateSummary();
+                if (currentTab === 'property') {
+                    populatePropertyFilter();
+                }
+                renderTable();
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--error);">Network error.</td></tr>`;
+            }
+        }
+
+        // ── Summary ─────────────────────────────────────────────────────────
+        function populateSummary() {
+            const total = allRatings.length;
+            const avg = total > 0
+                ? (allRatings.reduce((s, r) => s + parseFloat(r.overall_computed_avg), 0) / total).toFixed(2)
+                : '0.00';
+            
+            // Check if overall satisfaction is 5
+            const fiveStars = allRatings.filter(r => parseInt(r.overall_satisfaction) === 5).length;
+
+            document.getElementById('totalRatingsCount').textContent = total;
+            document.getElementById('avgRatingValue').textContent = avg;
+            document.getElementById('fiveStarCount').textContent = fiveStars;
+
+            const avgNum = parseFloat(avg);
+            const fullStars = Math.floor(avgNum);
+            const halfStar = avgNum - fullStars >= 0.5 ? 1 : 0;
+            document.getElementById('avgStarDisplay').innerHTML =
+                '&#9733;'.repeat(fullStars) +
+                (halfStar ? '<span style="opacity:0.5">&#9733;</span>' : '') +
+                '<span style="color:#d1d5db;">&#9733;</span>'.repeat(Math.max(0, 5 - fullStars - halfStar));
+        }
+
+        // ── Filters ─────────────────────────────────────────────────────────
+        function populatePropertyFilter() {
+            const sel = document.getElementById('propertyFilter');
+            // Reset options except the first one
+            sel.innerHTML = '<option value="">All Properties</option>';
+            const seen = new Set();
+            allRatings.forEach(r => {
+                const name = r.properties?.property_name;
+                if (name && !seen.has(name)) {
+                    seen.add(name);
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    sel.appendChild(opt);
+                }
+            });
+        }
+
+        function getFiltered() {
+            const propFilter = document.getElementById('propertyFilter').value;
+            const starFilter = document.getElementById('starFilter').value;
+            return allRatings.filter(r => {
+                const propMatch = currentTab === 'landlord' || !propFilter || r.properties?.property_name === propFilter;
+                // Match based on rounded overall_computed_avg
+                const ratingRounded = Math.round(parseFloat(r.overall_computed_avg));
+                const starMatch = !starFilter || ratingRounded === parseInt(starFilter);
+                return propMatch && starMatch;
+            });
+        }
+
+        // ── Render Table ────────────────────────────────────────────────────
+        function renderTable() {
+            const tbody = document.getElementById('ratingsTableBody');
+            const filtered = getFiltered();
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="5">
+                        <div class="empty-state">
+                            <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            <span style="font-weight:600;">No ratings found</span>
+                            <span style="font-size:0.8rem;">No tenant reviews have been submitted yet.</span>
+                        </div>
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            filtered.forEach(rat => {
+                const avgVal = parseFloat(rat.overall_computed_avg || 0);
+                const starsHtml = buildStarDisplay(Math.round(avgVal));
+                const dateStr = new Date(rat.submitted_at).toLocaleDateString('en-PH', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+                const snippet = rat.feedback
+                    ? rat.feedback.substring(0, 100) + (rat.feedback.length > 100 ? '...' : '')
+                    : 'No written feedback.';
+
+                const targetLabel = currentTab === 'property' 
+                    ? `
+                        <div style="font-weight:700; color:var(--text-primary);">${rat.properties?.property_name || 'Property'}</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.2rem;">
+                            By: <strong>${rat.tenant?.full_name || 'Tenant'}</strong>
+                        </div>
+                    `
+                    : `
+                        <div style="font-weight:700; color:var(--text-primary);">${rat.tenant?.full_name || 'Tenant'}</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.2rem;">
+                            Lease: <strong>${rat.properties?.property_name || 'N/A'}</strong>
+                        </div>
+                    `;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${targetLabel}</td>
+                    <td>
+                        <div class="feedback-snippet">${escapeHtml(snippet)}</div>
+                    </td>
+                    <td>
+                        ${starsHtml}
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem;">
+                            ${avgVal.toFixed(2)}/5 — ${STAR_LABELS[Math.round(avgVal)] || ''}
+                        </div>
+                    </td>
+                    <td style="font-size:0.82rem; color:var(--text-secondary); white-space:nowrap;">${dateStr}</td>
+                    <td>
+                        <button class="btn-primary" data-rating-id="${rat.id}"
+                            style="font-size:0.78rem; padding:0.35rem 0.85rem; background:var(--landlord); border-color:var(--landlord);">
+                            Details
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function buildStarDisplay(rating) {
+            const filled = '&#9733;'.repeat(rating);
+            const empty = '<span style="color:#d1d5db;">&#9733;</span>'.repeat(Math.max(0, 5 - rating));
+            return `<span class="star-display">${filled}</span>${empty}`;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ── Modal ────────────────────────────────────────────────────────────
+        function openModal(ratingId) {
+            const rat = allRatings.find(r => r.id === ratingId);
+            if (!rat) return;
+
+            const dateStr = new Date(rat.submitted_at).toLocaleDateString('en-PH', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            const criteriaList = currentTab === 'property' ? PROPERTY_CRITERIA : LANDLORD_CRITERIA;
+            let breakdownHtml = '';
+            criteriaList.forEach(crit => {
+                const score = rat[crit.id];
+                breakdownHtml += `
+                    <div class="modal-breakdown-row">
+                        <span style="text-transform:capitalize;">${crit.name}</span>
+                        <div style="display:flex; align-items:center; gap:0.4rem;">
+                            ${buildStarDisplay(score)}
+                            <span class="modal-breakdown-val">${score}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('modalTitle').textContent = currentTab === 'property' ? 'Property Review Details' : 'Landlord Review Details';
+
+            document.getElementById('modalBody').innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Property</span>
+                    <span class="detail-value" style="font-weight:700;">${rat.properties?.property_name || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Tenant</span>
+                    <span class="detail-value">${rat.tenant?.full_name || 'N/A'}</span>
+                </div>
+                
+                <div class="modal-breakdown-card">
+                    <div class="modal-breakdown-title">Scores Breakdown</div>
+                    ${breakdownHtml}
+                </div>
+
+                <hr class="detail-divider">
+                <div class="detail-row">
+                    <span class="detail-label">Average Score</span>
+                    <span class="detail-value" style="font-weight:800; font-size:1.1rem; color:#f59e0b;">
+                        ${parseFloat(rat.overall_computed_avg).toFixed(2)}/5.00
+                    </span>
+                </div>
+                <div class="detail-row" style="align-items:start;">
+                    <span class="detail-label">Feedback Review</span>
+                    <span class="detail-value" style="white-space:pre-wrap; background:var(--bg-primary); padding:0.75rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">${escapeHtml(rat.feedback || 'No written feedback.')}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Submitted</span>
+                    <span class="detail-value">${dateStr}</span>
+                </div>
+            `;
+
+            document.getElementById('detailsModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('detailsModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Property - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .details-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        @media (max-width: 900px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .prop-section-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1.5rem;
+        }
+        .section-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .section-header-flex h3 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+        .info-block {
+            margin-bottom: 1.25rem;
+        }
+        .info-lbl {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .info-val {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .image-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .gallery-item {
+            position: relative;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            height: 100px;
+        }
+        .gallery-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .main-badge {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            background-color: var(--success);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0.15rem 0.4rem;
+            border-radius: var(--radius-full);
+            text-transform: uppercase;
+        }
+        .doc-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .doc-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+        }
+        .doc-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+        .doc-title {
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+        .doc-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .compliance-box {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+        .compliance-box.compliant {
+            background-color: var(--success-bg);
+            border-color: var(--success);
+            color: #065f46;
+        }
+        .compliance-rule {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+        .decision-panel {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+        .detail-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        .detail-value {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-admin">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-admin">Admin</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="users.html" class="navbar-menu-link">Users</a>
+                <a href="property-review.html" class="navbar-menu-link active">Property Review</a>
+                <a href="reservations.html" class="navbar-menu-link">Reservation Monitoring</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <div class="nav-back">
+            <a href="property-review.html" class="nav-back-link">← Back to Review Queue</a>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+            <div>
+                <h2>Verify Property Registration</h2>
+                <p style="color: var(--text-secondary);">Audit license numbers, tax declarations, and structural suitability details.</p>
+            </div>
+            <span id="propertyStatusBadge" class="status-badge">PENDING REVIEW</span>
+        </div>
+
+        <div id="generalFeedback" class="alert alert-success hidden"></div>
+
+        <div class="details-grid">
+            <!-- Left Column: Step 1 Property Details (Sections 1 to 6) -->
+            <div class="details-left">
+                <div id="viewDetailsCard">
+                    <!-- Section 1. Basic Information -->
+                    <div class="prop-section-card">
+                        <div class="section-header-flex">
+                            <h3>Section 1. Basic Information</h3>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                            <div>
+                                <div class="detail-label">Property Name</div>
+                                <div id="viewPropName" style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">-</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Property Type</div>
+                                <div id="viewPropType" class="detail-value">-</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="detail-label">Property Description</div>
+                            <p id="viewDescription" style="color: var(--text-secondary); line-height: 1.6; margin: 0;">No description provided.</p>
+                        </div>
+                    </div>
+
+                    <!-- Section 2. Property Location -->
+                    <div class="prop-section-card">
+                        <div class="section-header-flex">
+                            <h3>Section 2. Property Location (Siniloan, Laguna)</h3>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                            <div>
+                                <div class="detail-label">Barangay</div>
+                                <div id="viewBarangay" class="detail-value">-</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Street / Purok / Sitio</div>
+                                <div id="viewAddress" class="detail-value">-</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Landmark (Optional)</div>
+                                <div id="viewLandmark" class="detail-value">-</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <div class="detail-label">Pin Location on Map</div>
+                        </div>
+                        <div id="landlordMap" style="height: 240px; border-radius: var(--radius-md); border: 1px solid var(--border-color); z-index: 1;"></div>
+                    </div>
+
+                    <!-- Section 3. Contact Information -->
+                    <div class="prop-section-card">
+                        <div class="section-header-flex">
+                            <h3>Section 3. Contact Information (Auto-filled from Landlord Account)</h3>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                            <div>
+                                <div class="detail-label">Contact Number</div>
+                                <div id="viewContactPhone" class="detail-value" style="color: var(--landlord); font-size: 1.05rem;">-</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Email Address</div>
+                                <div id="viewContactEmail" class="detail-value" style="font-size: 1.05rem;">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4. Property Information (Building Specs) -->
+                    <div class="prop-section-card">
+                        <div class="section-header-flex">
+                            <h3>Section 4. Property Information</h3>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem;">
+                            <div>
+                                <div class="detail-label">Total Number of Floors</div>
+                                <div id="viewTotalFloors" class="detail-value" style="font-size: 1.1rem;">-</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Total Rental Units / Rooms</div>
+                                <div id="viewTotalUnits" class="detail-value" style="font-size: 1.1rem;">-</div>
+                            </div>
+                            <div>
+                                <div class="detail-label">Total Capacity (Optional)</div>
+                                <div id="viewTotalCapacity" class="detail-value" style="font-size: 1.1rem;">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5. Shared Amenities -->
+                    <div class="prop-section-card">
+                        <div class="section-header-flex">
+                            <h3>Section 5. Shared Amenities</h3>
+                        </div>
+                        <div id="viewAmenities" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            <!-- List of amenities loaded dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Section 6. Property Rules -->
+                    <div class="prop-section-card">
+                        <div class="section-header-flex">
+                            <h3>Section 6. Property Rules & Guidelines</h3>
+                        </div>
+                        <p id="viewHouseRules" style="color: var(--text-secondary); line-height: 1.6; white-space: pre-line; margin: 0;">No specific rules submitted.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Step 2 Legal Documents & Step 3 Property Photos -->
+            <div class="details-right">
+                <!-- Step 2: Upload Documents -->
+                <div class="prop-section-card">
+                    <div class="section-header-flex">
+                        <h3>Step 2. Legal Verification Certificates</h3>
+                    </div>
+                    <div id="documentList" class="doc-list">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- Step 3: Property Photos -->
+                <div class="prop-section-card">
+                    <div class="section-header-flex">
+                        <h3>Step 3. Property Building Photos</h3>
+                    </div>
+                    <div id="imageGallery" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- Action Panel -->
+                <div class="decision-panel">
+                    <h3 class="profile-card-title" style="margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Verification Decision</h3>
+                    
+                    <!-- If reviewed, display status info -->
+                    <div id="reviewDisplayPanel" class="hidden" style="margin-bottom: 1rem;">
+                        <div class="info-lbl">Rejection Reason (if any)</div>
+                        <p id="rejectionReasonText" style="font-size: 0.875rem; color: #b91c1c; font-style: italic; background-color: var(--error-bg); padding: 0.5rem; border: 1px dashed var(--error); border-radius: var(--radius-sm);">-</p>
+                        <div id="reviewedByText" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Reviewed by -</div>
+                    </div>
+
+                    <!-- If pending review, display action buttons -->
+                    <div id="decisionControls">
+                        <div class="form-group">
+                            <label for="rejectionRemarks" class="form-label">Rejection Reason Remarks</label>
+                            <textarea id="rejectionRemarks" rows="3" placeholder="If rejecting, state structural errors, missing licenses, or coordinates discrepancies here..." class="form-textarea"></textarea>
+                        </div>
+                        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                            <button id="btnReject" class="btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; background-color: var(--error); padding: 0.6rem; font-weight: 700; width: 100%;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Reject
+                            </button>
+                            <button id="btnApprove" class="btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; background-color: var(--success); padding: 0.6rem; font-weight: 700; width: 100%;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Approve
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const propertyId = urlParams.get('id');
+        let currentDetails = null;
+        let adminMap = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            if (!propertyId) {
+                alert('Missing Property ID parameter in URL.');
+                window.location.href = 'property-review.html';
+                return;
+            }
+
+            // Set up Leaflet Map with CARTO HD Vector & Esri Satellite HD layers
+            const cartoVoyagerHD = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 21,
+                maxNativeZoom: 20,
+                subdomains: 'abcd',
+                detectRetina: true
+            });
+            const satelliteBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, detectRetina: true });
+            const labelsOverlay = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, detectRetina: true });
+            const esriSatelliteHD = L.layerGroup([satelliteBase, labelsOverlay]);
+
+            adminMap = L.map('landlordMap', {
+                zoomControl: true,
+                layers: [cartoVoyagerHD]
+            }).setView([14.425, 121.440], 15);
+
+            L.control.layers({
+                "🗺️ CARTO HD Street Vector": cartoVoyagerHD,
+                "🛰️ Esri HD Satellite": esriSatelliteHD
+            }, null, { position: 'topright' }).addTo(adminMap);
+
+            fetchPropertyReviewDetails();
+            
+            // Attach event listeners to buttons
+            document.getElementById('btnApprove').addEventListener('click', () => submitDecision(true));
+            document.getElementById('btnReject').addEventListener('click', () => submitDecision(false));
+        });
+
+        async function fetchPropertyReviewDetails() {
+            try {
+                const response = await fetch(`/api/admin/properties/${propertyId}/review`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    alert('Failed to retrieve property review details.');
+                    window.location.href = 'property-review.html';
+                    return;
+                }
+
+                const result = await response.json();
+                currentDetails = result.data;
+
+                renderSpecsUI();
+                renderGalleryUI();
+                renderDocumentsUI();
+                updateMapMarker();
+                checkCompliance();
+
+            } catch (err) {
+                console.error(err);
+                alert('Error reaching admin server API.');
+            }
+        }
+
+        function renderSpecsUI() {
+            const prop = currentDetails;
+
+            // Status Badge
+            const badge = document.getElementById('propertyStatusBadge');
+            if (badge) {
+                badge.className = 'status-badge';
+                badge.textContent = prop.status.replace('_', ' ').toUpperCase();
+                if (prop.status === 'approved') badge.classList.add('status-active');
+                else if (prop.status === 'rejected') badge.classList.add('status-rejected');
+                else badge.classList.add('status-pending');
+            }
+
+            // Specs
+            document.getElementById('viewPropName').textContent = prop.property_name || '-';
+            document.getElementById('viewPropType').textContent = (prop.property_type || '-').replace('_', ' ').toUpperCase();
+            document.getElementById('viewDescription').textContent = prop.description || 'No description provided.';
+            
+            document.getElementById('viewBarangay').textContent = prop.barangay || '-';
+            
+            let rawAddr = prop.address || '-';
+            let landmarkVal = prop.landmark || '-';
+            if (rawAddr.includes('(Near ')) {
+                const parts = rawAddr.split('(Near ');
+                rawAddr = parts[0].trim();
+                landmarkVal = parts[1].replace(')', '').trim();
+            }
+            document.getElementById('viewAddress').textContent = rawAddr;
+            document.getElementById('viewLandmark').textContent = landmarkVal;
+
+            document.getElementById('viewContactPhone').textContent = prop.landlord_phone || 'N/A';
+            document.getElementById('viewContactEmail').textContent = prop.landlord_email || 'N/A';
+
+            document.getElementById('viewTotalFloors').textContent = `${prop.total_floors || 2} Floors`;
+            document.getElementById('viewTotalUnits').textContent = `${prop.max_occupants || 1} Rooms / Units`;
+            document.getElementById('viewTotalCapacity').textContent = prop.total_capacity ? `${prop.total_capacity} persons` : 'Optional';
+
+            // Amenities Tags
+            const amenitiesContainer = document.getElementById('viewAmenities');
+            if (amenitiesContainer) {
+                amenitiesContainer.innerHTML = '';
+                const amenities = prop.amenities || [];
+                if (amenities.length > 0) {
+                    amenities.forEach(a => {
+                        const tag = document.createElement('span');
+                        tag.className = 'badge-amenity';
+                        tag.style.margin = '0';
+                        tag.style.display = 'inline-flex';
+                        tag.style.alignItems = 'center';
+                        tag.style.gap = '4px';
+                        tag.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="color: var(--success);"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> ${a}`;
+                        amenitiesContainer.appendChild(tag);
+                    });
+                } else {
+                    amenitiesContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.8125rem; font-style: italic;">No shared amenities specified.</p>';
+                }
+            }
+
+            // Rules
+            document.getElementById('viewHouseRules').textContent = prop.house_rules || 'No specific rules submitted.';
+
+            // Decision display
+            const displayPanel = document.getElementById('reviewDisplayPanel');
+            const controlsPanel = document.getElementById('decisionControls');
+
+            if (prop.status === 'approved' || prop.status === 'rejected') {
+                if (prop.status === 'rejected' && prop.rejection_reason) {
+                    document.getElementById('rejectionReasonText').textContent = prop.rejection_reason;
+                    document.getElementById('rejectionReasonText').style.display = 'block';
+                } else {
+                    document.getElementById('rejectionReasonText').style.display = 'none';
+                }
+
+                const reviewer = prop.admin_reviewed_by || 'Administrator';
+                const reviewedDate = prop.admin_reviewed_at 
+                    ? new Date(prop.admin_reviewed_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    : 'N/A';
+                document.getElementById('reviewedByText').textContent = `Reviewed by ${reviewer} on ${reviewedDate}`;
+
+                displayPanel.classList.remove('hidden');
+                controlsPanel.classList.add('hidden'); // Hide approval buttons
+            } else {
+                displayPanel.classList.add('hidden');
+                controlsPanel.classList.remove('hidden');
+            }
+        }
+
+        function renderGalleryUI() {
+            const gallery = document.getElementById('imageGallery');
+            if (!gallery) return;
+            gallery.innerHTML = '';
+            const images = currentDetails.images || [];
+
+            const slots = [
+                { key: 'facade', label: 'Building Facade / Front View', isMain: true },
+                { key: 'lobby', label: 'Lobby / Common Area / Entrance', isMain: false },
+                { key: 'room', label: 'Inside Room / Rental Unit Area', isMain: false },
+                { key: 'bathroom', label: 'Bathroom Area', isMain: false },
+                { key: 'amenity', label: 'Additional Amenity Photo (Optional)', isMain: false }
+            ];
+
+            let nonMainIndex = 0;
+            slots.forEach((slot, index) => {
+                let matchedImg = null;
+                if (slot.isMain) {
+                    matchedImg = images.find(img => img.is_main) || null;
+                } else {
+                    const nonMainImages = images.filter(img => !img.is_main);
+                    matchedImg = nonMainImages.find(img => (img.image_path || img.image_url || '').toLowerCase().includes(slot.key)) || null;
+                    if (!matchedImg) {
+                        matchedImg = nonMainImages[nonMainIndex] || null;
+                        nonMainIndex++;
+                    }
+                }
+
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'photo-slot-card';
+                slotDiv.style.border = '1px solid var(--border-color)';
+                slotDiv.style.borderRadius = 'var(--radius-md)';
+                slotDiv.style.overflow = 'hidden';
+                slotDiv.style.backgroundColor = 'var(--bg-primary)';
+                slotDiv.style.position = 'relative';
+
+                let imgHtml = '';
+                if (matchedImg) {
+                    imgHtml = `<img src="${matchedImg.image_url}" alt="${slot.label}" style="width: 100%; height: 180px; object-fit: cover; display: block; cursor: pointer;" onclick="window.open('${matchedImg.image_url}')">`;
+                } else {
+                    imgHtml = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 180px; color: var(--text-muted); background-color: var(--bg-secondary);">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-bottom: 6px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span style="font-size: 0.75rem;">No photo submitted</span>
+                        </div>
+                    `;
+                }
+
+                slotDiv.innerHTML = `
+                    <div style="position: relative; height: 180px; width: 100%;">
+                        ${imgHtml}
+                    </div>
+                    <div style="padding: 0.5rem; font-size: 0.75rem; font-weight: 700; text-align: center; color: var(--text-primary); border-top: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                        ${slot.label.toUpperCase()}
+                    </div>
+                `;
+
+                gallery.appendChild(slotDiv);
+            });
+        }
+
+        function renderDocumentsUI() {
+            const docList = document.getElementById('documentList');
+            if (!docList) return;
+            docList.innerHTML = '';
+            const docs = currentDetails.documents || [];
+
+            const slots = [
+                { type: 'ownership_proof', label: 'Proof of Ownership / Authorization' },
+                { type: 'government_permit', label: 'Business Permit' },
+                { type: 'legal_document', label: 'Barangay Clearance', instance: 1 },
+                { type: 'legal_document', label: 'Valid Government ID', instance: 2 }
+            ];
+
+            let legalDocSeen = 0;
+            slots.forEach((slot, index) => {
+                let matchedDoc = null;
+                if (slot.type === 'legal_document') {
+                    const legalDocs = docs.filter(d => d.document_type === 'legal_document');
+                    legalDocSeen++;
+                    matchedDoc = legalDocs[legalDocSeen - 1] || null;
+                } else {
+                    matchedDoc = docs.find(d => d.document_type === slot.type) || null;
+                }
+
+                const slotDiv = document.createElement('div');
+                slotDiv.style.border = '1px solid var(--border-color)';
+                slotDiv.style.borderRadius = 'var(--radius-md)';
+                slotDiv.style.padding = '1rem';
+                slotDiv.style.backgroundColor = 'var(--bg-primary)';
+                slotDiv.style.marginBottom = '1rem';
+
+                let docContentHtml = '';
+                if (matchedDoc) {
+                    const sizeKB = (matchedDoc.file_size / 1024).toFixed(0);
+                    const uploadedDate = new Date(matchedDoc.uploaded_at).toLocaleDateString();
+                    
+                    let docBadge = 'status-pending';
+                    if (matchedDoc.status === 'accepted') docBadge = 'status-active';
+                    if (matchedDoc.status === 'rejected') docBadge = 'status-rejected';
+
+                    docContentHtml = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                            <div>
+                                <span class="doc-meta" style="display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <a href="${matchedDoc.file_url}" target="_blank" style="color: var(--text-secondary); text-decoration: underline; font-weight: 600;">${matchedDoc.file_name}</a> (${sizeKB} KB)
+                                </span>
+                                <span class="doc-meta" style="font-size: 0.6875rem; display: block; margin-top: 0.15rem; margin-left: 18px;">Submitted on ${uploadedDate}</span>
+                            </div>
+                            <span class="status-badge ${docBadge}">${matchedDoc.status.toUpperCase()}</span>
+                        </div>
+                    `;
+                } else {
+                    docContentHtml = `
+                        <p style="color: var(--text-muted); font-size: 0.8125rem; font-style: italic; margin: 0 0 0.75rem 0;">No document submitted</p>
+                    `;
+                }
+
+                slotDiv.innerHTML = `
+                    <div style="font-weight: 700; font-size: 0.8125rem; color: var(--primary); margin-bottom: 0.5rem;">
+                        ${slot.label.toUpperCase()}
+                    </div>
+                    ${docContentHtml}
+                `;
+
+                docList.appendChild(slotDiv);
+            });
+        }
+
+        function updateMapMarker() {
+            const prop = currentDetails;
+            if (prop.latitude && prop.longitude) {
+                adminMap.setView([prop.latitude, prop.longitude], 16);
+                L.marker([prop.latitude, prop.longitude])
+                    .addTo(adminMap)
+                    .bindPopup(`<strong>${prop.property_name}</strong><br>Brgy. ${prop.barangay}`)
+                    .openPopup();
+            }
+        }
+
+        function checkCompliance() {
+            // Keep simple placeholder so main flow callers don't fail
+        }
+
+        async function submitDecision(approve) {
+            const btnApprove = document.getElementById('btnApprove');
+            const btnReject = document.getElementById('btnReject');
+            const remarks = document.getElementById('rejectionRemarks').value;
+
+            if (!approve && !remarks) {
+                alert('Please enter a rejection reason remarks first.');
+                return;
+            }
+
+            btnApprove.disabled = true;
+            btnReject.disabled = true;
+
+            const endpoint = approve 
+                ? `/api/admin/properties/${propertyId}/approve` 
+                : `/api/admin/properties/${propertyId}/reject`;
+
+            const payload = approve ? {} : { rejection_reason: remarks };
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const feedback = document.getElementById('generalFeedback');
+                    feedback.textContent = approve 
+                        ? 'Property successfully approved and published!' 
+                        : 'Property successfully rejected and landlord notified.';
+                    feedback.classList.remove('hidden');
+
+                    fetchPropertyReviewDetails();
+
+                    setTimeout(() => {
+                        feedback.classList.add('hidden');
+                    }, 4000);
+                } else {
+                    alert(result.message || 'Verification decision failed.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred during verification submission.');
+            } finally {
+                btnApprove.disabled = false;
+                btnReject.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

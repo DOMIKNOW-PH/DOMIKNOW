@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assigned Tasks - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .list-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9375rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1.15rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+        .action-btn {
+            padding: 0.45rem 1.1rem;
+            font-size: 0.8125rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 750;
+            border: 1px solid transparent;
+            text-decoration: none;
+            display: inline-block;
+            background-color: var(--maintenance);
+            color: white;
+        }
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .filters-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .filter-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.45rem 1rem;
+            font-size: 0.8125rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .filter-btn.active {
+            background: var(--maintenance);
+            color: white;
+            border-color: var(--maintenance);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-maintenance">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-maintenance">Maintenance</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="tasks.html" class="navbar-menu-link active">Assigned Tasks</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>My Assigned Maintenance Tasks</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Manage assigned jobs, travel to properties, execute repairs, and submit evidence reports.</p>
+
+        <div class="filters-group">
+            <button class="filter-btn active" data-filter="all">All Jobs</button>
+            <button class="filter-btn" data-filter="assigned">New Offers</button>
+            <button class="filter-btn" data-filter="accepted">Accepted</button>
+            <button class="filter-btn" data-filter="in_progress">Working</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+            <button class="filter-btn" data-filter="closed">History logs</button>
+        </div>
+
+        <div class="list-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property & Unit</th>
+                        <th>Problem Summary</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Task Status</th>
+                        <th>Assigned Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tasksTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading assigned tasks...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let myTasks = [];
+        let activeFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchAssignedTasks();
+
+            document.querySelector('.filters-group').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-filter]');
+                if (!btn) return;
+
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                activeFilter = btn.dataset.filter;
+                renderTasksTable();
+            });
+        });
+
+        async function fetchAssignedTasks() {
+            const tableBody = document.getElementById('tasksTableBody');
+            try {
+                const response = await fetch('/api/maintenance/requests/worker', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--error);">Failed to load assigned tasks.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                myTasks = result.data || [];
+                renderTasksTable();
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--error);">Error reaching service API.</td></tr>`;
+            }
+        }
+
+        function renderTasksTable() {
+            const tableBody = document.getElementById('tasksTableBody');
+            
+            const filtered = myTasks.filter(t => {
+                if (activeFilter === 'all') return true;
+                if (activeFilter === 'in_progress') {
+                    return ['travelling', 'arrived', 'repairing'].includes(t.status);
+                }
+                if (activeFilter === 'closed') {
+                    return ['verified', 'closed'].includes(t.status);
+                }
+                return t.status === activeFilter;
+            });
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No task logs match the selected filter.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = '';
+            filtered.forEach(task => {
+                let priorityBadgeClass = 'status-pending';
+                if (task.priority_level === 'high' || task.priority_level === 'emergency') priorityBadgeClass = 'status-rejected';
+                else if (task.priority_level === 'low') priorityBadgeClass = 'status-active';
+
+                let statusBadgeClass = 'status-pending';
+                if (['completed', 'verified', 'closed'].includes(task.status)) statusBadgeClass = 'status-active';
+                else if (task.status === 'rejected') statusBadgeClass = 'status-rejected';
+
+                const assignedDate = new Date(task.created_at).toLocaleDateString();
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div style="font-weight:750; color:var(--text-primary);">${task.properties?.property_name || 'Property'}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Unit: ${task.unit_number || 'N/A'}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight:700; color:var(--primary);">${task.issue_title}</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary); max-width: 200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Pref. Sch: ${task.preferred_schedule || '—'}</div>
+                    </td>
+                    <td style="text-transform: capitalize;">${task.issue_category}</td>
+                    <td><span class="status-badge ${priorityBadgeClass}" style="text-transform:capitalize;">${task.priority_level}</span></td>
+                    <td><span class="status-badge ${statusBadgeClass}" style="text-transform:capitalize;">${task.status.replace('_', ' ')}</span></td>
+                    <td>${assignedDate}</td>
+                    <td>
+                        <a href="task-details.html?id=${task.id}" class="action-btn">Update Progress</a>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>

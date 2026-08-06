@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Progress Details - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .details-card, .timeline-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            height: fit-content;
+        }
+        
+        .action-panel-box {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .action-row-btn {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .btn-action {
+            padding: 0.55rem 1.25rem;
+            font-size: 0.85rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            border: 1px solid transparent;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-accept {
+            background-color: var(--success);
+            color: white;
+        }
+        .btn-decline {
+            background-color: var(--error);
+            color: white;
+        }
+        .btn-status {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-submit-report {
+            background-color: var(--maintenance);
+            color: white;
+        }
+
+        /* Timeline logs visual styling */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-top: 1rem;
+            border-left: 2px solid var(--border-color);
+            padding-left: 1.25rem;
+            margin-left: 0.5rem;
+        }
+        .timeline-item {
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -27px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            border: 2px solid var(--bg-secondary);
+        }
+        .timeline-item.active::before {
+            background-color: var(--maintenance);
+        }
+        .timeline-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .timeline-notes {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            margin-top: 0.15rem;
+        }
+        
+        /* Materials list visual styling */
+        .materials-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .materials-table th {
+            padding: 0.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .materials-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .add-material-btn {
+            background: none;
+            border: 1px dashed var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.35rem;
+            width: 100%;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+        .add-material-btn:hover {
+            border-color: var(--maintenance);
+            color: var(--maintenance);
+        }
+        .remove-material-btn {
+            background: none;
+            border: none;
+            color: var(--error);
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-maintenance">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-maintenance">Maintenance</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="tasks.html" class="navbar-menu-link active">Assigned Tasks</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Maintenance Task Progress</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Update the coordination pipeline status, request revisions, and file the task completion report.</p>
+
+        <div class="details-grid">
+            <!-- Left Column: Specs, Instructions, Actions -->
+            <div class="details-card">
+                <h3 id="requestTitle" style="color: var(--primary); margin-bottom: 1.25rem;">Task details</h3>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; background:var(--bg-primary); border:1px solid var(--border-color); padding:1.25rem; border-radius:var(--radius-md); margin-bottom:1.5rem;">
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PROPERTY NAME</span><div style="font-weight:600;" id="propertyName">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">UNIT / ROOM NO.</span><div style="font-weight:600;" id="unitNumber">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">TENANT CONTACT</span><div style="font-weight:600;" id="tenantContact">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PREFERRED ENTRY SCHEDULE</span><div style="font-weight:600;" id="preferredSchedule">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CATEGORY</span><div style="font-weight:600; text-transform:capitalize;" id="issueCategory">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">URGENCY PRIORITY</span><div style="font-weight:600; text-transform:capitalize;" id="priorityLevel">Loading...</div></div>
+                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">TASK STATUS</span><div style="font-weight:800; text-transform:capitalize; color:var(--maintenance);" id="taskStatus">Loading...</div></div>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Landlord remarks / Instructions</span>
+                    <div id="landlordRemarks" style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); border:1px solid var(--border-color); padding:0.75rem; border-radius:4px; margin-top:0.25rem; white-space:pre-wrap;"></div>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Problem Description</span>
+                    <div id="issueDescription" style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); border:1px solid var(--border-color); padding:0.75rem; border-radius:4px; margin-top:0.25rem; white-space:pre-wrap;"></div>
+                </div>
+
+                <div id="imageContainer" class="hidden" style="margin-bottom:1.5rem;">
+                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Tenant Uploaded Photo</span>
+                    <div><a id="issueImgLink" target="_blank"><img id="issueImg" style="max-width:100%; max-height:220px; border:1px solid var(--border-color); border-radius:4px; margin-top:0.25rem;"></a></div>
+                </div>
+
+                <!-- Technician actions and report submissions -->
+                <div id="technicianActionPanel" class="action-panel-box hidden">
+                    <h4 style="margin:0;" id="actionPanelTitle">Action Coord Panel</h4>
+                    <div id="panelFormContainer"></div>
+                </div>
+            </div>
+
+            <!-- Right Column: logs history -->
+            <div class="timeline-card">
+                <h3>Coordination Log Timeline</h3>
+                <div class="timeline" id="timelineLogs">
+                    <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No logs documented yet.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskId = urlParams.get('id');
+        let taskDetails = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token || !taskId) return;
+            fetchTaskDetails();
+
+            // Setup container level event listeners for actions to avoid CSP issues
+            const actionPanel = document.getElementById('technicianActionPanel');
+            
+            // Delegate click actions
+            actionPanel.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                
+                const action = btn.dataset.action;
+                if (action === 'respond') {
+                    handleOfferResponse(btn.dataset.decision);
+                } else if (action === 'update-status') {
+                    handleStatusUpdate(btn.dataset.status);
+                } else if (action === 'add-row') {
+                    addMaterialRow();
+                }
+            });
+
+            // Delegate submit
+            actionPanel.addEventListener('submit', (e) => {
+                if (e.target.id === 'completionReportForm') {
+                    e.preventDefault();
+                    handleReportSubmit();
+                }
+            });
+        });
+
+        async function fetchTaskDetails() {
+            try {
+                const response = await fetch(`/api/maintenance/requests/${taskId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+
+                const result = await response.json();
+                const data = result.data;
+                const req = data.request;
+                taskDetails = req;
+
+                document.getElementById('propertyName').textContent = req.properties?.property_name;
+                document.getElementById('unitNumber').textContent = req.unit_number || 'N/A';
+                document.getElementById('tenantContact').textContent = `${req.tenant?.full_name || 'N/A'} (Phone: ${req.tenant?.contact_number || 'None'})`;
+                document.getElementById('preferredSchedule').textContent = req.preferred_schedule || '—';
+                document.getElementById('issueCategory').textContent = req.issue_category;
+                document.getElementById('priorityLevel').textContent = req.priority_level;
+                document.getElementById('taskStatus').textContent = req.status.replace('_', ' ');
+                document.getElementById('landlordRemarks').textContent = req.landlord_remarks || 'None';
+                document.getElementById('issueDescription').textContent = req.issue_description;
+
+                if (req.image_url) {
+                    document.getElementById('imageContainer').classList.remove('hidden');
+                    document.getElementById('issueImg').src = req.image_url;
+                    document.getElementById('issueImgLink').href = req.image_url;
+                } else {
+                    document.getElementById('imageContainer').classList.add('hidden');
+                }
+
+                // Render logs
+                const timeline = document.getElementById('timelineLogs');
+                if (data.updates && data.updates.length > 0) {
+                    timeline.innerHTML = '';
+                    data.updates.forEach(u => {
+                        const dt = new Date(u.created_at).toLocaleString();
+                        const div = document.createElement('div');
+                        div.className = 'timeline-item active';
+                        div.innerHTML = `
+                            <span class="timeline-meta">${dt} - ${u.status_update.replace('_', ' ').toUpperCase()}</span>
+                            <div class="timeline-notes">${u.notes}</div>
+                        `;
+                        timeline.appendChild(div);
+                    });
+                } else {
+                    timeline.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 1rem;">No updates logged.</p>';
+                }
+
+                // Action panel mapping
+                renderTechnicianActionPanel(req);
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderTechnicianActionPanel(req) {
+            const panel = document.getElementById('technicianActionPanel');
+            const title = document.getElementById('actionPanelTitle');
+            const container = document.getElementById('panelFormContainer');
+
+            panel.classList.add('hidden');
+            container.innerHTML = '';
+
+            // 1. Offer Decision (assigned state)
+            if (req.status === 'assigned') {
+                title.textContent = 'Respond to Job Offer Assignment';
+                container.innerHTML = `
+                    <p style="font-size:0.875rem; color:var(--text-secondary); margin-top:0.5rem;">Select whether to accept or decline this repair assignment offer.</p>
+                    <div class="action-row-btn">
+                        <button class="btn-action btn-decline" data-action="respond" data-decision="decline">Decline Job</button>
+                        <button class="btn-action btn-accept" data-action="respond" data-decision="accept">Accept Job</button>
+                    </div>
+                `;
+                panel.classList.remove('hidden');
+            }
+            // 2. Status Progress updates (accepted / travelling / arrived states)
+            else if (['accepted', 'travelling', 'arrived'].includes(req.status)) {
+                title.textContent = 'Coordinate Work Progress Status';
+                
+                let btnText = 'Start Travel to Property';
+                let targetStatus = 'travelling';
+                if (req.status === 'travelling') {
+                    btnText = 'Mark Arrived at Property';
+                    targetStatus = 'arrived';
+                } else if (req.status === 'arrived') {
+                    btnText = 'Start Repairing Issue';
+                    targetStatus = 'repairing';
+                }
+
+                container.innerHTML = `
+                    <p style="font-size:0.875rem; color:var(--text-secondary); margin-top:0.5rem;">Update the landlord and tenant on your current progress state.</p>
+                    <div style="margin-top:1rem;">
+                        <button class="btn-action btn-status" style="width:100%;" data-action="update-status" data-status="${targetStatus}">${btnText}</button>
+                    </div>
+                `;
+                panel.classList.remove('hidden');
+            }
+            // 3. Completion Report form (repairing state)
+            else if (req.status === 'repairing') {
+                title.textContent = 'Submit Job Completion Report';
+                container.innerHTML = `
+                    <form id="completionReportForm">
+                        <div class="form-group" style="margin-top:0.75rem;">
+                            <label class="form-label" for="problemFound">Problem Found & Diagnosed</label>
+                            <input type="text" id="problemFound" class="form-input" placeholder="e.g. Ruptured PVC pipe, blown fuse" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="repairPerformed">Repair Operations Action Taken</label>
+                            <input type="text" id="repairPerformed" class="form-input" placeholder="e.g. Replaced section of pipe, changed fuse" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="recommendations">Recommendations / Safety Instructions</label>
+                            <input type="text" id="recommendations" class="form-input" placeholder="e.g. Avoid overloading socket, schedule follow up check">
+                        </div>
+
+                        <!-- Materials dynamic list -->
+                        <div class="form-group">
+                            <label class="form-label">Materials Utilized & Recorded</label>
+                            <table class="materials-table">
+                                <thead>
+                                    <tr>
+                                        <th>Material Name</th>
+                                        <th>Qty</th>
+                                        <th>Cost per unit (₱)</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="materialsTableBody">
+                                </tbody>
+                            </table>
+                            <button type="button" class="add-material-btn" data-action="add-row">+ Add Material Row</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="laborCost">Labor / Services Cost (₱ PHP)</label>
+                            <input type="number" id="laborCost" class="form-input" placeholder="e.g. 500" step="0.01" min="0" value="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="beforePhoto">Upload Before Repair Photo</label>
+                            <input type="file" id="beforePhoto" accept="image/*" class="form-input" style="padding:0.4rem;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="afterPhoto">Upload After Repair Photo</label>
+                            <input type="file" id="afterPhoto" accept="image/*" class="form-input" style="padding:0.4rem;">
+                        </div>
+
+                        <button type="submit" class="btn-action btn-submit-report" style="width:100%; margin-top:1rem;">Submit Completion Report</button>
+                    </form>
+                `;
+                panel.classList.remove('hidden');
+                addMaterialRow(); // pre-add one blank row for ease
+            }
+        }
+
+        async function handleOfferResponse(response) {
+            if (response === 'decline' && !confirm('Are you sure you want to decline this job offer?')) return;
+
+            try {
+                const res = await fetch(`/api/maintenance/requests/${taskId}/worker-respond`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ response })
+                });
+
+                if (res.ok) {
+                    alert(`You successfully ${response === 'accept' ? 'accepted' : 'declined'} the repair job.`);
+                    if (response === 'accept') {
+                        fetchTaskDetails();
+                    } else {
+                        window.location.href = 'tasks.html';
+                    }
+                } else {
+                    const result = await res.json();
+                    alert(result.message || 'Responding failed.');
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Connection failure.');
+            }
+        }
+
+        async function handleStatusUpdate(status) {
+            try {
+                const res = await fetch(`/api/maintenance/requests/${taskId}/worker-status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                if (res.ok) {
+                    alert(`Work status successfully updated to ${status}.`);
+                    fetchTaskDetails();
+                } else {
+                    const result = await res.json();
+                    alert(result.message || 'Updating status failed.');
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Connection issue updating progress status.');
+            }
+        }
+
+        function addMaterialRow() {
+            const tbody = document.getElementById('materialsTableBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" class="form-input material-name" placeholder="Material item name" required style="padding: 0.35rem 0.6rem; font-size:0.85rem;"></td>
+                <td><input type="number" class="form-input material-qty" value="1" min="1" required style="padding: 0.35rem 0.6rem; font-size:0.85rem; width:60px;"></td>
+                <td><input type="number" class="form-input material-cost" value="0.00" min="0" step="0.01" required style="padding: 0.35rem 0.6rem; font-size:0.85rem; width:90px;"></td>
+                <td><button type="button" class="remove-material-btn" onclick="this.closest('tr').remove()">&times;</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function handleReportSubmit() {
+            const btn = document.querySelector('#completionReportForm button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Submitting report...';
+
+            const beforeFile = document.getElementById('beforePhoto').files[0];
+            const afterFile = document.getElementById('afterPhoto').files[0];
+
+            let before_base64 = null, before_filename = null, before_mimetype = null;
+            let after_base64 = null, after_filename = null, after_mimetype = null;
+
+            if (beforeFile) {
+                before_base64 = await fileToBase64(beforeFile);
+                before_filename = beforeFile.name;
+                before_mimetype = beforeFile.type;
+            }
+
+            if (afterFile) {
+                after_base64 = await fileToBase64(afterFile);
+                after_filename = afterFile.name;
+                after_mimetype = afterFile.type;
+            }
+
+            // Extract materials list
+            const materials = [];
+            const rows = document.querySelectorAll('#materialsTableBody tr');
+            rows.forEach(row => {
+                const name = row.querySelector('.material-name').value.trim();
+                const qty = parseInt(row.querySelector('.material-qty').value);
+                const cost = parseFloat(row.querySelector('.material-cost').value);
+                if (name && qty > 0) {
+                    materials.push({ material_name: name, quantity: qty, cost });
+                }
+            });
+
+            const payload = {
+                problem_found: document.getElementById('problemFound').value,
+                repair_performed: document.getElementById('repairPerformed').value,
+                recommendations: document.getElementById('recommendations').value,
+                labor_cost: parseFloat(document.getElementById('laborCost').value || 0),
+                materials,
+                before_base64, before_filename, before_mimetype,
+                after_base64, after_filename, after_mimetype
+            };
+
+            try {
+                const response = await fetch(`/api/maintenance/requests/${taskId}/worker-report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert('Job completion report submitted to landlord successfully.');
+                    fetchTaskDetails();
+                } else {
+                    const result = await response.json();
+                    alert(result.message || 'Failed to submit completion report.');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Connection failure sending completion report.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit Completion Report';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Requests - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .maintenance-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 1.85fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+            .maintenance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .form-card, .history-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            height: fit-content;
+        }
+        .history-card {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1.1rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+
+        /* Modal Overlay & Timeline details */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+        .modal-container {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 650px;
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-primary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 1.25rem 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            background-color: var(--bg-primary);
+            gap: 1rem;
+        }
+        .modal-close-x {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            padding: 0.2rem;
+        }
+
+        .action-btn {
+            padding: 0.45rem 1rem;
+            font-size: 0.8125rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-view {
+            background-color: var(--tenant);
+            color: white;
+        }
+        .btn-view:hover {
+            background-color: var(--tenant-hover);
+        }
+        .btn-close {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+        .btn-confirm {
+            background-color: var(--success);
+            color: white;
+        }
+        .btn-confirm:hover {
+            background-color: #059669;
+        }
+        .btn-rework {
+            background-color: var(--error);
+            color: white;
+        }
+        .btn-rework:hover {
+            background-color: #dc2626;
+        }
+
+        /* Timeline system */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-top: 1rem;
+            border-left: 2px solid var(--border-color);
+            padding-left: 1.25rem;
+            margin-left: 0.5rem;
+        }
+        .timeline-item {
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -27px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            border: 2px solid var(--bg-secondary);
+        }
+        .timeline-item.active::before {
+            background-color: var(--tenant);
+        }
+        .timeline-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .timeline-notes {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            margin-top: 0.15rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">Property Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
+                <a href="compare.html" class="navbar-menu-link">Compare Properties</a>
+                <a href="reservations.html" class="navbar-menu-link">My Reservations</a>
+                <a href="applications.html" class="navbar-menu-link">My Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Screening</a>
+                <a href="leases.html" class="navbar-menu-link">My Lease</a>
+                <a href="billings.html" class="navbar-menu-link">My Billings</a>
+                <a href="payments.html" class="navbar-menu-link">My Payments</a>
+                <a href="maintenance.html" class="navbar-menu-link active">Maintenance</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Maintenance Coordination Center</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Report property issues and track maintenance technician progress in real time.</p>
+
+        <div class="maintenance-grid">
+            <!-- Submit Form -->
+            <div class="form-card">
+                <h3 style="margin-bottom: 1.5rem; color: var(--primary);">File Maintenance Request</h3>
+                <div id="errorMessage" class="status-badge status-rejected hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
+                <div id="successMessage" class="status-badge status-active hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
+
+                <form id="requestForm">
+                    <!-- Dropdown shown only if multiple leases exist -->
+                    <div class="form-group hidden" id="leaseSelectorContainer">
+                        <label class="form-label" for="leaseSelector">Select Lease Property / Unit</label>
+                        <select id="leaseSelector" name="lease_id" class="form-input">
+                            <option value="">-- Choose Unit --</option>
+                        </select>
+                    </div>
+
+                    <!-- Hidden lease_id for single active lease -->
+                    <input type="hidden" id="hiddenLeaseId" name="lease_id">
+
+                    <!-- Prefilled read-only fields -->
+                    <div class="form-group">
+                        <label class="form-label" for="propertyName">Property</label>
+                        <input type="text" id="propertyName" class="form-input" readonly placeholder="Auto-filled property name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="landlordName">Landlord</label>
+                        <input type="text" id="landlordName" class="form-input" readonly placeholder="Auto-filled landlord name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="unitNumber">Unit / Room Number</label>
+                        <input type="text" id="unitNumber" class="form-input" readonly placeholder="Auto-filled unit / room">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="issueTitle">Problem Summary</label>
+                        <input type="text" id="issueTitle" name="issue_title" class="form-input" placeholder="e.g. Water leak from kitchen sink" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="issueCategory">Category</label>
+                        <select id="issueCategory" name="issue_category" class="form-input" required>
+                            <option value="">-- Select Category --</option>
+                            <option value="plumbing">Plumbing</option>
+                            <option value="electrical">Electrical</option>
+                            <option value="aircon">Air Conditioning</option>
+                            <option value="door">Door/Window</option>
+                            <option value="roof">Roofing</option>
+                            <option value="internet">Internet</option>
+                            <option value="appliance">Appliance</option>
+                            <option value="others">Others</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="priorityLevel">Priority Level</label>
+                        <select id="priorityLevel" name="priority_level" class="form-input" required>
+                            <option value="">-- Select Urgency --</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="emergency">Emergency</option>
+                        </select>
+                    </div>
+
+                    <!-- Calendar preferred date and time picker fields -->
+                    <div class="form-group">
+                        <label class="form-label" for="preferredDate">Preferred Date</label>
+                        <input type="date" id="preferredDate" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="preferredTime">Preferred Time / Hour</label>
+                        <input type="time" id="preferredTime" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="issueDescription">Detailed Description</label>
+                        <textarea id="issueDescription" name="issue_description" class="form-input" placeholder="Give detailed remarks, instructions, or specific indicators of the problem..." style="height: 100px;" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="issueImage">Upload Photos / Videos (Optional)</label>
+                        <input type="file" id="issueImage" accept="image/*,video/*" class="form-input" style="padding:0.4rem;">
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-primary" style="background-color: var(--tenant); border-color: var(--tenant); width: 100%;">
+                        Submit Request
+                    </button>
+                </form>
+            </div>
+
+            <!-- History log -->
+            <div class="history-card">
+                <h3 style="margin-bottom: 1.5rem;">My Maintenance Ledger</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Task Issue</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestTableBody">
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading filed reports...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Request specifications modal -->
+    <div id="requestDetailsModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 style="margin:0;color:var(--text-primary);" id="modalRequestTitle">Maintenance Report</h3>
+                <button id="closeDetailsModalBtn" class="modal-close-x" title="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="modalDetailsContent">
+                <!-- Loaded dynamically -->
+            </div>
+            <div class="modal-footer" id="modalDetailsFooter">
+                <!-- Accept/Rework actions dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let selectedPropertyId = null;
+        let myRequests = [];
+        let activeLeaseList = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchActiveLeases();
+            fetchMyRequests();
+
+            document.getElementById('leaseSelector').addEventListener('change', (e) => {
+                const leaseId = e.target.value;
+                if (!leaseId) {
+                    selectedPropertyId = null;
+                    document.getElementById('propertyName').value = '';
+                    document.getElementById('landlordName').value = '';
+                    document.getElementById('unitNumber').value = '';
+                    document.getElementById('hiddenLeaseId').value = '';
+                    return;
+                }
+                const selectedLease = activeLeaseList.find(l => l.id === leaseId);
+                if (selectedLease) {
+                    selectedPropertyId = selectedLease.properties?.id;
+                    document.getElementById('propertyName').value = selectedLease.properties?.property_name || 'N/A';
+                    document.getElementById('landlordName').value = selectedLease.landlord?.full_name || 'N/A';
+                    document.getElementById('unitNumber').value = selectedLease.properties?.unit_number || 'N/A';
+                    document.getElementById('hiddenLeaseId').value = selectedLease.id;
+                }
+            });
+
+            document.getElementById('closeDetailsModalBtn').addEventListener('click', closeDetailsModal);
+            
+            // Event delegation
+            document.getElementById('requestTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-request-id]');
+                if (btn) openDetailsModal(btn.dataset.requestId);
+            });
+
+            document.getElementById('modalDetailsFooter').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                const reqId = btn.dataset.requestId;
+
+                if (action === 'close') closeDetailsModal();
+                if (action === 'confirm') handleConfirmDecision(reqId, 'confirm');
+                if (action === 'rework') handleConfirmDecision(reqId, 'rework');
+            });
+
+            document.getElementById('requestForm').addEventListener('submit', handleFormSubmit);
+        });
+
+        async function fetchActiveLeases() {
+            const selectEl = document.getElementById('leaseSelector');
+            const containerEl = document.getElementById('leaseSelectorContainer');
+            try {
+                const res = await fetch('/api/leases/my', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) return;
+
+                const { data: leases } = await res.json();
+                const activeLeases = (leases || []).filter(l => l.lease_status === 'active');
+                activeLeaseList = activeLeases;
+
+                if (activeLeases.length === 0) {
+                    document.getElementById('errorMessage').textContent = 'No active leases found. You cannot file maintenance requests.';
+                    document.getElementById('errorMessage').classList.remove('hidden');
+                    document.getElementById('submitBtn').disabled = true;
+                    return;
+                }
+
+                if (activeLeases.length === 1) {
+                    // Single lease: Auto-fill and hide lease selection option
+                    containerEl.classList.add('hidden');
+                    const singleLease = activeLeases[0];
+                    selectedPropertyId = singleLease.properties?.id;
+                    
+                    document.getElementById('hiddenLeaseId').value = singleLease.id;
+                    document.getElementById('propertyName').value = singleLease.properties?.property_name || 'N/A';
+                    document.getElementById('landlordName').value = singleLease.landlord?.full_name || 'N/A';
+                    document.getElementById('unitNumber').value = singleLease.properties?.unit_number || 'N/A';
+                } else {
+                    // Multiple leases: Show selector dropdown and populate options
+                    containerEl.classList.remove('hidden');
+                    selectEl.innerHTML = '<option value="">-- Choose Unit --</option>';
+                    activeLeases.forEach(lease => {
+                        const opt = document.createElement('option');
+                        opt.value = lease.id;
+                        opt.textContent = `${lease.properties?.property_name || 'Unit'} - Room ${lease.properties?.unit_number || 'N/A'}`;
+                        selectEl.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function fetchMyRequests() {
+            const tbody = document.getElementById('requestTableBody');
+            try {
+                const res = await fetch('/api/maintenance/requests/tenant', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--error);">Failed to load history.</td></tr>`;
+                    return;
+                }
+
+                const result = await res.json();
+                myRequests = result.data || [];
+
+                if (myRequests.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">No maintenance requests registered.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                myRequests.forEach(req => {
+                    let prioClass = 'status-pending';
+                    if (req.priority_level === 'high' || req.priority_level === 'emergency') prioClass = 'status-rejected';
+                    else if (req.priority_level === 'low') prioClass = 'status-active';
+
+                    let statusClass = 'status-pending';
+                    if (['completed', 'verified', 'closed'].includes(req.status)) statusClass = 'status-active';
+                    else if (req.status === 'rejected') statusClass = 'status-rejected';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary);">${req.issue_title}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${req.properties?.property_name || 'Property'} (Unit: ${req.unit_number || 'N/A'})</div>
+                        </td>
+                        <td style="text-transform: capitalize;">${req.issue_category}</td>
+                        <td><span class="status-badge ${prioClass}" style="text-transform:capitalize;">${req.priority_level}</span></td>
+                        <td><span class="status-badge ${statusClass}" style="text-transform:capitalize;">${req.status.replace('_', ' ')}</span></td>
+                        <td>
+                            <button class="action-btn btn-view" data-request-id="${req.id}">Details</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--error);">Network communication error.</td></tr>`;
+            }
+        }
+
+        async function openDetailsModal(requestId) {
+            const modal = document.getElementById('requestDetailsModal');
+            const content = document.getElementById('modalDetailsContent');
+            const footer = document.getElementById('modalDetailsFooter');
+
+            content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading task specifications...</div>';
+            footer.innerHTML = '';
+            modal.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`/api/maintenance/requests/${requestId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const { data } = await res.json();
+                const req = data.request;
+                const assignment = data.assignment || {};
+                const report = data.report || {};
+                const updates = data.updates || [];
+
+                document.getElementById('modalRequestTitle').textContent = req.issue_title;
+
+                let imgHtml = '';
+                if (req.image_url) {
+                    imgHtml = `
+                        <div style="margin-top:1rem;">
+                            <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Tenant Photo Attachment</span>
+                            <div><a href="${req.image_url}" target="_blank"><img src="${req.image_url}" style="max-width:100%; max-height:200px; border:1px solid var(--border-color); border-radius:4px; margin-top:0.25rem;"></a></div>
+                        </div>
+                    `;
+                }
+
+                let technicianName = 'Unassigned';
+                if (req.assigned_maintenance?.full_name) {
+                    technicianName = req.assigned_maintenance.full_name;
+                }
+
+                let flowHtml = `
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">UNIT NUMBER</span><div style="font-weight:600;">${req.unit_number || 'N/A'}</div></div>
+                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">CATEGORY</span><div style="text-transform:capitalize; font-weight:600;">${req.issue_category}</div></div>
+                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">URGENCY PRIORITY</span><div style="text-transform:capitalize; font-weight:600;">${req.priority_level}</div></div>
+                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">PREFERRED SCHEDULE</span><div style="font-weight:600;">${req.preferred_schedule || '—'}</div></div>
+                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">ASSIGNED TECHNICIAN</span><div style="font-weight:600; color:var(--primary);">${technicianName}</div></div>
+                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">STATUS</span><div style="text-transform:capitalize; font-weight:800; color:var(--tenant);">${req.status.replace('_', ' ')}</div></div>
+                    </div>
+
+                    <div style="margin-bottom:1.5rem;">
+                        <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Description</span>
+                        <div style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); border:1px solid var(--border-color); padding:0.75rem; border-radius:4px; margin-top:0.25rem; white-space:pre-wrap;">${req.issue_description}</div>
+                    </div>
+                `;
+
+                if (req.rejection_reason) {
+                    flowHtml += `
+                        <div style="margin-bottom:1.5rem; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:4px; padding:0.75rem;">
+                            <span style="font-size:0.72rem; color:#ef4444; font-weight:700; text-transform:uppercase;">Landlord Rejection Reason</span>
+                            <div style="font-size:0.875rem; color:#ef4444; font-weight:600; margin-top:0.25rem;">${req.rejection_reason}</div>
+                        </div>
+                    `;
+                }
+
+                if (report.problem_found) {
+                    flowHtml += `
+                        <div style="margin-bottom:1.5rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+                            <h4 style="margin:0 0 0.5rem 0;">Technician Completion Report</h4>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; font-size:0.85rem; margin-bottom:0.75rem; background:var(--bg-primary); padding:0.75rem; border-radius:4px; border:1px solid var(--border-color);">
+                                <div><strong>Problem Found:</strong> ${report.problem_found}</div>
+                                <div><strong>Repair Action:</strong> ${report.repair_performed}</div>
+                                <div style="grid-column: span 2;"><strong>Materials Used:</strong> ${report.materials_used || 'None'}</div>
+                                <div style="grid-column: span 2;"><strong>Recommendations:</strong> ${report.recommendations || 'None'}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                flowHtml += imgHtml;
+
+                // Timeline updates
+                let timelineHtml = '<h4 style="margin:1.5rem 0 0.5rem 0; border-top:1px solid var(--border-color); padding-top:1rem;">Coordination Log Timeline</h4><div class="timeline">';
+                if (updates.length > 0) {
+                    updates.forEach(u => {
+                        const dt = new Date(u.created_at).toLocaleString();
+                        timelineHtml += `
+                            <div class="timeline-item active">
+                                <span class="timeline-meta">${dt} - ${u.status_update.replace('_', ' ').toUpperCase()}</span>
+                                <div class="timeline-notes">${u.notes}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    timelineHtml += '<p style="font-size:0.85rem; color:var(--text-muted);">No logs documented yet.</p>';
+                }
+                timelineHtml += '</div>';
+
+                content.innerHTML = flowHtml + timelineHtml;
+
+                // Footer actions
+                const canEvaluate = ['completed', 'verified'].includes(req.status);
+                if (canEvaluate) {
+                    footer.innerHTML = `
+                        <button class="action-btn btn-rework" data-action="rework" data-request-id="${req.id}">Request Rework</button>
+                        <button class="action-btn btn-confirm" data-action="confirm" data-request-id="${req.id}">Confirm Completion</button>
+                    `;
+                } else {
+                    footer.innerHTML = `
+                        <div></div>
+                        <button class="action-btn btn-close" data-action="close">Close</button>
+                    `;
+                }
+
+            } catch (err) {
+                console.error(err);
+                content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--error);">Failed to load specifications.</div>';
+            }
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('requestDetailsModal').classList.add('hidden');
+        }
+
+        async function handleConfirmDecision(reqId, decision) {
+            let remarks = '';
+            if (decision === 'rework') {
+                remarks = prompt('Please describe what remains broken or requires rework:');
+                if (remarks === null) return;
+                if (!remarks.trim()) {
+                    alert('Rework notes are required.');
+                    return;
+                }
+            } else {
+                if (!confirm('Are you sure you want to confirm repair completion? This will close the ticket.')) return;
+            }
+
+            try {
+                const response = await fetch(`/api/maintenance/requests/${reqId}/tenant-confirm`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ decision, remarks })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(`Maintenance request status updated: ${decision === 'confirm' ? 'Closed' : 'Rework requested'}.`);
+                    closeDetailsModal();
+                    fetchMyRequests();
+                } else {
+                    alert(result.message || 'Status update failed.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Communication error submitting evaluation decision.');
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting request...';
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            const leaseId = document.getElementById('hiddenLeaseId').value;
+            const fileInput = document.getElementById('issueImage');
+            const file = fileInput.files[0];
+
+            if (!leaseId) {
+                errorDiv.textContent = 'No active lease contract selected.';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Request';
+                return;
+            }
+
+            // Join preferredDate and preferredTime into preferred_schedule
+            const preferredDateVal = document.getElementById('preferredDate').value;
+            const preferredTimeVal = document.getElementById('preferredTime').value;
+            const preferredScheduleVal = `${preferredDateVal} ${preferredTimeVal}`;
+
+            const bodyData = {
+                lease_id: leaseId,
+                property_id: selectedPropertyId,
+                unit_number: document.getElementById('unitNumber').value,
+                issue_title: document.getElementById('issueTitle').value,
+                issue_category: document.getElementById('issueCategory').value,
+                priority_level: document.getElementById('priorityLevel').value,
+                preferred_schedule: preferredScheduleVal,
+                issue_description: document.getElementById('issueDescription').value
+            };
+
+            const submitPayload = async (base64, name, mime, size) => {
+                if (base64) {
+                    bodyData.base64_content = base64;
+                    bodyData.file_name = name;
+                    bodyData.mime_type = mime;
+                    bodyData.file_size = size;
+                }
+
+                try {
+                    const res = await fetch('/api/maintenance/requests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(bodyData)
+                    });
+
+                    const result = await res.json();
+                    if (res.ok) {
+                        successDiv.textContent = 'Maintenance request filed and logged for landlord approval.';
+                        successDiv.classList.remove('hidden');
+                        document.getElementById('requestForm').reset();
+                        fetchActiveLeases(); // reset pre-filled forms
+                        fetchMyRequests();
+                    } else {
+                        errorDiv.textContent = result.message || 'Filing request failed.';
+                        errorDiv.classList.remove('hidden');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    errorDiv.textContent = 'Network error communicating with server.';
+                    errorDiv.classList.remove('hidden');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Request';
+                }
+            };
+
+            if (file) {
+                try {
+                    const b64 = await fileToBase64(file);
+                    await submitPayload(b64, file.name, file.type, file.size);
+                } catch (err) {
+                    errorDiv.textContent = 'Error loading proof photo.';
+                    errorDiv.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Request';
+                }
+            } else {
+                await submitPayload(null);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draft Lease Agreement - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --dark-glass-bg: rgba(30, 41, 59, 0.7);
+            --accent-glow: 0 0 20px rgba(100, 116, 139, 0.15);
+        }
+
+        .lease-page-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin: 1.5rem auto;
+            align-items: start;
+        }
+
+        @media (min-width: 1024px) {
+            .lease-page-container {
+                grid-template-columns: 350px 1fr;
+            }
+        }
+
+        .info-panel {
+            position: sticky;
+            top: 2rem;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(241, 245, 249, 0.9) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .form-panel {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .info-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .info-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .info-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        .section-divider {
+            margin: 2rem 0 1.5rem 0;
+            border: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--border-color), transparent);
+        }
+
+        .policy-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .radio-card-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.25rem;
+        }
+
+        .radio-card {
+            flex: 1;
+            position: relative;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: var(--bg-primary);
+        }
+
+        .radio-card input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .radio-card:hover {
+            border-color: var(--landlord);
+        }
+
+        .radio-card.selected {
+            background-color: rgba(220, 252, 231, 0.4);
+            border-color: var(--success);
+            color: var(--success-text);
+            font-weight: 600;
+        }
+
+        .radio-card.selected-not {
+            background-color: rgba(254, 226, 226, 0.4);
+            border-color: var(--error);
+            color: var(--error-text);
+            font-weight: 600;
+        }
+
+        .conditional-box {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            animation: slideDown 0.2s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--landlord);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Tenant Screening</a>
+                <a href="leases.html" class="navbar-menu-link active">Leases</a>
+                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link">Billings</a>
+                <a href="payments.html" class="navbar-menu-link">Payments</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container" style="max-width: 1200px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+            <div>
+                <h2 id="pageHeading">Draft Lease Agreement</h2>
+                <p style="color: var(--text-secondary);">Structure a legal tenancy contract for an approved rental applicant.</p>
+            </div>
+            <a href="leases.html" class="navbar-btn" style="background-color: var(--text-secondary); color: white; width:auto; padding: 0.5rem 1.25rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; font-weight:600;">
+                ← Back to Lease Directory
+            </a>
+        </div>
+
+        <div id="errorMessage" class="status-badge status-rejected hidden" style="width:100%; margin-bottom: 1.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-md);"></div>
+        <div id="successMessage" class="status-badge status-active hidden" style="width:100%; margin-bottom: 1.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-md);"></div>
+
+        <div class="lease-page-container">
+            <!-- Left Side: Auto-filled / System Information -->
+            <div class="info-panel">
+                <h4 style="margin-top: 0; margin-bottom: 1rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Contract Summary</h4>
+                
+                <!-- Lease Info -->
+                <div class="info-section">
+                    <div class="info-title">Lease Metadata</div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Lease Number</span>
+                            <span id="infoLeaseNumber" class="info-value" style="font-family: monospace;">[Auto Generated]</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Date Created</span>
+                            <span id="infoDateCreated" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status</span>
+                            <span id="infoStatus" class="info-value" style="color: var(--warning);">Pending Acceptance</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Landlord Info -->
+                <div class="info-section">
+                    <div class="info-title">Landlord Details</div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Full Name</span>
+                            <span id="infoLandlordName" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Contact No.</span>
+                            <span id="infoLandlordContact" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email Address</span>
+                            <span id="infoLandlordEmail" class="info-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tenant Info -->
+                <div class="info-section">
+                    <div class="info-title">Tenant Details</div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Full Name</span>
+                            <span id="infoTenantName" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Contact No.</span>
+                            <span id="infoTenantContact" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email Address</span>
+                            <span id="infoTenantEmail" class="info-value">-</span>
+                        </div>
+                        <div class="info-item" style="flex-direction:column;align-items:flex-start;gap:0.15rem;margin-top:0.25rem;padding-top:0.5rem;border-top:1px dashed var(--border-color);">
+                            <span class="info-label" style="display:inline-flex;align-items:center;gap:0.3rem;"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Desired Move-in Date</span>
+                            <span id="infoTenantDesiredMoveIn" class="info-value" style="color:var(--landlord);font-size:0.9rem;">-</span>
+                            <span style="font-size:0.68rem;color:var(--text-muted);margin-top:0.1rem;">Lease start date cannot be earlier than this.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Info -->
+                <div class="info-section">
+                    <div class="info-title">Property Details</div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Property Name</span>
+                            <span id="infoPropertyName" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Property Type</span>
+                            <span id="infoPropertyType" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Unit Number</span>
+                            <span id="infoUnitNumber" class="info-value" style="color: var(--landlord); font-weight:700;">-</span>
+                        </div>
+                        <div class="info-item" style="flex-direction: column; align-items: flex-start; text-align: left; gap: 0.15rem;">
+                            <span class="info-label">Complete Address</span>
+                            <span id="infoPropertyAddress" style="font-weight: 500; font-size: 0.8rem; color: var(--text-secondary);"></span>
+                        </div>
+                        <div class="info-item" style="flex-direction: column; align-items: flex-start; text-align: left; gap: 0.25rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border-color);">
+                            <span class="info-label" style="display:inline-flex;align-items:center;gap:0.3rem;"><svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--landlord);"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg> Included Amenities</span>
+                            <div id="infoAmenitiesChips" style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.15rem;">
+                                <span style="font-size:0.75rem;color:var(--text-muted);">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Landlord Input Form -->
+            <div class="form-panel">
+                <form id="leaseForm">
+                    <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--landlord); border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;">Agreement Specifications</h3>
+
+                    <!-- Tenant Rejection Concern Banner -->
+                    <div id="tenantConcernBanner" class="hidden" style="background:rgba(239, 68, 68, 0.08);border:1px solid rgba(239, 68, 68, 0.25);border-radius:var(--radius-md);padding:1rem;margin-bottom:1.5rem;">
+                        <div style="font-weight:700;color:#ef4444;font-size:0.9rem;display:flex;align-items:center;gap:0.4rem;margin-bottom:0.35rem;">
+                            <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            Tenant's Rejection Appeal & Concerns
+                        </div>
+                        <div id="tenantConcernText" style="font-size:0.85rem;color:var(--text-primary);white-space:pre-wrap;line-height:1.4;"></div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.35rem;">Review the tenant's written concern above and adjust the terms below before re-submitting the draft.</div>
+                    </div>
+
+                    <div class="form-group" id="applicationSelectGroup">
+                        <label class="form-label" for="applicationId">Select Approved Tenant Application</label>
+                        <select id="applicationId" name="application_id" class="form-select" required>
+                            <option value="">-- Select Approved Application --</option>
+                        </select>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            Only applications marked as "Approved" will appear in this selection queue.
+                        </div>
+                    </div>
+
+                    <!-- Lease Duration -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="form-group">
+                        <div>
+                            <label class="form-label" for="startDate">Lease Start Date</label>
+                            <input type="date" id="startDate" name="lease_start_date" class="form-input" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="endDate">Lease End Date</label>
+                            <input type="date" id="endDate" name="lease_end_date" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <!-- Financial Information -->
+                    <h4 style="color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.75rem;">Financial Terms</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;" class="form-group">
+                        <div>
+                            <label class="form-label" for="monthlyRent">Monthly Rent (₱)</label>
+                            <input type="number" id="monthlyRent" name="monthly_rent" class="form-input" placeholder="0.00" min="1" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="securityDeposit">Security Deposit (₱)</label>
+                            <input type="number" id="securityDeposit" name="security_deposit" class="form-input" placeholder="0.00" min="0" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="advancePayment">Advance Payment (₱)</label>
+                            <input type="number" id="advancePayment" name="advance_payment" class="form-input" placeholder="0.00" min="0" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="dueDay">Due Day (1–28)</label>
+                            <input type="number" id="dueDay" name="payment_due_day" class="form-input" placeholder="e.g. 5" min="1" max="28" required>
+                        </div>
+                    </div>
+
+                    <!-- ── REQUIRED SECTION: UTILITIES CONFIGURATION ── -->
+                    <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:1.25rem;margin-top:1.5rem;margin-bottom:1.5rem;">
+                        <h4 style="color:var(--landlord);margin-top:0;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem;">
+                            <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                            Utilities Configuration <span style="color:#ef4444;">*</span>
+                        </h4>
+                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:1.25rem;line-height:1.4;">
+                            Specify how each utility is handled. This arrangement legally governs monthly billing generation and utility monitoring for the entire lease term.
+                        </p>
+
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0.85rem;">
+                            <!-- Electricity -->
+                            <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;">
+                                <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;color:var(--text-primary);">
+                                    <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" style="color:#f59e0b;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                                    Electricity Setup
+                                </div>
+                                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;margin-bottom:0.4rem;cursor:pointer;color:var(--text-secondary);">
+                                    <input type="radio" name="util_electricity" value="included">
+                                    <span>Included in Monthly Rent</span>
+                                </label>
+                                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;color:var(--text-secondary);">
+                                    <input type="radio" name="util_electricity" value="separate" checked>
+                                    <span>Billed Separately (Metered)</span>
+                                </label>
+                            </div>
+
+                            <!-- Water -->
+                            <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;">
+                                <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;color:var(--text-primary);">
+                                    <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" style="color:#3b82f6;"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                                    Water Setup
+                                </div>
+                                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;margin-bottom:0.4rem;cursor:pointer;color:var(--text-secondary);">
+                                    <input type="radio" name="util_water" value="included">
+                                    <span>Included in Monthly Rent</span>
+                                </label>
+                                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;color:var(--text-secondary);">
+                                    <input type="radio" name="util_water" value="separate" checked>
+                                    <span>Billed Separately (Metered)</span>
+                                </label>
+                            </div>
+
+                            <!-- Internet -->
+                            <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;">
+                                <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;color:var(--text-primary);">
+                                    <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" style="color:#10b981;"><path d="M5 12.55a11 11 0 0 1 14 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+                                    Internet Setup
+                                </div>
+                                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;margin-bottom:0.4rem;cursor:pointer;color:var(--text-secondary);">
+                                    <input type="radio" name="util_internet" value="included">
+                                    <span>Included in Monthly Rent</span>
+                                </label>
+                                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;color:var(--text-secondary);">
+                                    <input type="radio" name="util_internet" value="separate" checked>
+                                    <span>Billed Separately</span>
+                                </label>
+                            </div>
+
+                            <!-- Association Fee -->
+                            <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;">
+                                <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;color:var(--text-primary);">
+                                    <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" style="color:#8b5cf6;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                                    Association Fee Setup
+                                </div>
+                                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;margin-bottom:0.4rem;cursor:pointer;color:var(--text-secondary);">
+                                    <input type="radio" name="util_assoc_fee" value="included">
+                                    <span>Included in Monthly Rent</span>
+                                </label>
+                                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;color:var(--text-secondary);">
+                                    <input type="radio" name="util_assoc_fee" value="separate" checked>
+                                    <span>Billed Separately</span>
+                                </label>
+                            </div>
+
+                            <!-- Dynamic custom utility choice cards pop up right here in the same grid! -->
+                            <div id="customUtilitiesContainer" style="display:contents;"></div>
+                        </div>
+
+                        <!-- Simple custom utility input bar -->
+                        <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px dashed var(--border-color);display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                            <div style="flex:1;min-width:240px;">
+                                <input type="text" id="customUtilNameInput" class="form-input" placeholder="Add custom utility (e.g. Cooking Gas / LPG, Trash Fee)..." style="font-size:0.85rem;padding:0.5rem 0.85rem;">
+                            </div>
+                            <button type="button" id="addCustomUtilBtn" onclick="handleAddCustomUtility()" style="background:var(--landlord);color:white;border:none;padding:0.5rem 1.1rem;border-radius:var(--radius-md);font-size:0.85rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;transition:all 0.2s;white-space:nowrap;">
+                                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block;vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Add Utility Choice
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Included Property & Building Amenities Section -->
+                    <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:1.25rem;margin-top:1.5rem;margin-bottom:1.5rem;">
+                        <h4 style="color:var(--landlord);margin-top:0;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem;">
+                            <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                            Included Property Amenities & Facilities
+                        </h4>
+                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.85rem;line-height:1.4;">
+                            These shared building facilities and room amenities were configured during Property & Unit setup and are included for tenant use under this lease contract.
+                        </p>
+                        <div id="formAmenitiesContainer" style="display:flex;flex-wrap:wrap;gap:0.45rem;">
+                            <span style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">Select an application to view included amenities.</span>
+                        </div>
+                    </div>
+
+                    <!-- Occupancy Rules & Policies -->
+                    <h4 style="color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.75rem;">Occupancy & Policies</h4>
+                    
+                    <div style="margin-bottom:1rem;">
+                        <label class="form-label" for="maxOccupants" style="font-weight:700;">Max Occupants Allowed</label>
+                        <input type="number" id="maxOccupants" name="max_occupants" class="form-input" placeholder="e.g. 4" min="1" required style="font-size:0.85rem;max-width:250px;">
+                    </div>
+
+                    <div id="customPoliciesContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.85rem; margin-bottom: 0.85rem;"></div>
+
+                    <!-- Quick Add Predefined Policies Chips & Custom Input Bar -->
+                    <div style="margin-top:1rem;padding:0.85rem;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                        <div style="font-size:0.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:0.5rem;">Select Predefined Policy Choices (Click chip to add):</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.85rem;">
+                            <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Smoking Policy', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.7rem;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Smoking Policy</button>
+                            <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Pet Policy', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.7rem;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Pet Policy</button>
+                            <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Overnight Guests', 'Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.7rem;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Overnight Guests</button>
+                            <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Subleasing & Sharing', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.7rem;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Subleasing & Sharing</button>
+                            <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Unit Alterations & Painting', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.7rem;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Unit Alterations & Painting</button>
+                            <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Day Visitors', 'Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.7rem;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Day Visitors</button>
+                            <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Loud Music & Parties', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.7rem;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Loud Music & Parties</button>
+                            <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Commercial Business Use', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.7rem;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Commercial Business Use</button>
+                            <button type="button" class="btn-chip" onclick="addCustomPolicyCard('Outdoor Laundry Drying', 'Not Allowed')" style="background:var(--bg-secondary);border:1px solid var(--border-color);padding:0.35rem 0.7rem;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;color:var(--text-primary);font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--landlord)';this.style.color='var(--landlord)';" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-primary)';">+ Outdoor Laundry Drying</button>
+                        </div>
+
+                        <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                            <div style="flex:1;min-width:240px;">
+                                <input type="text" id="customPolicyNameInput" class="form-input" placeholder="Add custom policy (e.g. Appliance Wattage Limit, Keycard Deposit)..." style="font-size:0.85rem;padding:0.5rem 0.85rem;">
+                            </div>
+                            <button type="button" id="addCustomPolicyBtn" onclick="handleAddCustomPolicy()" style="background:var(--landlord);color:white;border:none;padding:0.5rem 1.1rem;border-radius:var(--radius-md);font-size:0.85rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;transition:all 0.2s;white-space:nowrap;">
+                                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block;vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Add Custom Policy Choice
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Additional House Rules & Guidelines Textarea (directly under radio policies & custom choices) -->
+                    <div class="form-group" style="margin-top:0.5rem;margin-bottom:1.5rem;">
+                        <label class="form-label" for="houseRules" style="font-weight:700;">Additional House Rules & Specific Premises Guidelines</label>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:-0.25rem;margin-bottom:0.5rem;">Enter detailed guidelines, curfews, quiet hours, or specific property instructions for tenants.</div>
+                        <textarea id="houseRules" name="house_rules" class="form-input" placeholder="e.g. Quiet hours from 10 PM to 6 AM. Visitors allowed until 9 PM only. Keep common areas clean." style="height: 100px; font-size: 0.9rem;"></textarea>
+                    </div>
+
+                    <!-- Late Payment Penalties -->
+                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label class="form-label" for="lateFeeAmount">Late Fee Amount</label>
+                            <input type="text" id="lateFeeAmount" name="late_fee_amount" class="form-input" placeholder="e.g. ₱300 or 5%" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="gracePeriod">Grace Period (Days)</label>
+                            <input type="number" id="gracePeriod" name="grace_period" class="form-input" placeholder="e.g. 5" min="0" required>
+                        </div>
+                    </div>
+
+                    <!-- Maintenance Responsibilities -->
+                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label class="form-label" for="landlordResponsibilities">Landlord Responsibilities</label>
+                            <textarea id="landlordResponsibilities" name="landlord_responsibilities" class="form-input" placeholder="Major repairs, roof leaks, structural damage..." style="height: 100px; font-size: 0.9rem;"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label" for="tenantResponsibilities">Tenant Responsibilities</label>
+                            <textarea id="tenantResponsibilities" name="tenant_responsibilities" class="form-input" placeholder="Light bulbs, cleaning, minor damages..." style="height: 100px; font-size: 0.9rem;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Termination Policy -->
+                    <div class="form-group">
+                        <label class="form-label" for="terminationPolicy">Termination Policy</label>
+                        <textarea id="terminationPolicy" name="termination_policy" class="form-input" placeholder="e.g. Tenant must provide a 30-day written notice before vacating." style="height: 80px; font-size: 0.9rem;"></textarea>
+                    </div>
+
+                    <!-- Additional Terms -->
+                    <div class="form-group">
+                        <label class="form-label" for="additionalTerms">Additional Terms (Optional)</label>
+                        <textarea id="additionalTerms" name="additional_terms" class="form-input" placeholder="Specify any other clauses..." style="height: 80px; font-size: 0.9rem;"></textarea>
+                    </div>
+
+                    <div style="background-color: var(--warning-bg); border: 1px solid var(--warning); border-radius: var(--radius-sm); padding: 0.75rem; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem; display:flex; align-items:center; gap:0.4rem;">
+                        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--warning);flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        <span><strong>Electronic Signature Consent:</strong> By submitting this form, you automatically stamp your name as the Landlord and execute this lease draft.</span>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-primary" style="background-color: var(--landlord); border-color: var(--landlord); width: 100%; cursor: pointer;">
+                        Sign & Submit Lease Draft
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let applicationsMap = {};
+        let editLeaseId = null;
+        let tenantDesiredMoveInDate = null; // Populated from the approved application
+        let customUtilCounter = 0;
+        let customPolicyCounter = 0;
+
+        function handleAddCustomUtility() {
+            const input = document.getElementById('customUtilNameInput');
+            if (!input) return;
+            const name = input.value.trim();
+            if (!name) {
+                alert('Please enter a utility name (e.g. Cooking Gas / LPG, Trash Fee).');
+                input.focus();
+                return;
+            }
+            addCustomUtilityCard(name, 'separate');
+            input.value = '';
+            input.focus();
+        }
+
+        function addCustomUtilityCard(name = '', setup = 'separate') {
+            const container = document.getElementById('customUtilitiesContainer');
+            if (!container) return;
+            const id = ++customUtilCounter;
+            
+            const card = document.createElement('div');
+            card.className = 'custom-util-card';
+            card.style.cssText = 'background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;position:relative;';
+            
+            const cleanName = (name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            card.innerHTML = `
+                <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.6rem;display:flex;align-items:center;justify-content:space-between;color:var(--text-primary);">
+                    <div style="display:flex;align-items:center;gap:0.35rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--landlord);flex-shrink:0;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <span>${cleanName} Setup</span>
+                        <input type="hidden" class="custom-util-name" value="${cleanName}">
+                    </div>
+                    <button type="button" class="remove-custom-util-btn" title="Remove Utility" style="background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0.2rem;line-height:1;flex-shrink:0;border-radius:4px;" onmouseover="this.style.color='#ef4444';this.style.background='rgba(239,68,68,0.1)';" onmouseout="this.style.color='var(--text-muted)';this.style.background='none';">
+                        <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;margin-bottom:0.4rem;cursor:pointer;color:var(--text-secondary);">
+                    <input type="radio" name="custom_util_setup_${id}" value="included" ${setup === 'included' ? 'checked' : ''}>
+                    <span>Included in Monthly Rent</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;color:var(--text-secondary);">
+                    <input type="radio" name="custom_util_setup_${id}" value="separate" ${setup === 'separate' ? 'checked' : ''}>
+                    <span>Billed Separately</span>
+                </label>
+            `;
+            
+            card.querySelector('.remove-custom-util-btn').addEventListener('click', () => {
+                card.remove();
+            });
+            
+            container.appendChild(card);
+        }
+
+        function handleAddCustomPolicy() {
+            const input = document.getElementById('customPolicyNameInput');
+            if (!input) return;
+            const name = input.value.trim();
+            if (!name) {
+                alert('Please enter a policy title (e.g. Curfew Hours, Overnight Guests).');
+                input.focus();
+                return;
+            }
+            addCustomPolicyCard(name, 'Not Allowed');
+            input.value = '';
+            input.focus();
+        }
+
+        function syncPolicyChips() {
+            const activeNames = new Set();
+            document.querySelectorAll('#customPoliciesContainer .custom-policy-card').forEach(card => {
+                const nameInput = card.querySelector('.custom-policy-name');
+                if (nameInput && nameInput.value) {
+                    activeNames.add(nameInput.value.trim().toLowerCase());
+                }
+            });
+
+            document.querySelectorAll('.btn-chip').forEach(btn => {
+                const chipText = btn.textContent.replace(/^\+\s*/, '').trim().toLowerCase();
+                const isMatch = Array.from(activeNames).some(activeName => {
+                    return activeName === chipText || activeName.includes(chipText) || chipText.includes(activeName);
+                });
+                if (isMatch) {
+                    btn.style.display = 'none';
+                } else {
+                    btn.style.display = 'inline-flex';
+                }
+            });
+        }
+
+        function addCustomPolicyCard(name = '', value = 'Not Allowed', isLocked = false) {
+            const container = document.getElementById('customPoliciesContainer');
+            if (!container) return;
+
+            const cleanName = (name || '').trim();
+            if (!cleanName) return;
+
+            const existing = Array.from(container.querySelectorAll('.custom-policy-name'))
+                .find(inp => inp.value.trim().toLowerCase() === cleanName.toLowerCase());
+            if (existing) return;
+
+            const id = ++customPolicyCounter;
+            
+            const card = document.createElement('div');
+            card.className = 'form-group custom-policy-card';
+            card.style.cssText = `background:var(--bg-primary);border:1px solid ${isLocked ? 'var(--landlord)' : 'var(--border-color)'};border-radius:var(--radius-md);padding:0.85rem;position:relative;`;
+            
+            const safeName = cleanName.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const isAllowed = value === 'Allowed';
+
+            const actionOrBadge = isLocked 
+                ? `<span style="font-size:0.68rem;background:rgba(37, 99, 235, 0.08);color:var(--landlord);border:1px solid rgba(37, 99, 235, 0.25);padding:0.15rem 0.45rem;border-radius:4px;font-weight:700;display:inline-flex;align-items:center;gap:0.25rem;" title="Configured during Property Registration (Immutable)"><svg class="svg-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Registered Rule</span>`
+                : `<button type="button" class="remove-custom-policy-btn" title="Remove Policy" style="background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0.15rem;line-height:1;border-radius:4px;flex-shrink:0;" onmouseover="this.style.color='#ef4444';this.style.background='rgba(239,68,68,0.1)';" onmouseout="this.style.color='var(--text-muted)';this.style.background='none';">
+                        <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                   </button>`;
+            
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;gap:0.5rem;">
+                    <label class="form-label" style="margin-bottom:0;font-weight:700;font-size:0.85rem;color:var(--text-primary);display:flex;align-items:center;gap:0.3rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--landlord);flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        <span>${safeName}</span>
+                        <input type="hidden" class="custom-policy-name" value="${safeName}">
+                    </label>
+                    ${actionOrBadge}
+                </div>
+                <div class="radio-card-group" style="${isLocked ? 'pointer-events:none;opacity:0.9;' : ''}">
+                    <label class="radio-card ${isAllowed ? 'selected' : ''}" style="padding:0.45rem;${isLocked ? 'cursor:not-allowed;' : ''}">
+                        <input type="radio" name="custom_policy_val_${id}" value="Allowed" ${isAllowed ? 'checked' : ''} ${isLocked ? 'disabled' : ''}> Allowed
+                    </label>
+                    <label class="radio-card ${!isAllowed ? 'selected-not' : ''}" style="padding:0.45rem;${isLocked ? 'cursor:not-allowed;' : ''}">
+                        <input type="radio" name="custom_policy_val_${id}" value="Not Allowed" ${!isAllowed ? 'checked' : ''} ${isLocked ? 'disabled' : ''}> Not Allowed
+                    </label>
+                </div>
+            `;
+            
+            if (!isLocked) {
+                card.querySelector('.remove-custom-policy-btn')?.addEventListener('click', () => {
+                    card.remove();
+                    syncPolicyChips();
+                });
+            }
+            
+            container.appendChild(card);
+
+            if (!isLocked) {
+                const radios = card.querySelectorAll(`input[name="custom_policy_val_${id}"]`);
+                const updateCardSelection = () => {
+                    radios.forEach(radio => {
+                        const radioCard = radio.closest('.radio-card');
+                        if (radioCard) {
+                            if (radio.checked) {
+                                radioCard.classList.add(radio.value === 'Allowed' ? 'selected' : 'selected-not');
+                            } else {
+                                radioCard.classList.remove('selected', 'selected-not');
+                            }
+                        }
+                    });
+                };
+
+                radios.forEach(radio => {
+                    radio.addEventListener('change', updateCardSelection);
+                    const radioCard = radio.closest('.radio-card');
+                    if (radioCard) {
+                        radioCard.addEventListener('click', (e) => {
+                            if (e.target !== radio) {
+                                radio.checked = true;
+                                updateCardSelection();
+                            }
+                        });
+                    }
+                });
+            }
+
+            syncPolicyChips();
+        }
+        window.syncPolicyChips = syncPolicyChips;
+        window.addCustomPolicyCard = addCustomPolicyCard;
+        window.handleAddCustomPolicy = handleAddCustomPolicy;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+
+            // Check if we are in EDIT mode
+            const urlParams = new URLSearchParams(window.location.search);
+            editLeaseId = urlParams.get('edit');
+
+            setupInteractivity();
+            
+            if (editLeaseId) {
+                // Edit Mode: Hide application selector group, show static summary, load lease
+                document.getElementById('pageHeading').textContent = 'Modify Lease Agreement';
+                document.getElementById('applicationSelectGroup').classList.add('hidden');
+                // Remove required so the hidden select doesn't block form submission
+                document.getElementById('applicationId').removeAttribute('required');
+                document.getElementById('submitBtn').textContent = 'Update & Re-send Lease Draft';
+                loadLeaseForEdit(editLeaseId);
+            } else {
+                fetchApprovedApplications();
+            }
+
+            const appSelect = document.getElementById('applicationId');
+            if (appSelect) appSelect.addEventListener('change', handleApplicationChange);
+
+            const customUtilInput = document.getElementById('customUtilNameInput');
+            if (customUtilInput) {
+                customUtilInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomUtility();
+                    }
+                });
+            }
+
+            const customPolicyInput = document.getElementById('customPolicyNameInput');
+            if (customPolicyInput) {
+                customPolicyInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomPolicy();
+                    }
+                });
+            }
+
+            const leaseForm = document.getElementById('leaseForm');
+            if (leaseForm) leaseForm.addEventListener('submit', handleFormSubmit);
+        });
+
+        function setupInteractivity() {
+            // Radio card toggle formatting
+            const setupRadioCardEvents = (name, boxId) => {
+                const radios = document.getElementsByName(name);
+                const updateSelection = () => {
+                    radios.forEach(radio => {
+                        const card = radio.closest('.radio-card');
+                        if (card && radio.checked) {
+                            if (radio.value === 'Allowed' || radio.value === 'Included') {
+                                card.className = 'radio-card selected';
+                                if (boxId && document.getElementById(boxId)) document.getElementById(boxId).classList.remove('hidden');
+                            } else {
+                                card.className = 'radio-card selected-not';
+                                if (boxId && document.getElementById(boxId)) document.getElementById(boxId).classList.add('hidden');
+                            }
+                        } else if (card) {
+                            card.className = 'radio-card';
+                        }
+                    });
+                };
+
+                radios.forEach(radio => {
+                    radio.addEventListener('change', updateSelection);
+                    const card = radio.closest('.radio-card');
+                    if (card) {
+                        card.addEventListener('click', () => {
+                            radio.checked = true;
+                            updateSelection();
+                        });
+                    }
+                });
+                // Initial check
+                updateSelection();
+            };
+
+            setupRadioCardEvents('smoking_policy', null);
+            setupRadioCardEvents('pet_policy', 'petConditionsBox');
+            setupRadioCardEvents('guest_policy', null);
+            setupRadioCardEvents('sublease_policy', null);
+            setupRadioCardEvents('alteration_policy', null);
+
+            // Utilities other conditional box
+            const otherCb = document.getElementById('utilityOtherCb');
+            const otherBox = document.getElementById('utilityOtherBox');
+            if (otherCb && otherBox) {
+                otherCb.addEventListener('change', () => {
+                    if (otherCb.checked) {
+                        otherBox.classList.remove('hidden');
+                    } else {
+                        otherBox.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        async function fetchApprovedApplications() {
+            const selectEl = document.getElementById('applicationId');
+            try {
+                const [appRes, leaseRes] = await Promise.all([
+                    fetch('/api/landlord/applications', { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch('/api/leases', { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+                
+                if (!appRes.ok) {
+                    console.error('Failed to fetch landlord applications:', appRes.status);
+                    return;
+                }
+
+                const appJson = await appRes.json();
+                const leaseJson = leaseRes.ok ? await leaseRes.json() : { data: [] };
+
+                const apps = appJson.data || [];
+                const leases = leaseJson.data || [];
+
+                // Application IDs/Tenant IDs that ALREADY have an active or pending lease contract
+                const leasedAppMap = {};
+                leases.forEach(l => {
+                    if (['active', 'pending_tenant_acceptance', 'accepted'].includes(l.lease_status)) {
+                        if (l.application_id) leasedAppMap[l.application_id] = l;
+                        if (l.tenant_id) leasedAppMap[l.tenant_id] = l;
+                        if (l.tenant_id && l.property_id) leasedAppMap[l.tenant_id + '_' + l.property_id] = l;
+                    }
+                });
+
+                // Filter approved applications (case-insensitive)
+                const approvedApps = apps.filter(a => a.status && a.status.toLowerCase() === 'approved');
+
+                selectEl.innerHTML = '<option value="">-- Select Approved Application --</option>';
+
+                if (approvedApps.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.disabled = true;
+                    option.textContent = '-- No approved tenant applications found --';
+                    selectEl.appendChild(option);
+                    return;
+                }
+
+                approvedApps.forEach(app => {
+                    applicationsMap[app.id] = app;
+                    const option = document.createElement('option');
+                    option.value = app.id;
+                    const existingLease = leasedAppMap[app.id] || (app.tenant_id ? (leasedAppMap[app.tenant_id + '_' + app.property_id] || leasedAppMap[app.tenant_id]) : null);
+                    const unitStr = app.properties?.unit_number ? ` (Unit ${app.properties.unit_number})` : '';
+                    
+                    if (existingLease) {
+                        option.textContent = `[Lease Created] ${app.users?.full_name || 'Tenant'} — ${app.properties?.property_name || 'Property'}${unitStr} (${existingLease.lease_status.toUpperCase()})`;
+                        option.style.color = 'var(--text-muted)';
+                    } else {
+                        option.textContent = `[Ready] ${app.users?.full_name || 'Tenant'} — ${app.properties?.property_name || 'Property'}${unitStr}`;
+                    }
+                    
+                    selectEl.appendChild(option);
+                });
+
+                // Auto-select if passed in URL params (e.g. lease-create.html?application_id=... or ?app_id=...)
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetAppId = urlParams.get('application_id') || urlParams.get('app_id');
+                if (targetAppId && applicationsMap[targetAppId]) {
+                    selectEl.value = targetAppId;
+                    selectEl.dispatchEvent(new Event('change'));
+                }
+
+            } catch (err) {
+                console.error('Error fetching approved applications:', err);
+            }
+        }
+
+        async function handleApplicationChange(e) {
+            const appId = e.target.value;
+            if (!appId) {
+                clearInfoPanel();
+                return;
+            }
+
+            try {
+                // Fetch complete details including landlord info
+                const response = await fetch(`/api/landlord/applications/${appId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+
+                const result = await response.json();
+                const app = result.data;
+                populateInfoPanel(app);
+
+                // Auto-fill right panel form fields
+                if (app.properties) {
+                    let rentVal = app.properties.monthly_rent;
+                    let maxOcc = app.properties.max_occupants || 1;
+
+                    // Resolve room or bed space level monthly rent/occupancy limits
+                    const targetUnit = app.unit || app.property_units;
+                    const targetBed = app.bed || app.unit_beds;
+
+                    if (targetUnit) {
+                        if (targetUnit.monthly_rent !== undefined && targetUnit.monthly_rent !== null && parseFloat(targetUnit.monthly_rent) > 0) {
+                            rentVal = targetUnit.monthly_rent;
+                        }
+                        const unitOcc = targetUnit.capacity || targetUnit.max_occupants;
+                        if (unitOcc) {
+                            maxOcc = unitOcc;
+                        }
+                    }
+                    if (targetBed) {
+                        if (targetBed.monthly_rent !== undefined && targetBed.monthly_rent !== null && parseFloat(targetBed.monthly_rent) > 0) {
+                            rentVal = targetBed.monthly_rent;
+                        }
+                        maxOcc = 1; // A bed space is always exactly 1 occupant limit
+                    }
+
+                    document.getElementById('monthlyRent').value = rentVal || 0;
+                    document.getElementById('securityDeposit').value = parseFloat(rentVal || 0) * 2;
+                    document.getElementById('advancePayment').value = rentVal || 0;
+                    document.getElementById('maxOccupants').value = maxOcc || 1;
+                    document.getElementById('dueDay').value = 5; // Standard default due day
+                    
+                    // Clear existing dynamic custom policy cards container
+                    const customContainer = document.getElementById('customPoliciesContainer');
+                    if (customContainer) customContainer.innerHTML = '';
+                    customPolicyCounter = 0;
+
+                    // Pre-fill rules and responsibilities from property registration section 6
+                    let rawRules = app.properties.house_rules || "";
+                    let freeformRulesText = typeof rawRules === 'string' ? rawRules : '';
+                    let foundJson = false;
+
+                    let parsedObj = null;
+                    let currentPayload = rawRules;
+
+                    // Recursively unroll double or triple stringified JSON payloads
+                    for (let i = 0; i < 4; i++) {
+                        if (currentPayload && typeof currentPayload === 'object') {
+                            parsedObj = currentPayload;
+                            break;
+                        }
+                        if (typeof currentPayload === 'string') {
+                            const trimmed = currentPayload.trim();
+                            if (trimmed.startsWith('{') || trimmed.startsWith('"') || trimmed.startsWith('[')) {
+                                try {
+                                    currentPayload = JSON.parse(trimmed);
+                                    continue;
+                                } catch (e) { break; }
+                            }
+                        }
+                        break;
+                    }
+
+                    if (parsedObj && typeof parsedObj === 'object') {
+                        freeformRulesText = parsedObj.house_rules || '';
+                        if (Array.isArray(parsedObj.custom_policies)) {
+                            foundJson = true;
+                            parsedObj.custom_policies.forEach(pol => {
+                                if (!pol || !pol.name) return;
+                                addCustomPolicyCard(pol.name, pol.value || 'Not Allowed', true); // isLocked = true!
+                            });
+                        }
+                    }
+
+                    // Fallback for legacy plain text rules
+                    if (!foundJson && typeof rawRules === 'string' && rawRules.trim()) {
+                        const lower = rawRules.toLowerCase();
+                        if (lower.includes('smoking') || lower.includes('sigarilyo')) {
+                            const val = (lower.includes('no smoking') || lower.includes('not allowed') || lower.includes('bawal')) ? 'Not Allowed' : 'Allowed';
+                            addCustomPolicyCard('Smoking Policy', val, true);
+                        }
+                        if (lower.includes('pet') || lower.includes('aso') || lower.includes('pusa')) {
+                            const val = (lower.includes('no pet') || lower.includes('not allowed') || lower.includes('bawal')) ? 'Not Allowed' : 'Allowed';
+                            addCustomPolicyCard('Pet Policy', val, true);
+                        }
+                    }
+
+                    syncPolicyChips();
+
+                    document.getElementById('houseRules').value = freeformRulesText;
+                    document.getElementById('landlordResponsibilities').value = "Major repairs\nRoof leaks\nStructural damage";
+                    document.getElementById('tenantResponsibilities').value = "Light bulbs\nCleaning\nMinor damages";
+                    document.getElementById('lateFeeAmount').value = "300";
+                    document.getElementById('gracePeriod').value = 5;
+                    document.getElementById('terminationPolicy').value = "Tenant must provide a 30-day written notice before vacating.";
+                }
+            } catch (err) {
+                console.error('Error fetching application details:', err);
+            }
+        }
+
+        function populateInfoPanel(app) {
+            // Lease metadata
+            document.getElementById('infoLeaseNumber').textContent = '[Draft]';
+            document.getElementById('infoDateCreated').textContent = new Date().toLocaleDateString();
+            document.getElementById('infoStatus').textContent = 'Drafting';
+            document.getElementById('infoStatus').className = 'info-value';
+            document.getElementById('infoStatus').style.color = 'var(--warning)';
+
+            // Tenant
+            const tenant = app.users || {};
+            document.getElementById('infoTenantName').textContent = tenant.full_name || 'N/A';
+            document.getElementById('infoTenantContact').textContent = tenant.contact_number || 'N/A';
+            document.getElementById('infoTenantEmail').textContent = tenant.email || 'N/A';
+
+            // Desired move-in date — set global variable + pre-fill startDate input
+            tenantDesiredMoveInDate = app.desired_move_in_date || null;
+            const startDateInput = document.getElementById('startDate');
+            if (tenantDesiredMoveInDate) {
+                // Normalize to YYYY-MM-DD (strip time if ISO string)
+                const isoDate = tenantDesiredMoveInDate.slice(0, 10);
+                tenantDesiredMoveInDate = isoDate;
+                // Show in summary panel
+                const fmtMoveIn = new Date(isoDate + 'T00:00:00').toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+                document.getElementById('infoTenantDesiredMoveIn').textContent = fmtMoveIn;
+                // Pre-fill and constrain the Lease Start Date picker
+                startDateInput.value = isoDate;
+                startDateInput.min  = isoDate;
+            } else {
+                document.getElementById('infoTenantDesiredMoveIn').textContent = 'Not specified';
+                startDateInput.min = '';
+            }
+
+            // Property
+            const property = app.properties || {};
+            document.getElementById('infoPropertyName').textContent = property.property_name || 'N/A';
+            document.getElementById('infoPropertyType').textContent = (property.property_type || 'N/A').replace('_', ' ').toUpperCase();
+
+            // Resolve target unit/bed number
+            const targetUnit = app.unit || app.property_units;
+            const targetBed = app.bed || app.unit_beds;
+            let unitStr = 'N/A';
+            if (targetUnit) {
+                unitStr = `Room ${targetUnit.unit_number}`;
+                if (targetBed) {
+                    unitStr += ` - ${targetBed.bed_label}`;
+                }
+            }
+            document.getElementById('infoUnitNumber').textContent = unitStr;
+            
+            const addr = `${property.address || ''}, Barangay ${property.barangay || ''}, Siniloan, Laguna`;
+            document.getElementById('infoPropertyAddress').textContent = addr;
+
+            // Landlord - retrieved from property.users!landlord_id
+            const landlord = property.users || {};
+            document.getElementById('infoLandlordName').textContent = landlord.full_name || 'N/A';
+            document.getElementById('infoLandlordContact').textContent = landlord.contact_number || 'N/A';
+            document.getElementById('infoLandlordEmail').textContent = landlord.email || 'N/A';
+
+            // Populate Included Amenities
+            const amenList = property.amenities || [];
+            const infoAmenContainer = document.getElementById('infoAmenitiesChips');
+            const formAmenContainer = document.getElementById('formAmenitiesContainer');
+
+            if (amenList.length > 0) {
+                if (infoAmenContainer) {
+                    infoAmenContainer.innerHTML = amenList.map(a => `<span style="font-size:0.7rem;background:rgba(37,99,235,0.08);color:var(--landlord);border:1px solid rgba(37,99,235,0.25);padding:0.12rem 0.45rem;border-radius:4px;font-weight:600;">✨ ${a}</span>`).join('');
+                }
+                if (formAmenContainer) {
+                    formAmenContainer.innerHTML = amenList.map(a => `
+                        <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:0.45rem 0.75rem;font-size:0.82rem;font-weight:700;color:var(--text-primary);display:inline-flex;align-items:center;gap:0.4rem;">
+                            <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--landlord);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span>${a}</span>
+                        </div>
+                    `).join('');
+                }
+            } else {
+                if (infoAmenContainer) infoAmenContainer.innerHTML = '<span style="font-size:0.75rem;color:var(--text-muted);font-style:italic;">None listed</span>';
+                if (formAmenContainer) formAmenContainer.innerHTML = '<span style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">No amenities configured for this property.</span>';
+            }
+        }
+
+        function clearInfoPanel() {
+            document.getElementById('infoLeaseNumber').textContent = '[Auto Generated]';
+            document.getElementById('infoDateCreated').textContent = '-';
+            document.getElementById('infoStatus').textContent = 'Pending Acceptance';
+            
+            document.getElementById('infoTenantName').textContent = '-';
+            document.getElementById('infoTenantContact').textContent = '-';
+            document.getElementById('infoTenantEmail').textContent = '-';
+            document.getElementById('infoTenantDesiredMoveIn').textContent = '-';
+
+            document.getElementById('infoPropertyName').textContent = '-';
+            document.getElementById('infoPropertyType').textContent = '-';
+            document.getElementById('infoUnitNumber').textContent = '-';
+            document.getElementById('infoPropertyAddress').textContent = '';
+
+            const infoAmen = document.getElementById('infoAmenitiesChips');
+            const formAmen = document.getElementById('formAmenitiesContainer');
+            if (infoAmen) infoAmen.innerHTML = '<span style="font-size:0.75rem;color:var(--text-muted);">-</span>';
+            if (formAmen) formAmen.innerHTML = '<span style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">Select an application to view included amenities.</span>';
+
+            document.getElementById('infoLandlordName').textContent = '-';
+            document.getElementById('infoLandlordContact').textContent = '-';
+            document.getElementById('infoLandlordEmail').textContent = '-';
+
+            // Reset move-in date constraint, custom utilities, and custom policies
+            tenantDesiredMoveInDate = null;
+            const startDateInput = document.getElementById('startDate');
+            startDateInput.value = '';
+            startDateInput.min = '';
+            const customContainer = document.getElementById('customUtilitiesContainer');
+            if (customContainer) customContainer.innerHTML = '';
+            const customPolContainer = document.getElementById('customPoliciesContainer');
+            if (customPolContainer) customPolContainer.innerHTML = '';
+        }
+
+        async function loadLeaseForEdit(leaseId) {
+            try {
+                const response = await fetch(`/api/leases/${leaseId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    document.getElementById('errorMessage').textContent = 'Failed to load lease details for editing.';
+                    document.getElementById('errorMessage').classList.remove('hidden');
+                    return;
+                }
+
+                const result = await response.json();
+                const lease = result.data;
+
+                // 1. Populate Left Summary panel
+                document.getElementById('infoLeaseNumber').textContent = lease.lease_number || `ID: #${lease.id.substring(0,8).toUpperCase()}`;
+                document.getElementById('infoDateCreated').textContent = new Date(lease.created_at).toLocaleDateString();
+                document.getElementById('infoStatus').textContent = lease.lease_status.toUpperCase();
+                
+                const stat = lease.lease_status;
+                const infoStat = document.getElementById('infoStatus');
+                if (stat === 'rejected') {
+                    infoStat.style.color = 'var(--error)';
+                } else if (stat === 'active') {
+                    infoStat.style.color = 'var(--success)';
+                } else {
+                    infoStat.style.color = 'var(--warning)';
+                }
+
+                // Landlord / Tenant / Property
+                const tenant = lease.tenant || {};
+                document.getElementById('infoTenantName').textContent = tenant.full_name || 'N/A';
+                document.getElementById('infoTenantContact').textContent = tenant.contact_number || 'N/A';
+                document.getElementById('infoTenantEmail').textContent = tenant.email || 'N/A';
+
+                const landlord = lease.landlord || {};
+                document.getElementById('infoLandlordName').textContent = landlord.full_name || 'N/A';
+                document.getElementById('infoLandlordContact').textContent = landlord.contact_number || 'N/A';
+                document.getElementById('infoLandlordEmail').textContent = landlord.email || 'N/A';
+
+                const property = lease.properties || {};
+                document.getElementById('infoPropertyName').textContent = property.property_name || 'N/A';
+                document.getElementById('infoPropertyType').textContent = (property.property_type || 'N/A').replace('_', ' ').toUpperCase();
+                document.getElementById('infoUnitNumber').textContent = property.unit_number || 'N/A';
+                document.getElementById('infoPropertyAddress').textContent = `${property.address || ''}, Barangay ${property.barangay || ''}, Siniloan, Laguna`;
+
+                // 2. Populate Form Inputs (Right side)
+                document.getElementById('startDate').value = lease.lease_start_date;
+                document.getElementById('endDate').value = lease.lease_end_date;
+                document.getElementById('monthlyRent').value = lease.monthly_rent;
+                document.getElementById('securityDeposit').value = lease.security_deposit;
+                document.getElementById('advancePayment').value = lease.advance_payment || 0;
+                document.getElementById('dueDay').value = lease.payment_due_day || 5;
+                document.getElementById('maxOccupants').value = lease.max_occupants || 1;
+                document.getElementById('lateFeeAmount').value = lease.late_fee_amount || '';
+                document.getElementById('gracePeriod').value = lease.grace_period || 0;
+                document.getElementById('houseRules').value = lease.house_rules || '';
+                document.getElementById('landlordResponsibilities').value = lease.landlord_responsibilities || '';
+                document.getElementById('tenantResponsibilities').value = lease.tenant_responsibilities || '';
+                document.getElementById('terminationPolicy').value = lease.termination_policy || '';
+                document.getElementById('additionalTerms').value = lease.additional_terms || '';
+
+                // Display Tenant Concern / Appeal Note if lease was rejected
+                const concernBanner = document.getElementById('tenantConcernBanner');
+                const concernText = document.getElementById('tenantConcernText');
+                if (lease.terms_and_conditions && (lease.lease_status === 'rejected' || lease.terms_and_conditions.trim())) {
+                    if (concernBanner && concernText) {
+                        concernText.textContent = lease.terms_and_conditions;
+                        concernBanner.classList.remove('hidden');
+                    }
+                } else if (concernBanner) {
+                    concernBanner.classList.add('hidden');
+                }
+
+                // Utilities Configuration
+                const uConfig = lease.utilities_config || lease.utilities_covered || {};
+                const setRadio = (name, val) => {
+                    const radios = document.getElementsByName(name);
+                    radios.forEach(r => { if (r.value === val) r.checked = true; });
+                };
+                if (typeof uConfig === 'object' && !Array.isArray(uConfig)) {
+                    setRadio('util_electricity', uConfig.electricity || 'separate');
+                    setRadio('util_water', uConfig.water || 'separate');
+                    setRadio('util_internet', uConfig.internet || 'separate');
+                    setRadio('util_assoc_fee', uConfig.association_fee || 'separate');
+                } else if (Array.isArray(uConfig)) {
+                    setRadio('util_electricity', uConfig.includes('Electricity') ? 'included' : 'separate');
+                    setRadio('util_water', uConfig.includes('Water') ? 'included' : 'separate');
+                    setRadio('util_internet', uConfig.includes('Internet') ? 'included' : 'separate');
+                    setRadio('util_assoc_fee', uConfig.includes('Association Fee') ? 'included' : 'separate');
+                }
+
+                // Populate Custom Utilities if present
+                const customContainer = document.getElementById('customUtilitiesContainer');
+                if (customContainer) customContainer.innerHTML = '';
+                if (uConfig.custom_utilities && Array.isArray(uConfig.custom_utilities)) {
+                    uConfig.custom_utilities.forEach(item => {
+                        addCustomUtilityCard(item.name || '', item.setup || 'separate');
+                    });
+                }
+
+                // Populate Custom Policies if present
+                const customPolContainer = document.getElementById('customPoliciesContainer');
+                if (customPolContainer) customPolContainer.innerHTML = '';
+                const loadedCustomPolicies = lease.custom_policies || (uConfig && uConfig.custom_policies) || [];
+                if (Array.isArray(loadedCustomPolicies)) {
+                    loadedCustomPolicies.forEach(item => {
+                        addCustomPolicyCard(item.name || '', item.value || 'Not Allowed');
+                    });
+                }
+
+                // Smoking Policy
+                const smokingRadios = document.getElementsByName('smoking_policy');
+                smokingRadios.forEach(r => {
+                    if (r.value === lease.smoking_policy) {
+                        r.checked = true;
+                    }
+                });
+
+                // Pet Policy
+                const petRadios = document.getElementsByName('pet_policy');
+                petRadios.forEach(r => {
+                    if (r.value === lease.pet_policy) {
+                        r.checked = true;
+                    }
+                });
+                if (lease.pet_policy === 'Allowed') {
+                    document.getElementById('petConditionsBox').classList.remove('hidden');
+                    document.getElementById('petConditions').value = lease.pet_conditions || '';
+                }
+
+                // Parking
+                const parkingRadios = document.getElementsByName('parking_policy');
+                parkingRadios.forEach(r => {
+                    if (r.value === lease.parking_policy) {
+                        r.checked = true;
+                    }
+                });
+                if (lease.parking_policy === 'Included') {
+                    document.getElementById('parkingSlotBox').classList.remove('hidden');
+                    document.getElementById('parkingSlotNumber').value = lease.parking_slot_number || '';
+                }
+
+                // Update styling of active cards
+                const triggerChange = (name) => {
+                    const radios = document.getElementsByName(name);
+                    radios.forEach(radio => {
+                        const card = radio.closest('.radio-card');
+                        if (radio.checked) {
+                            if (radio.value === 'Allowed' || radio.value === 'Included') {
+                                card.className = 'radio-card selected';
+                            } else {
+                                card.className = 'radio-card selected-not';
+                            }
+                        } else {
+                            card.className = 'radio-card';
+                        }
+                    });
+                };
+                triggerChange('smoking_policy');
+                triggerChange('pet_policy');
+                triggerChange('parking_policy');
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('errorMessage').textContent = 'An error occurred while loading the lease.';
+                document.getElementById('errorMessage').classList.remove('hidden');
+            }
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = editLeaseId ? 'Saving changes...' : 'Executing lease contract...';
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            const formData = new FormData(e.target);
+            const startDate = formData.get('lease_start_date');
+            const endDate = formData.get('lease_end_date');
+
+            // Validate: start date must not be before tenant's desired move-in date
+            if (tenantDesiredMoveInDate) {
+                const startDt  = new Date(startDate + 'T00:00:00');
+                const desiredDt = new Date(tenantDesiredMoveInDate + 'T00:00:00');
+                if (startDt < desiredDt) {
+                    const fmtDesired = desiredDt.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+                    errorDiv.textContent = `Lease start date cannot be earlier than the tenant's desired move-in date (${fmtDesired}).`;
+                    errorDiv.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = editLeaseId ? 'Update & Re-send Lease Draft' : 'Sign & Submit Lease Draft';
+                    return;
+                }
+            }
+
+            if (new Date(endDate) <= new Date(startDate)) {
+                errorDiv.textContent = 'Lease end date must be strictly after the start date.';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = editLeaseId ? 'Update & Re-send Lease Draft' : 'Sign & Submit Lease Draft';
+                return;
+            }
+
+            // Gather Custom Policies
+            const customPolicies = [];
+            document.querySelectorAll('.custom-policy-card').forEach(card => {
+                const name = card.querySelector('.custom-policy-name')?.value.trim();
+                const radio = card.querySelector('input[type="radio"]:checked');
+                const value = radio ? radio.value : 'Not Allowed';
+                if (name) {
+                    customPolicies.push({ name, value });
+                }
+            });
+
+            // Gather Custom Utilities
+            const customUtils = [];
+            document.querySelectorAll('.custom-util-card').forEach(card => {
+                const name = card.querySelector('.custom-util-name')?.value.trim();
+                const radio = card.querySelector('input[type="radio"]:checked');
+                const setup = radio ? radio.value : 'separate';
+                if (name) {
+                    customUtils.push({ name, setup });
+                }
+            });
+
+            // Gather Utilities Configuration
+            const utilitiesConfig = {
+                electricity: document.querySelector('input[name="util_electricity"]:checked')?.value || 'separate',
+                water: document.querySelector('input[name="util_water"]:checked')?.value || 'separate',
+                internet: document.querySelector('input[name="util_internet"]:checked')?.value || 'separate',
+                association_fee: document.querySelector('input[name="util_assoc_fee"]:checked')?.value || 'separate',
+                custom_utilities: customUtils,
+                custom_policies: customPolicies
+            };
+
+            // Gather policy choices
+            const activePolicies = customPolicies.filter(Boolean);
+
+            const bodyData = {
+                lease_start_date: startDate,
+                lease_end_date: document.getElementById('endDate').value,
+                monthly_rent: document.getElementById('monthlyRent').value,
+                security_deposit: document.getElementById('securityDeposit').value,
+                advance_payment: parseFloat(formData.get('advance_payment')),
+                payment_due_day: parseInt(formData.get('payment_due_day')),
+                utilities_covered: { ...utilitiesConfig, custom_policies: activePolicies },
+                utilities_config: { ...utilitiesConfig, custom_policies: activePolicies },
+                max_occupants: parseInt(document.getElementById('maxOccupants').value || '1', 10),
+                smoking_policy: activePolicies.find(p => p.name.toLowerCase().includes('smoking'))?.value || 'Not Allowed',
+                pet_policy: activePolicies.find(p => p.name.toLowerCase().includes('pet'))?.value || 'Not Allowed',
+                pet_conditions: document.getElementById('petConditions')?.value || '',
+                parking_policy: 'Not Applicable',
+                parking_slot_number: '',
+                custom_policies: activePolicies,
+                house_rules: document.getElementById('houseRules').value,
+                landlord_responsibilities: document.getElementById('landlordResponsibilities').value,
+                tenant_responsibilities: document.getElementById('tenantResponsibilities').value,
+                late_fee_amount: document.getElementById('lateFeeAmount').value,
+                grace_period: parseInt(document.getElementById('gracePeriod').value) || 0,
+                termination_policy: document.getElementById('terminationPolicy').value,
+                additional_terms: document.getElementById('additionalTerms').value
+            };
+
+            let apiUrl = '/api/leases';
+            let method = 'POST';
+
+            if (editLeaseId) {
+                apiUrl = `/api/leases/${editLeaseId}`;
+                method = 'PUT';
+            } else {
+                bodyData.application_id = formData.get('application_id');
+            }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(bodyData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    successDiv.textContent = result.message || 'Lease agreement successfully executed!';
+                    successDiv.classList.remove('hidden');
+                    e.target.reset();
+                    setTimeout(() => window.location.href = 'leases.html', 1500);
+                } else {
+                    errorDiv.textContent = result.message || 'Failed to submit lease.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = 'An error occurred while connecting to the lease API.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = editLeaseId ? 'Update & Re-send Lease Draft' : 'Sign & Submit Lease Draft';
+            }
+        }
+    </script>
+</body>
+</html>

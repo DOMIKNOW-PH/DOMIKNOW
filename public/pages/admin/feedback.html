@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Monitor - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .list-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: var(--shadow-lg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-admin">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-admin">Admin</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="users.html" class="navbar-menu-link">Users</a>
+                <a href="property-review.html" class="navbar-menu-link">Property Review</a>
+                <a href="reservations.html" class="navbar-menu-link">Reservation Monitoring</a>
+                <a href="screening.html" class="navbar-menu-link">Screening Monitor</a>
+                <a href="leases.html" class="navbar-menu-link">Lease Monitor</a>
+                <a href="billings.html" class="navbar-menu-link">Billing Monitor</a>
+                <a href="payments.html" class="navbar-menu-link">Payment Monitor</a>
+                <a href="maintenance.html" class="navbar-menu-link">Maintenance Monitor</a>
+                <a href="reports.html" class="navbar-menu-link">Reports Monitor</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes Monitor</a>
+                <a href="policy-violations.html" class="navbar-menu-link">Violations Monitor</a>
+                <a href="feedback.html" class="navbar-menu-link active">Feedback Monitor</a>
+                <a href="audit-logs.html" class="navbar-menu-link">Audit Logs</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Ratings & Reviews Moderator</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Moderate and configure tenant ratings visibility. Only visible authenticated reviews affect public listings suitability scores.</p>
+
+        <div class="list-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property & Reviewer</th>
+                        <th>Target & Content</th>
+                        <th>Rating</th>
+                        <th>Visibility Status</th>
+                        <th>Submitted At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="feedbackTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading reviews...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Update Modal -->
+    <div id="updateModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem;">Moderate Review Visibility</h3>
+            <form id="updateForm">
+                <input type="hidden" id="feedbackId" name="id">
+                <div class="form-group">
+                    <label class="form-label" for="feedbackStatus">Visibility Action</label>
+                    <select id="feedbackStatus" name="status" class="form-input" required>
+                        <option value="submitted">Submitted (Under review)</option>
+                        <option value="visible">Visible (Affects Property Score)</option>
+                        <option value="hidden">Hidden (Not public)</option>
+                        <option value="flagged">Flagged (Violates terms)</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn-primary" style="flex: 1;">Save Visibility</button>
+                    <button type="button" onclick="closeModal()" class="navbar-btn" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchFeedbackLogs();
+
+            document.getElementById('updateForm').addEventListener('submit', handleUpdateSubmit);
+        });
+
+        async function fetchFeedbackLogs() {
+            const tableBody = document.getElementById('feedbackTableBody');
+            try {
+                const response = await fetch('/api/admin/feedback', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--error);">Failed to load reviews list.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const list = result.data || [];
+
+                if (list.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">No reviews submitted in the system.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                list.forEach(rev => {
+                    let statusBadgeClass = 'status-pending';
+                    if (rev.status === 'visible') statusBadgeClass = 'status-active';
+                    if (rev.status === 'hidden') statusBadgeClass = 'status-pending';
+                    if (rev.status === 'flagged') statusBadgeClass = 'status-rejected';
+
+                    const starsHtml = '★'.repeat(rev.rating) + '☆'.repeat(5 - rev.rating);
+                    const createdDate = new Date(rev.created_at).toLocaleDateString();
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary);">${rev.properties?.property_name || 'Property'}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">👤 By Tenant: ${rev.tenant?.full_name || 'Anonymous'}</div>
+                        </td>
+                        <td>
+                            <div style="text-transform:capitalize; font-size:0.8rem;"><strong>${rev.feedback_type.replace('_', ' ')}</strong></div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${rev.feedback_text}</div>
+                        </td>
+                        <td>
+                            <span style="color:#fbbf24; font-weight:700; font-size:1.1rem; letter-spacing: 0.1em;">${starsHtml}</span>
+                        </td>
+                        <td>
+                            <span class="status-badge ${statusBadgeClass}" style="text-transform:capitalize;">${rev.status}</span>
+                        </td>
+                        <td>${createdDate}</td>
+                        <td>
+                            <button onclick="openModal('${rev.id}', '${rev.status}')" class="btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; cursor: pointer;">
+                                Moderate
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--error);">Error reaching service API.</td></tr>`;
+            }
+        }
+
+        function openModal(id, status) {
+            document.getElementById('feedbackId').value = id;
+            document.getElementById('feedbackStatus').value = status;
+            document.getElementById('updateModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('updateModal').classList.add('hidden');
+            document.getElementById('updateForm').reset();
+        }
+
+        async function handleUpdateSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('feedbackId').value;
+            const status = document.getElementById('feedbackStatus').value;
+
+            try {
+                const response = await fetch(`/api/admin/feedback/${id}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    fetchFeedbackLogs();
+                } else {
+                    const res = await response.json();
+                    alert(res.message || 'Failed to update visibility.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred during submission.');
+            }
+        }
+    </script>
+</body>
+</html>

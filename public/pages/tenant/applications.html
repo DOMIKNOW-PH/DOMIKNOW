@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .app-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9375rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+        .remarks-text {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-top: 0.25rem;
+            max-width: 200px;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
+                <a href="compare.html" class="navbar-menu-link">Compare</a>
+                <a href="applications.html" class="navbar-menu-link active">My Applications</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>My Rental Applications</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Track the status of your rental property verification packages.</p>
+
+        <div class="app-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property Details</th>
+                        <th>Landlord</th>
+                        <th>Expected Move-In</th>
+                        <th>Landlord Review Notes</th>
+                        <th>Date Submitted</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="applicationsTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading your applications...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchTenantApplications();
+        });
+
+        async function fetchTenantApplications() {
+            const tableBody = document.getElementById('applicationsTableBody');
+            try {
+                const response = await fetch('/api/tenant/applications/my', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--error);">Failed to load your applications.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const applications = result.data || [];
+
+                if (applications.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                                You have not submitted any rental applications yet. 
+                                Find approved properties to apply in <a href="properties.html" class="auth-link">Discovery</a>!
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                applications.forEach(app => {
+                    // Status Badge Styling
+                    let statusClass = 'status-pending';
+                    if (app.status === 'approved') statusClass = 'status-active';
+                    if (app.status === 'rejected') statusClass = 'status-rejected';
+                    if (app.status === 'cancelled') statusClass = 'status-rejected';
+
+                    // Format dates
+                    const moveInDate = new Date(app.desired_move_in_date).toLocaleDateString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                    });
+                    const submittedDate = new Date(app.created_at).toLocaleDateString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                    });
+
+                    const pName = app.properties ? app.properties.property_name : 'N/A';
+                    const pAddress = app.properties ? app.properties.address : 'N/A';
+                    const lName = app.properties && app.properties.users ? app.properties.users.full_name : 'N/A';
+
+                    let targetUnitText = '';
+                    const targetUnit = app.unit || app.property_units;
+                    const targetBed = app.bed || app.unit_beds;
+                    if (targetUnit) {
+                        targetUnitText = `Room ${targetUnit.unit_number}`;
+                        if (targetBed) {
+                            targetUnitText += ` - ${targetBed.bed_label}`;
+                        }
+                    }
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div style="font-weight: 700; color: var(--primary);">${pName}</div>
+                            ${targetUnitText ? `<div style="font-size:0.75rem;color:var(--accent);font-weight:700;">${targetUnitText}</div>` : `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">📍 ${pAddress}</div>`}
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; color: var(--text-primary);">${lName}</div>
+                        </td>
+                        <td style="font-weight: 600;">${moveInDate}</td>
+                        <td>
+                            <div class="remarks-text">
+                                ${app.landlord_remarks ? app.landlord_remarks : '<span style="color: var(--text-muted); font-style: italic;">Awaiting review</span>'}
+                            </div>
+                        </td>
+                        <td>${submittedDate}</td>
+                        <td><span class="status-badge ${statusClass}">${app.status}</span></td>
+                        <td>
+                            <a href="application-details.html?id=${app.id}" class="btn-primary" style="width: auto; padding: 0.45rem 1rem; font-size: 0.8125rem; text-decoration: none; background-color: var(--primary);">Details</a>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--error);">Error reaching application API.</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>

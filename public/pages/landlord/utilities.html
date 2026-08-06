@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utility Submeter Management - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .utility-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+            .utility-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .form-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            height: fit-content;
+        }
+        .history-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9375rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+        .unit-mgmt-panel {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-top: 2rem;
+        }
+        .unit-mgmt-panel table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+        .unit-mgmt-panel th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.6rem 0.85rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        .unit-mgmt-panel td {
+            padding: 0.8rem 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .unit-mgmt-panel tr:hover td {
+            background-color: var(--bg-primary);
+        }
+        .unit-status-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.18rem 0.55rem;
+            border-radius: var(--radius-full);
+        }
+        .unit-status-available { background: rgba(34,197,94,0.12); color: rgb(34,197,94); border: 1px solid rgba(34,197,94,0.25); }
+        .unit-status-occupied  { background: rgba(239,68,68,0.12);  color: rgb(239,68,68);  border: 1px solid rgba(239,68,68,0.25); }
+        .unit-status-reserved  { background: rgba(234,179,8,0.12);  color: rgb(209,154,7);  border: 1px solid rgba(234,179,8,0.25); }
+        .unit-status-under_maintenance { background: rgba(99,102,241,0.12); color: hsl(240,70%,60%); border: 1px solid rgba(99,102,241,0.25); }
+        .unit-status-unavailable { background: rgba(148,163,184,0.12); color: var(--text-muted); border: 1px solid var(--border-color); }
+        .btn-delete-unit {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.3rem 0.75rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            border: 1px solid rgba(239,68,68,0.4);
+            background: transparent;
+            color: var(--error);
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-delete-unit:hover:not(:disabled) {
+            background: rgba(239,68,68,0.1);
+        }
+        .btn-delete-unit:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Tenant Screening</a>
+                <a href="leases.html" class="navbar-menu-link">Leases</a>
+                <a href="utilities.html" class="navbar-menu-link active">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link">Billings</a>
+                <a href="payments.html" class="navbar-menu-link">Payments</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Utility Submeter Management</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Input utility logs and readings per submeter unit for electricity, water, and internet usage.</p>
+
+        <div class="utility-grid">
+            <!-- Logging Form -->
+            <div class="form-card">
+                <h3 style="margin-bottom: 1.25rem; color: var(--landlord); border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;">Log Utility Usage</h3>
+
+                <div id="errorMessage" class="status-badge status-rejected hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
+                <div id="successMessage" class="status-badge status-active hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
+
+                <form id="utilityForm">
+                    <div class="form-group">
+                        <label class="form-label" for="leaseId">Select Active Lease Agreement</label>
+                        <select id="leaseId" name="lease_id" class="form-input" required>
+                            <option value="">-- Select Tenant / Lease --</option>
+                        </select>
+                    </div>
+
+                    <div id="utilityConfigNotice" style="display:none;background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-md);padding:0.75rem 1rem;font-size:0.85rem;margin-bottom:1rem;"></div>
+
+                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label class="form-label" for="utilityType">Utility Type</label>
+                            <select id="utilityType" name="utility_type" class="form-input" required>
+                                <option value="">-- Select --</option>
+                                <option value="electricity">⚡ Electricity</option>
+                                <option value="water">💧 Water</option>
+                                <option value="internet">🌐 Internet</option>
+                                <option value="other">⚙️ Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" for="billingMonth">Billing Month</label>
+                            <input type="month" id="billingMonth" name="billing_month" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label class="form-label" for="previousReading">Previous Reading</label>
+                            <input type="number" id="previousReading" name="previous_reading" class="form-input" placeholder="e.g. 1045.5" min="0" step="0.01" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="currentReading">Current Reading</label>
+                            <input type="number" id="currentReading" name="current_reading" class="form-input" placeholder="e.g. 1120.2" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="ratePerUnit">Rate per Unit (₱ PHP)</label>
+                        <input type="number" id="ratePerUnit" name="rate_per_unit" class="form-input" placeholder="e.g. 15.00" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Calculated Cost</label>
+                        <div id="costCalculation" style="font-size: 1.15rem; font-weight: 700; color: var(--primary);">
+                            ₱0.00 PHP (0.00 units consumed)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="remarks">Remarks / Notes</label>
+                        <textarea id="remarks" name="remarks" class="form-input" placeholder="e.g. Submeter verified on 1st of month" style="height: 60px;"></textarea>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-primary" style="background-color: var(--landlord); border-color: var(--landlord); width: 100%;">
+                        Save Utility Record
+                    </button>
+                </form>
+            </div>
+
+            <!-- History log -->
+            <div class="history-card">
+                <h3 style="margin-bottom: 1.25rem;">Submeter Utility Logs</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tenant & Month</th>
+                            <th>Utility</th>
+                            <th>Readings (Prev / Curr)</th>
+                            <th>Consumption</th>
+                            <th>Rate</th>
+                            <th>Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="utilityTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading submeter logs...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Room / Unit Management Panel -->
+        <div class="unit-mgmt-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800;">Room / Unit Management</h3>
+                    <p style="margin: 0.2rem 0 0 0; font-size: 0.82rem; color: var(--text-secondary);">Delete rooms that have no active or reserved tenants.</p>
+                </div>
+                <button id="refreshUnitsBtn" onclick="loadAllUnits()" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 600; padding: 0.4rem 0.9rem; border-radius: var(--radius-md); background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); cursor: pointer;">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Refresh
+                </button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Room / Unit</th>
+                            <th>Type</th>
+                            <th>Monthly Rent</th>
+                            <th>Status</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unitMgmtTableBody">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading rooms...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        let fetchedLeases = [];
+        let landlordProperties = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchActiveLeases();
+            fetchUtilityLogs();
+            loadAllUnits();
+
+            // Cost dynamic calculations
+            document.getElementById('previousReading').addEventListener('input', updateCostMath);
+            document.getElementById('currentReading').addEventListener('input', updateCostMath);
+            document.getElementById('ratePerUnit').addEventListener('input', updateCostMath);
+
+            document.getElementById('leaseId').addEventListener('change', checkLeaseUtilityConfig);
+            document.getElementById('utilityType').addEventListener('change', checkLeaseUtilityConfig);
+
+            document.getElementById('utilityForm').addEventListener('submit', handleLogUtility);
+        });
+
+        function checkLeaseUtilityConfig() {
+            const leaseId = document.getElementById('leaseId').value;
+            const utilityType = document.getElementById('utilityType').value;
+            const noticeEl = document.getElementById('utilityConfigNotice');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (!leaseId || !utilityType) {
+                if (noticeEl) noticeEl.style.display = 'none';
+                submitBtn.disabled = false;
+                return;
+            }
+
+            const lease = fetchedLeases.find(l => l.id === leaseId);
+            if (!lease) return;
+
+            const uConfig = lease.utilities_covered || {};
+            let isIncluded = false;
+            if (typeof uConfig === 'object' && !Array.isArray(uConfig)) {
+                isIncluded = (uConfig[utilityType] === 'included');
+            } else if (Array.isArray(uConfig)) {
+                isIncluded = uConfig.includes(utilityType);
+            }
+
+            if (isIncluded) {
+                noticeEl.style.display = 'block';
+                noticeEl.innerHTML = `⚠️ <strong>Notice:</strong> <strong>${utilityType.toUpperCase()}</strong> is <strong>Included in Monthly Rent</strong> under this signed Lease Agreement. Metered submeter logging & extra billing are disabled.`;
+                submitBtn.disabled = true;
+            } else {
+                noticeEl.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function fetchActiveLeases() {
+            const selectEl = document.getElementById('leaseId');
+            try {
+                const response = await fetch('/api/leases', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+
+                const result = await response.json();
+                fetchedLeases = result.data || [];
+                const activeLeases = fetchedLeases.filter(l => l.lease_status === 'active');
+
+                activeLeases.forEach(lease => {
+                    const option = document.createElement('option');
+                    option.value = lease.id;
+                    option.textContent = `${lease.users?.full_name || 'Tenant'} - ${lease.properties?.property_name || 'Property'}`;
+                    selectEl.appendChild(option);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function fetchUtilityLogs() {
+            const tableBody = document.getElementById('utilityTableBody');
+            try {
+                const response = await fetch('/api/utilities', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--error);">Failed to load utility logs.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const logs = result.data || [];
+
+                if (logs.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">No utility readings logged yet.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                logs.forEach(log => {
+                    const total = parseFloat(log.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    const rate = parseFloat(log.rate_per_unit).toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div style="font-weight:700;">${log.users?.full_name || 'Tenant'}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); font-weight: 600;">Month: ${log.billing_month}</div>
+                        </td>
+                        <td style="text-transform: capitalize; font-weight: 600;">
+                            ${log.utility_type === 'electricity' ? '⚡' : log.utility_type === 'water' ? '💧' : log.utility_type === 'internet' ? '🌐' : '⚙️'} 
+                            ${log.utility_type}
+                        </td>
+                        <td>
+                            <div style="font-size: 0.85rem;">Prev: ${log.previous_reading}</div>
+                            <div style="font-size: 0.85rem; font-weight:600; color:var(--primary);">Curr: ${log.current_reading}</div>
+                        </td>
+                        <td style="font-weight: 600;">${log.consumption} units</td>
+                        <td>₱${rate}/u</td>
+                        <td style="font-weight: 700; color: var(--text-primary);">₱${total} PHP</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--error);">Error reaching utility API.</td></tr>`;
+            }
+        }
+
+        function updateCostMath() {
+            const prev = parseFloat(document.getElementById('previousReading').value) || 0;
+            const curr = parseFloat(document.getElementById('currentReading').value) || 0;
+            const rate = parseFloat(document.getElementById('ratePerUnit').value) || 0;
+
+            const costDiv = document.getElementById('costCalculation');
+            
+            if (curr < prev) {
+                costDiv.innerHTML = `<span style="color:var(--error);">Error: Current reading is less than previous.</span>`;
+                return;
+            }
+
+            const consumption = curr - prev;
+            const total = consumption * rate;
+
+            costDiv.textContent = `₱${total.toLocaleString(undefined, { minimumFractionDigits: 2 })} PHP (${consumption.toFixed(2)} units consumed)`;
+        }
+
+        async function handleLogUtility(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            const formData = new FormData(e.target);
+            const prev = parseFloat(formData.get('previous_reading'));
+            const curr = parseFloat(formData.get('current_reading'));
+
+            if (curr < prev) {
+                errorDiv.textContent = 'Current reading cannot be lower than previous reading.';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Utility Record';
+                return;
+            }
+
+            const bodyData = {
+                lease_id: formData.get('lease_id'),
+                utility_type: formData.get('utility_type'),
+                billing_month: formData.get('billing_month'),
+                previous_reading: prev,
+                current_reading: curr,
+                rate_per_unit: parseFloat(formData.get('rate_per_unit')),
+                remarks: formData.get('remarks')
+            };
+
+            try {
+                const response = await fetch('/api/utilities', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(bodyData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    successDiv.textContent = result.message || 'Utility reading logged successfully!';
+                    successDiv.classList.remove('hidden');
+                    e.target.reset();
+                    document.getElementById('costCalculation').textContent = '₱0.00 PHP (0.00 units consumed)';
+                    fetchUtilityLogs();
+                } else {
+                    errorDiv.textContent = result.message || 'Failed to log utility reading.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = 'An error occurred during submission.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Utility Record';
+            }
+        }
+
+        /* ─── Room / Unit Management ─── */
+        async function loadAllUnits() {
+            const tbody = document.getElementById('unitMgmtTableBody');
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Loading rooms...</td></tr>`;
+
+            try {
+                // 1. Fetch landlord's properties
+                const propRes = await fetch('/api/landlord/properties', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!propRes.ok) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error);">Failed to load properties.</td></tr>`;
+                    return;
+                }
+                const propResult = await propRes.json();
+                const properties = propResult.data || [];
+
+                if (properties.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">No properties found.</td></tr>`;
+                    return;
+                }
+
+                // 2. Fetch all units for each property
+                const allUnits = [];
+                await Promise.all(properties.map(async (prop) => {
+                    try {
+                        const uRes = await fetch(`/api/properties/${prop.id}/units`);
+                        if (!uRes.ok) return;
+                        const uResult = await uRes.json();
+                        (uResult.data || []).forEach(unit => {
+                            // Skip virtual/fallback units (id === property_id means no real DB row)
+                            if (unit.id === unit.property_id) return;
+                            allUnits.push({ ...unit, propertyName: prop.property_name || 'Property', propertyId: prop.id });
+                        });
+                    } catch (_) {}
+                }));
+
+                if (allUnits.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">
+                        No registered rooms found. Go to <a href="properties.html" style="color:var(--primary);font-weight:600;">My Properties</a> and select a property to add rooms first.
+                    </td></tr>`;
+                    return;
+                }
+
+                // Sort: available first, then by property name
+                allUnits.sort((a, b) => {
+                    const order = { available: 0, under_maintenance: 1, unavailable: 2, reserved: 3, occupied: 4 };
+                    return (order[a.status] ?? 5) - (order[b.status] ?? 5);
+                });
+
+                tbody.innerHTML = '';
+                allUnits.forEach(unit => {
+                    const canDelete = unit.status === 'available' || unit.status === 'under_maintenance' || unit.status === 'unavailable';
+                    const statusBadge = `<span class="unit-status-badge unit-status-${unit.status}">${unit.status.replace('_', ' ')}</span>`;
+                    const rentDisplay = unit.monthly_rent ? `₱${parseFloat(unit.monthly_rent).toLocaleString()}` : '—';
+                    const typeDisplay = (unit.unit_type || unit.rental_style || 'room').replace('_', ' ');
+
+                    const deleteBtn = canDelete
+                        ? `<button class="btn-delete-unit" onclick="deleteUnit('${unit.id}', '${unit.unit_number.replace(/'/g, "\\'")}')"
+                                title="Delete this room">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                Delete
+                           </button>`
+                        : `<button class="btn-delete-unit" disabled
+                                title="Cannot delete — unit has an active or reserved tenant">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                Occupied
+                           </button>`;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td style="font-weight: 600; font-size: 0.82rem;">${unit.propertyName}</td>
+                        <td style="font-weight: 700;">${unit.unit_number}</td>
+                        <td style="text-transform: capitalize; color: var(--text-secondary); font-size: 0.82rem;">${typeDisplay}</td>
+                        <td style="font-weight: 700; color: var(--primary);">${rentDisplay}</td>
+                        <td>${statusBadge}</td>
+                        <td style="text-align: center;">${deleteBtn}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--error);">Error loading rooms.</td></tr>`;
+            }
+        }
+
+        async function deleteUnit(unitId, unitLabel) {
+            if (!confirm(`Are you sure you want to delete "${unitLabel}"? This action cannot be undone.`)) return;
+
+            try {
+                const res = await fetch(`/api/units/${unitId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await res.json();
+
+                if (res.ok) {
+                    alert(`✅ "${unitLabel}" has been successfully deleted.`);
+                    loadAllUnits();
+                } else {
+                    alert(`❌ ${result.message || 'Failed to delete room.'}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred while trying to delete the room.');
+            }
+        }
+    </script>
+</body>
+</html>

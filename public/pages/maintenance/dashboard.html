@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Dashboard - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-maintenance">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-maintenance">Maintenance</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link active">Dashboard</a>
+                <a href="tasks.html" class="navbar-menu-link">Assigned Tasks</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <!-- Pending Approval Message -->
+        <div id="pendingApprovalMsg" class="alert alert-warning hidden">
+            <span class="alert-icon">Attention:</span>
+            <div class="alert-content">
+                <h3 style="font-size: 0.9375rem; font-weight: 700; margin-bottom: 0.25rem;">Account Pending Admin Approval</h3>
+                <p style="font-size: 0.875rem; line-height: 1.5;">Your account requires administrator approval before you can receive and manage tasks. Please check back later.</p>
+            </div>
+        </div>
+
+        <!-- Status Header -->
+        <div class="status-card status-card-maintenance">
+            <div class="status-card-info">
+                <h2>Dashboard</h2>
+                <p>Manage your assigned maintenance tasks.</p>
+            </div>
+            <div class="status-badge-container">
+                <span class="status-badge-label">Account Status</span>
+                <span id="accountStatus" class="status-badge status-pending">LOADING</span>
+            </div>
+        </div>
+
+        <!-- Profile Placeholder -->
+        <div class="profile-card">
+            <h3 class="profile-card-title">Basic Profile</h3>
+            <div class="profile-info-row">
+                <p><strong>Name:</strong> <span class="user-name">Loading...</span></p>
+            </div>
+            <p class="profile-card-footer">Full profile editing coming soon.</p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="feature-grid feature-grid-2">
+            <!-- Feature Card 1 -->
+            <div class="feature-card">
+                <div class="feature-card-header">
+                    <h3 class="feature-card-title">Assigned Tasks</h3>
+                    <span class="feature-card-badge" style="background-color: var(--success); color: white;">Active</span>
+                </div>
+                <p class="feature-card-desc">View and manage maintenance requests from properties assigned to you.</p>
+                <button onclick="window.location.href='tasks.html'" class="feature-card-btn" style="background-color: var(--maintenance); color: white; cursor: pointer;">View Tasks</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+</body>
+</html>

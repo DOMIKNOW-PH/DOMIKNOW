@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Properties - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .prop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .prop-card-landlord {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-normal);
+            display: flex;
+            flex-direction: column;
+        }
+        .prop-card-landlord:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--landlord);
+        }
+        .prop-header {
+            position: relative;
+            height: 180px;
+            background-color: #cbd5e1;
+        }
+        .prop-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .status-badge-absolute {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            box-shadow: var(--shadow-md);
+        }
+        .type-badge-absolute {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background-color: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .prop-body {
+            padding: 1.25rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .prop-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        .prop-address {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .prop-stats {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 0;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        .stat-item:not(:last-child) {
+            border-right: 1px solid var(--border-color);
+        }
+        .stat-lbl {
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 0.15rem;
+        }
+        .stat-val {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .rejection-panel {
+            background-color: var(--error-bg);
+            border: 1px dashed var(--error);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 0.8125rem;
+            color: #b91c1c;
+        }
+        .prop-actions {
+            margin-top: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .prop-actions .btn-full {
+            grid-column: span 2;
+        }
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            background-color: var(--bg-secondary);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 0.75rem 1.25rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 0.9375rem;
+        }
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+        .tab-btn.active {
+            border-bottom-color: var(--landlord) !important;
+            color: var(--text-primary) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link active">My Properties</a>
+                <a href="property-create.html" class="navbar-menu-link">Register Property</a>
+                <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h2>My Registered Properties</h2>
+                <p style="color: var(--text-secondary);">Manage and monitor your properties listed for rent.</p>
+            </div>
+            <a href="property-create.html" class="btn-primary" style="display: inline-flex; align-items: center; gap: 6px; width: auto; background-color: var(--landlord); text-decoration: none;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Register New Property
+            </a>
+        </div>
+
+        <!-- Tab Controls -->
+        <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border-color); margin-bottom: 1.5rem;">
+            <button id="tabPending" class="tab-btn active" onclick="switchTab('pending')">Pending Review</button>
+            <button id="tabApproved" class="tab-btn" onclick="switchTab('approved')">Approved</button>
+        </div>
+
+        <div id="propertiesGrid" class="prop-grid">
+            <p style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">Loading your properties...</p>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let allProperties = [];
+        let currentTab = 'pending'; // 'pending' or 'approved'
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchLandlordProperties();
+        });
+
+        async function fetchLandlordProperties() {
+            const grid = document.getElementById('propertiesGrid');
+            try {
+                const response = await fetch('/api/landlord/properties', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--error);">Failed to load your properties.</p>`;
+                    return;
+                }
+
+                const result = await response.json();
+                allProperties = result.data || [];
+                renderProperties();
+
+            } catch (err) {
+                console.error(err);
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--error);">Error reaching landlord API.</p>`;
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabPending').classList.toggle('active', tab === 'pending');
+            document.getElementById('tabApproved').classList.toggle('active', tab === 'approved');
+            renderProperties();
+        }
+
+        function renderProperties() {
+            const grid = document.getElementById('propertiesGrid');
+            grid.innerHTML = '';
+
+            let filtered = [];
+            if (currentTab === 'pending') {
+                filtered = allProperties.filter(p => p.status === 'pending_review' || p.status === 'rejected');
+            } else {
+                filtered = allProperties.filter(p => p.status === 'approved' || p.status === 'unavailable' || p.status === 'reserved');
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--text-muted);"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <h3>No Properties Registered</h3>
+                        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto;">No listings match this category.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(prop => {
+                const propCard = document.createElement('div');
+                propCard.className = 'prop-card-landlord';
+
+                let statusClass = 'status-pending';
+                let statusLabel = prop.status.replace('_', ' ');
+
+                if (prop.status === 'approved') {
+                    statusClass = 'status-active';
+                } else if (prop.status === 'rejected') {
+                    statusClass = 'status-rejected';
+                } else if (prop.status === 'unavailable' || prop.status === 'reserved') {
+                    statusClass = 'status-rejected';
+                }
+
+                if (currentTab === 'pending') {
+                    // Pending Review Card Format: STRICTLY show Thumbnail, Status badge, Property Name, Registration Date, Location, Details Button, Delete Button
+                    const registrationDate = new Date(prop.created_at).toLocaleDateString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                    });
+
+                    let rejectionHtml = '';
+                    if (prop.status === 'rejected' && prop.rejection_reason) {
+                        rejectionHtml = `
+                            <div class="rejection-panel" style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 0.75rem;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0; margin-top: 2px; color: var(--error);"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <div><strong>Admin Reason:</strong> ${prop.rejection_reason}</div>
+                            </div>
+                        `;
+                    }
+
+                    propCard.innerHTML = `
+                        <div class="prop-header">
+                            <img src="${prop.main_image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=600&q=80'}" alt="${prop.property_name}" class="prop-img">
+                            <span class="status-badge status-badge-absolute ${statusClass}">${statusLabel.toUpperCase()}</span>
+                        </div>
+                        <div class="prop-body">
+                            <div class="prop-name">${prop.property_name}</div>
+                            <div class="prop-address" style="display: flex; align-items: center; gap: 4px; margin-bottom: 0.75rem;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--text-secondary);"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                Brgy. ${prop.barangay}, Siniloan
+                            </div>
+                            
+                            ${rejectionHtml}
+
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 1.25rem;">
+                                Registration Date: ${registrationDate}
+                            </div>
+
+                            <div class="prop-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: auto;">
+                                <a href="property-details.html?id=${prop.id}" class="btn-primary" style="background-color: var(--landlord); text-decoration: none; justify-content: center; display: inline-flex; align-items: center; gap: 4px; padding: 0.45rem 0.5rem; font-size: 0.75rem;">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Details
+                                </a>
+                                <button onclick="confirmDeleteProperty('${prop.id}', '${prop.property_name.replace(/'/g, "\\'")}')" class="btn-primary" style="background-color: var(--error); border-color: var(--error); text-decoration: none; justify-content: center; display: inline-flex; align-items: center; gap: 4px; color: #ffffff; cursor: pointer; padding: 0.45rem 0.5rem; font-size: 0.75rem;">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Approved Card: Thumbnail, Status badge, Type badge, Name, Type label, Registration date, Location, Details + Manage Units buttons
+                    const createdDate = new Date(prop.created_at).toLocaleDateString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                    });
+                    const typeLabel = prop.property_type
+                        ? prop.property_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                        : 'Property';
+
+                    propCard.innerHTML = `
+                        <div class="prop-header">
+                            <img src="${prop.main_image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=600&q=80'}" alt="${prop.property_name}" class="prop-img">
+                            <span class="status-badge status-badge-absolute ${statusClass}">${statusLabel.toUpperCase()}</span>
+                            <span class="type-badge-absolute">${prop.property_type.replace('_', ' ')}</span>
+                        </div>
+                        <div class="prop-body">
+                            <div class="prop-name">${prop.property_name}</div>
+
+                            <div style="font-size: 0.78rem; font-weight: 700; color: var(--landlord); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem;">
+                                ${typeLabel}
+                            </div>
+
+                            <div class="prop-address" style="display: flex; align-items: center; gap: 4px; margin-bottom: 0.5rem;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--text-secondary); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                Brgy. ${prop.barangay}, Siniloan
+                            </div>
+
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 4px;">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                Registered: ${createdDate}
+                            </div>
+
+                            <div class="prop-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: auto;">
+                                <a href="property-details.html?id=${prop.id}" class="btn-primary" style="background-color: var(--landlord); text-decoration: none; justify-content: center; display: inline-flex; align-items: center; gap: 4px; padding: 0.45rem 0.5rem; font-size: 0.75rem;">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Details
+                                </a>
+                                <a href="units.html?property_id=${prop.id}" class="btn-primary" style="background-color: var(--success); border-color: var(--success); text-decoration: none; justify-content: center; display: inline-flex; align-items: center; gap: 4px; padding: 0.45rem 0.5rem; font-size: 0.75rem;">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                    Manage Units
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                grid.appendChild(propCard);
+            });
+        }
+
+        async function confirmDeleteProperty(id, name) {
+            if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/landlord/properties/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Property listing deleted successfully!');
+                    fetchLandlordProperties();
+                } else {
+                    alert(result.message || 'Failed to delete property.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred while deleting the property.');
+            }
+        }
+    </script>
+</body>
+</html>

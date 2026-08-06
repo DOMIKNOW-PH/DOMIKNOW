@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Payment Ledger - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .payment-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9375rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+        
+        /* Modal Overlay & Containers */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+        .modal-container {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-primary);
+        }
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 1rem 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            background-color: var(--bg-primary);
+        }
+        .modal-close-x {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            padding: 0.2rem;
+        }
+
+        .action-btn {
+            padding: 0.45rem 1rem;
+            font-size: 0.8125rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-view {
+            background-color: var(--tenant);
+            color: white;
+        }
+        .btn-view:hover {
+            background-color: var(--tenant-hover);
+        }
+        .btn-close {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .details-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .details-lbl {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .details-val {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 0.15rem;
+        }
+        
+        .receipt-preview {
+            max-width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">Property Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
+                <a href="compare.html" class="navbar-menu-link">Compare Properties</a>
+                <a href="reservations.html" class="navbar-menu-link">My Reservations</a>
+                <a href="applications.html" class="navbar-menu-link">My Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Screening</a>
+                <a href="leases.html" class="navbar-menu-link">My Lease</a>
+                <a href="billings.html" class="navbar-menu-link">My Billings</a>
+                <a href="payments.html" class="navbar-menu-link active">My Payments</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>My Payment Logs</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Review the audit logs and verification status of your GCash, Maya, or bank transfer payments.</p>
+
+        <div class="payment-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date Submitted</th>
+                        <th>Billing Month</th>
+                        <th>Property Name</th>
+                        <th>Amount Paid</th>
+                        <th>Method</th>
+                        <th>Reference Code</th>
+                        <th>Verification Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentsTableBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading payment transactions...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Payment details modal -->
+    <div id="paymentDetailModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 style="margin:0;color:var(--text-primary);">Payment Details</h3>
+                <button id="closeDetailModalBtn" class="modal-close-x" title="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="modalContent">
+                <!-- Loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button id="closeModalFooterBtn" class="action-btn btn-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let paymentsList = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchTenantPayments();
+
+            document.getElementById('closeDetailModalBtn').addEventListener('click', closeModal);
+            document.getElementById('closeModalFooterBtn').addEventListener('click', closeModal);
+
+            // Event delegation on table body
+            document.getElementById('paymentsTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-payment-id]');
+                if (btn) openDetailModal(btn.dataset.paymentId);
+            });
+        });
+
+        async function fetchTenantPayments() {
+            const tableBody = document.getElementById('paymentsTableBody');
+            try {
+                const response = await fetch('/api/payments/my', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Failed to load payment logs.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                paymentsList = result.data || [];
+
+                if (paymentsList.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">No payment entries submitted yet. Outstanding invoices can be settled in My Billings.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                paymentsList.forEach(pay => {
+                    const amount = parseFloat(pay.payment_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    const submitDate = new Date(pay.submitted_at).toLocaleDateString(undefined, { 
+                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                    });
+
+                    let statusClass = 'status-pending';
+                    let statusLabel = 'PENDING VERIFICATION';
+                    if (pay.payment_status === 'verified') {
+                        statusClass = 'status-active';
+                        statusLabel = 'PAID';
+                    } else if (pay.payment_status === 'rejected') {
+                        statusClass = 'status-rejected';
+                        statusLabel = 'REJECTED';
+                    }
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${submitDate}</td>
+                        <td style="font-weight: 700; color: var(--primary);">${pay.billing_records?.billing_month || 'N/A'}</td>
+                        <td>${pay.properties?.property_name || 'Property'}</td>
+                        <td style="font-weight:700; color: var(--text-primary);">₱${amount}</td>
+                        <td style="text-transform: capitalize;">${pay.payment_method.replace('_', ' ')}</td>
+                        <td style="font-family: monospace; font-size: 0.85rem; font-weight: 600;">${pay.payment_reference_number}</td>
+                        <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                        <td>
+                            <button class="action-btn btn-view" data-payment-id="${pay.id}">View Details</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Error reaching payments API.</td></tr>`;
+            }
+        }
+
+        function openDetailModal(payId) {
+            const pay = paymentsList.find(p => p.id === payId);
+            if (!pay) return;
+
+            const modal = document.getElementById('paymentDetailModal');
+            const content = document.getElementById('modalContent');
+            
+            const submitDate = new Date(pay.submitted_at).toLocaleString();
+            const amount = parseFloat(pay.payment_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+            
+            let statusColor = '#f59e0b';
+            let statusLabel = 'PENDING VERIFICATION';
+            if (pay.payment_status === 'verified') {
+                statusColor = '#10b981';
+                statusLabel = 'PAID';
+            } else if (pay.payment_status === 'rejected') {
+                statusColor = '#ef4444';
+                statusLabel = 'REJECTED';
+            }
+
+            content.innerHTML = `
+                <div class="details-grid">
+                    <div class="details-item"><span class="details-lbl">Billing Cycle</span><span class="details-val">${pay.billing_records?.billing_month || 'N/A'}</span></div>
+                    <div class="details-item"><span class="details-lbl">Amount Paid</span><span class="details-val" style="color:${statusColor};">₱${amount} PHP</span></div>
+                    <div class="details-item"><span class="details-lbl">Method / Channel</span><span class="details-val" style="text-transform: capitalize;">${pay.payment_method.replace('_', ' ')}</span></div>
+                    <div class="details-item"><span class="details-lbl">Reference Number</span><span class="details-val" style="font-family:monospace;">${pay.payment_reference_number}</span></div>
+                    <div class="details-item"><span class="details-lbl">Submitted On</span><span class="details-val">${submitDate}</span></div>
+                    <div class="details-item"><span class="details-lbl">Verification Status</span><span class="details-val" style="color:${statusColor}; font-weight:800;">${statusLabel}</span></div>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <span class="details-lbl">Proof of Payment</span>
+                    <div>
+                        <a href="${pay.payment_proof_url}" target="_blank">
+                            <img src="${pay.payment_proof_url}" class="receipt-preview" alt="Proof Receipt">
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="details-lbl">Landlord Evaluation Notes</span>
+                    <div style="font-size:0.875rem; color:var(--text-secondary); background:var(--bg-primary); border:1px solid var(--border-color); padding:0.75rem; border-radius:4px; margin-top:0.25rem;">
+                        ${pay.verification_remarks ? pay.verification_remarks : '<span style="color:var(--text-muted); font-style:italic;">Awaiting review by property landlord.</span>'}
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('paymentDetailModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Tenant Payments - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .payments-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9375rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+
+        /* Verification modal dialog */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            box-shadow: var(--shadow-premium);
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+        .hidden {
+            display: none !important;
+        }
+        .action-btn {
+            padding: 0.45rem 1rem;
+            font-size: 0.8125rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-audit {
+            background-color: var(--landlord);
+            color: white;
+        }
+        .btn-audit:hover {
+            background-color: var(--landlord-hover);
+        }
+        .btn-view {
+            background-color: var(--bg-primary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .btn-view:hover {
+            background-color: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-landlord">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-landlord">Landlord</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">My Properties</a>
+                <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Tenant Screening</a>
+                <a href="leases.html" class="navbar-menu-link">Leases</a>
+                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
+                <a href="billings.html" class="navbar-menu-link">Billings</a>
+                <a href="payments.html" class="navbar-menu-link active">Payments</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Verify Tenant Payments</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Audit reference codes, view uploaded proof documents, and assess balances status.</p>
+
+        <div class="payments-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date Submitted</th>
+                        <th>Tenant</th>
+                        <th>Property & Month</th>
+                        <th>Amount Paid</th>
+                        <th>Method</th>
+                        <th>Reference Code</th>
+                        <th>Proof File</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentsTableBody">
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: var(--text-muted);">Loading payment transactions...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Verification Modal -->
+    <div id="verifyModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: var(--primary); margin:0;">Audit Payment Submission</h3>
+                <button id="closeModalBtn" class="modal-close">&times;</button>
+            </div>
+            <div id="modalErrorMessage" class="status-badge status-rejected hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
+
+            <form id="verifyForm">
+                <input type="hidden" id="modalPaymentId">
+                
+                <div class="form-group">
+                    <label class="form-label">Payment Audit details</label>
+                    <div style="font-size:0.95rem; color:var(--text-secondary); border-bottom:1px solid var(--border-color); padding-bottom:0.75rem; margin-bottom:0.75rem;">
+                        <p style="margin-bottom:0.25rem;"><strong>Tenant Name:</strong> <span id="auditTenant">Name</span></p>
+                        <p style="margin-bottom:0.25rem;"><strong>Ref Code:</strong> <span id="auditRef" style="font-family:monospace; font-weight:600;">Code</span></p>
+                        <p style="margin-bottom:0.25rem;"><strong>Amount Paid:</strong> <span id="auditAmount" style="color:var(--landlord); font-weight:700;">₱0.00</span></p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="verificationStatus">Verification Decision</label>
+                    <select id="verificationStatus" class="form-input" required>
+                        <option value="">-- Choose Decision --</option>
+                        <option value="verified">Verified & Approved (Marks billing paid/partially paid)</option>
+                        <option value="rejected">Rejected (Invalid / Fraudulent Receipt)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label" for="verificationRemarks">Remarks / Reason (Required on Rejection)</label>
+                    <textarea id="verificationRemarks" class="form-input" placeholder="e.g. Reference code verified, or Invalid screenshot uploaded..." style="height: 100px;"></textarea>
+                </div>
+
+                <button type="submit" id="submitVerifyBtn" class="btn-primary" style="background-color: var(--landlord); border-color: var(--landlord); width: 100%; margin-top: 1rem;">
+                    Submit Assessment
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let paymentsMap = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchLandlordPayments();
+
+            document.getElementById('closeModalBtn').addEventListener('click', hideModal);
+            document.getElementById('verifyForm').addEventListener('submit', handleVerifySubmit);
+
+            // Dynamic event delegation
+            document.getElementById('paymentsTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-payment-id]');
+                if (btn) {
+                    const payId = btn.dataset.paymentId;
+                    const pay = paymentsMap[payId];
+                    if (pay) openVerifyModal(pay);
+                }
+            });
+        });
+
+        async function fetchLandlordPayments() {
+            const tableBody = document.getElementById('paymentsTableBody');
+            try {
+                const response = await fetch('/api/payments', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--error);">Failed to load payments queue.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const list = result.data || [];
+
+                if (list.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 3rem; color: var(--text-muted);">No payment submissions found.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                paymentsMap = {};
+
+                list.forEach(pay => {
+                    paymentsMap[pay.id] = pay;
+                    const amount = parseFloat(pay.payment_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    
+                    const submitDate = new Date(pay.submitted_at).toLocaleDateString(undefined, { 
+                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                    });
+
+                    let statusClass = 'status-pending';
+                    let statusLabel = 'PENDING VERIFICATION';
+                    if (pay.payment_status === 'verified') {
+                        statusClass = 'status-active';
+                        statusLabel = 'VERIFIED';
+                    } else if (pay.payment_status === 'rejected') {
+                        statusClass = 'status-rejected';
+                        statusLabel = 'REJECTED';
+                    }
+
+                    let actionBtn = '';
+                    if (pay.payment_status === 'pending_verification') {
+                        actionBtn = `<button class="action-btn btn-audit" data-payment-id="${pay.id}">Audit</button>`;
+                    } else {
+                        actionBtn = `<span style="font-size:0.8125rem; color:var(--text-muted); font-style:italic;">Audited</span>`;
+                    }
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${submitDate}</td>
+                        <td>
+                            <div style="font-weight: 700;">${pay.users?.full_name || 'Tenant'}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${pay.users?.email || ''}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">${pay.properties?.property_name || 'Property'}</div>
+                            <div style="font-size:0.75rem; color:var(--primary); font-weight:700;">Month: ${pay.billing_records?.billing_month || 'N/A'}</div>
+                        </td>
+                        <td style="font-weight:700; color:var(--text-primary);">₱${amount}</td>
+                        <td style="text-transform: capitalize;">${pay.payment_method.replace('_', ' ')}</td>
+                        <td style="font-family: monospace; font-size: 0.85rem; font-weight: 600;">${pay.payment_reference_number}</td>
+                        <td>
+                            <a href="${pay.payment_proof_url}" target="_blank" class="action-btn btn-view">View File</a>
+                        </td>
+                        <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                        <td>${actionBtn}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--error);">Error reaching payments API.</td></tr>`;
+            }
+        }
+
+        function openVerifyModal(pay) {
+            document.getElementById('modalPaymentId').value = pay.id;
+            document.getElementById('auditTenant').textContent = pay.users?.full_name || 'N/A';
+            document.getElementById('auditRef').textContent = pay.payment_reference_number;
+            document.getElementById('auditAmount').textContent = `₱${parseFloat(pay.payment_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} PHP`;
+            document.getElementById('modalErrorMessage').classList.add('hidden');
+            
+            document.getElementById('verifyModal').classList.remove('hidden');
+        }
+
+        function hideModal() {
+            document.getElementById('verifyModal').classList.add('hidden');
+            document.getElementById('verifyForm').reset();
+        }
+
+        async function handleVerifySubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitVerifyBtn');
+            const errorDiv = document.getElementById('modalErrorMessage');
+
+            const status = document.getElementById('verificationStatus').value;
+            const remarks = document.getElementById('verificationRemarks').value.trim();
+
+            if (status === 'rejected' && !remarks) {
+                errorDiv.textContent = 'Remarks are strictly required when rejecting a payment.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting evaluation...';
+            errorDiv.classList.add('hidden');
+
+            const payload = {
+                payment_status: status,
+                verification_remarks: remarks
+            };
+
+            const payId = document.getElementById('modalPaymentId').value;
+
+            try {
+                const response = await fetch(`/api/payments/${payId}/verify`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(`Payment transaction successfully assessed as ${status.toUpperCase()}.`);
+                    hideModal();
+                    fetchLandlordPayments();
+                } else {
+                    errorDiv.textContent = result.message || 'Verification update failed.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = 'An error occurred during status update transmission.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Assessment';
+            }
+        }
+    </script>
+</body>
+</html>

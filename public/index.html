@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DomiKnow — Premium Rental & Boarding House Finder in Siniloan, Laguna</title>
+    <link href="css/input.css" rel="stylesheet">
+    <!-- Leaflet.js for interactive property map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* DOMIKNOW LIGHT MODE COLOR PALETTE (From Specs) */
+            --bg-color: #F8FAFC;          /* Primary Background (50-55%) */
+            --surface: #FFFFFF;           /* Surface (25-30%) */
+            --primary-dark: #042458;      /* Primary Dark (10-15% - Headings, nav, text) */
+            --primary-action: #0355F3;    /* Primary Action (5-10% - Buttons, links, highlights) */
+            
+            --primary: #0355F3;
+            --primary-deep: #042458;
+            --primary-light: #3B82F6;
+            --accent: #0355F3;
+            --accent-glow: rgba(3, 85, 243, 0.25);
+            --emerald: #10b981;
+            --light-bg: #E2E8F0;
+            --soft-pink: #EDF4FE;
+            --text-dark: #042458;
+            --text-normal: #042458;
+            --text-muted: #475569;
+            --border-color: rgba(4, 36, 88, 0.12);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(4, 36, 88, 0.15);
+            --glass-shadow: 0 25px 60px rgba(4, 36, 88, 0.08);
+
+            /* DOMIKNOW DARK MODE COLOR PALETTE (Hero Dark Card & Contrast Elements) */
+            --dark-bg: #0F141B;           /* Primary Background */
+            --dark-surface: #1A212C;      /* Surface */
+            --dark-surface-2: #2A3444;    /* Secondary Surface */
+            --dark-action: #3B82F6;       /* Primary Action */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-normal);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* ── NOISE OVERLAY ── */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.03;
+            mix-blend-mode: overlay;
+        }
+
+        /* ════════════════════════════════════════════════
+                   /* ── HERO WRAPPER ── */
+        .aurora-hero-wrapper {
+            position: relative;
+            background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+            border-radius: 36px;
+            max-width: 1420px;
+            margin: 0.5rem auto 1.5rem auto;
+            padding-bottom: 0.1px;
+            overflow: visible;
+            box-shadow: 0 20px 60px rgba(4, 36, 88, 0.08);
+        }
+
+        @media (max-width: 1440px) {
+            .aurora-hero-wrapper {
+                margin: 0.5rem;
+                border-radius: 28px;
+            }
+        }
+
+        /* ── NAVBAR STYLING ── */
+        .landing-header {
+            background: transparent;
+            padding: 1rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .landing-header.scrolled {
+            position: sticky;
+            top: 0;
+            padding: 0.85rem 2.5rem;
+            background: rgba(248, 250, 252, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(4, 36, 88, 0.08);
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #042458;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            text-decoration: none;
+            letter-spacing: -0.03em;
+        }
+
+        .logo sup {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: #042458;
+            vertical-align: super;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, #042458 0%, #0355F3 100%);
+            padding: 0.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(3, 85, 243, 0.35);
+            color: white;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .nav-link {
+            color: #042458;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            transition: color 0.25s ease;
+        }
+
+        .nav-link:hover {
+            color: #0355F3;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn-signup {
+            background: #0355F3;
+            color: white;
+            padding: 0.55rem 1.25rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            box-shadow: 0 8px 24px rgba(3, 85, 243, 0.35);
+            transition: all 0.3s ease;
+        }
+
+        .btn-signup:hover {
+            background: #0244C4;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(3, 85, 243, 0.45);
+        }
+
+        .btn-arrow-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            color: #0355F3;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+
+        /* ── HERO TEXT BACKDROP ── */
+        .hero-backdrop-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(80px, 11vw, 155px);
+            font-weight: 900;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            color: #042458;
+            opacity: 0.12;
+            line-height: 0.85;
+            margin: 0;
+            padding: 0 1rem;
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+            position: relative;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        /* ── CENTRAL 3D BUILDING (EMERGES FROM CONTAINER BOTTOM, OVERLAPPING TOP) ── */
+        .hero-building-container {
+            position: absolute;
+            bottom: -130px;
+            left: 58%;
+            transform: translateX(-50%);
+            z-index: 15;
+            pointer-events: none;
+            width: auto;
+            height: 820px;
+            max-width: 650px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            /* Raised UP to bottom: -130px and shifted further RIGHT to left: 58% with native bottom floor clipping */
+            clip-path: inset(-650px -150px 130px -150px);
+        }
+
+        .hero-building-image {
+            height: 100%;
+            width: auto;
+            max-height: 820px;
+            object-fit: contain;
+            object-position: bottom center;
+            -webkit-mask-image: none;
+            mask-image: none;
+            filter: drop-shadow(0 30px 60px rgba(4, 36, 88, 0.35));
+            animation: floatBuilding 7s ease-in-out infinite;
+            will-change: transform;
+        }
+
+        @keyframes floatBuilding {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-16px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        /* ── DARK BOTTOM CARD ── */
+        .hero-dark-card {
+            background: linear-gradient(135deg, #0F141B 0%, #1A212C 50%, #2A3444 100%);
+            border-radius: 32px;
+            margin: 20px 1.5rem 20px 1.5rem;
+            padding: 2.75rem 2.5rem 2.25rem 2.5rem;
+            min-height: 380px;
+            box-shadow: 0 30px 80px rgba(15, 20, 27, 0.5);
+            position: relative;
+            z-index: 5;
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 2.5rem;
+            overflow: visible;
+        }
+
+        @media (max-width: 1100px) {
+            .hero-dark-card {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 3rem 2rem;
+                margin-top: 220px;
+                margin-bottom: 24px;
+            }
+
+            .hero-building-container {
+                height: 500px;
+                bottom: -24px;
+            }
+        }
+
+        /* ── LEFT COLUMN: TAGLINE & BADGES ── */
+        .hero-left-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 2.5rem;
+        }
+
+        .hero-tagline {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(1.4rem, 2.2vw, 2.1rem);
+            font-weight: 500;
+            color: #ffffff;
+            line-height: 1.35;
+            max-width: 440px;
+            letter-spacing: -0.01em;
+        }
+
+        .hero-badge-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .hero-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.65rem 1.6rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1.5px solid rgba(59, 130, 246, 0.3);
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            width: max-content;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .hero-badge-pill:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3B82F6;
+            transform: translateX(6px);
+        }
+
+        /* Stair-step indentation */
+        .hero-badge-pill:nth-child(1) {
+            margin-left: 0;
+        }
+
+        .hero-badge-pill:nth-child(2) {
+            margin-left: 1.5rem;
+        }
+
+        .hero-badge-pill:nth-child(3) {
+            margin-left: 3rem;
+        }
+
+        .hero-badge-pill:nth-child(4) {
+            margin-left: 4.5rem;
+        }
+
+        .hero-badge-pill:nth-child(5) {
+            margin-left: 6rem;
+        }
+
+        @media (max-width: 640px) {
+            .hero-badge-pill {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* ── RIGHT COLUMN: DISCOVER MORE ── */
+        .hero-right-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: flex-end;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 1100px) {
+            .hero-right-col {
+                align-items: flex-start;
+                margin-top: 1rem;
+            }
+        }
+
+        .hero-discover-label {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: rgba(226, 232, 240, 0.85);
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        /* Large arrow CTA card */
+        .hero-arrow-btn {
+            width: 110px;
+            height: 110px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            box-shadow:
+                0 2px 0 rgba(255, 255, 255, 0.08) inset,
+                0 16px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .hero-arrow-btn svg {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hero-arrow-btn:hover {
+            background: linear-gradient(135deg, #0355F3, #3B82F6);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-10px) scale(1.04);
+            box-shadow:
+                0 2px 0 rgba(255, 255, 255, 0.15) inset,
+                0 24px 50px rgba(3, 85, 243, 0.45);
+        }
+
+        .hero-arrow-btn:hover svg {
+            transform: scale(1.1) translate(3px, -3px);
+        }
+
+        /* ── GLASSMORPHISM SEARCH CONTAINER ── */
+        .search-container {
+            max-width: 1350px;
+            margin: -5rem auto 5rem;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 20;
+        }
+
+        .search-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 28px;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+
+        .search-header {
+            background: linear-gradient(135deg, #042458 0%, #0355F3 100%);
+            color: white;
+            padding: 2.25rem 2.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .search-actions {
+            padding: 1.25rem 2.5rem;
+            background: rgba(255, 255, 255, 0.75);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .search-btn {
+            padding: 0.7rem 1.25rem;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            background: white;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #0355F3;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(4, 36, 88, 0.04);
+        }
+
+        .search-btn:hover {
+            background: #0355F3;
+            color: white;
+            border-color: #0355F3;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(3, 85, 243, 0.25);
+        }
+
+        .map-search-layout {
+            display: grid;
+            grid-template-columns: 430px 1fr;
+            height: 670px;
+        }
+
+        @media (max-width: 1024px) {
+            .map-search-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .properties-sidebar {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(15px);
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .properties-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .properties-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(4, 36, 88, 0.2);
+            border-radius: 9999px;
+        }
+
+        #searchMap {
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+        }
+
+        @media (max-width: 1024px) {
+            #searchMap {
+                height: 400px;
+            }
+        }
+
+        .property-item {
+            padding: 1.35rem;
+            border-radius: 18px;
+            margin: 1rem 1.25rem;
+            border: 1.5px solid rgba(226, 232, 240, 0.8);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            box-shadow: 0 4px 15px rgba(4, 36, 88, 0.03);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .property-item:hover {
+            border-color: #0355F3;
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 12px 30px rgba(3, 85, 243, 0.15);
+        }
+
+        .property-item.selected {
+            background: #ffffff;
+            border-color: #0355F3;
+            box-shadow: 0 12px 30px rgba(3, 85, 243, 0.25);
+        }
+
+        .property-item.selected::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: linear-gradient(to bottom, #0355F3, #3B82F6);
+        }
+
+        .property-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.125rem;
+            color: #042458;
+            line-height: 1.3;
+        }
+
+        .property-price {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #0355F3;
+        }
+
+        .property-address {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            line-height: 1.4;
+        }
+
+        .property-address svg {
+            flex-shrink: 0;
+            color: #0355F3;
+        }
+
+        .property-meta {
+            display: flex;
+            gap: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-normal);
+            flex-wrap: wrap;
+            align-items: center;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 0.625rem;
+            margin-top: 0.25rem;
+        }
+
+        .property-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: rgba(3, 85, 243, 0.06);
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #0355F3;
+        }
+
+        .distance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.6rem;
+            background: #EDF4FE;
+            color: #0355F3;
+            border-radius: 8px;
+            font-size: 0.725rem;
+            font-weight: 800;
+        }
+
+        /* ── FEATURES GRID SECTION ── */
+        .features-section {
+            max-width: 1350px;
+            margin: 5rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+
+        .section-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #042458;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.75rem;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2.25rem;
+            border: 1.5px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(4, 36, 88, 0.04);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 45px rgba(3, 85, 243, 0.15);
+            border-color: #0355F3;
+        }
+
+        .feature-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(4, 36, 88, 0.08) 0%, rgba(3, 85, 243, 0.15) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0355F3;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #042458;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        /* ── FOOTER ── */
+        .landing-footer {
+            background: linear-gradient(180deg, #042458 0%, #0F141B 100%);
+            color: white;
+            padding: 4.5rem 3rem 2.5rem;
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .footer-grid {
+            max-width: 1350px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 900px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9375rem;
+            margin-top: 1rem;
+            line-height: 1.6;
+            max-width: 360px;
+        }
+
+        .footer-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
+            color: #3B82F6;
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            max-width: 1350px;
+            margin: 0 auto;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8125rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ── MULTI-DIRECTIONAL & STAGGERED SCROLL REVEAL ANIMATIONS ── */
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(45px);
+            transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal-right {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal-active {
+            opacity: 1 !important;
+            transform: translate(0, 0) scale(1) !important;
+        }
+
+        .stagger-1 {
+            transition-delay: 0.1s;
+        }
+
+        .stagger-2 {
+            transition-delay: 0.25s;
+        }
+
+        .stagger-3 {
+            transition-delay: 0.4s;
+        }
+
+        /* ── COUNTER ANIMATION ── */
+        .stat-number[data-target] {
+            display: inline-block;
+        }
+
+        /* ── TYPEWRITER CURSOR ── */
+        .typewriter-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 0.9em;
+            background: var(--accent);
+            border-radius: 2px;
+            margin-left: 2px;
+            vertical-align: middle;
+            animation: blink 0.9s step-end infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* ── BUTTON RIPPLE ── */
+        .btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: rippleEffect 0.55s linear;
+            background-color: rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+        }
+
+        @keyframes rippleEffect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* ── 3D TILT ON FEATURE CARDS ── */
+        .feature-card {
+            transform-style: preserve-3d;
+            perspective: 800px;
+            will-change: transform;
+        }
+
+        .feature-card .card-inner-glow {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle at 50% 50%, rgba(3, 85, 243, 0.12), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+        }
+
+        .feature-card:hover .card-inner-glow {
+            opacity: 1;
+        }
+
+        /* ── SCROLLING MARQUEE STRIP ── */
+        .marquee-strip {
+            background: linear-gradient(135deg, #042458 0%, #0F141B 100%);
+            padding: 1.15rem 0;
+            overflow: hidden;
+            white-space: nowrap;
+            border-top: 1px solid rgba(59, 130, 246, 0.25);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.25);
+            box-shadow: 0 10px 30px rgba(4, 36, 88, 0.15);
+        }
+
+        .marquee-track {
+            display: inline-flex;
+            gap: 3rem;
+            animation: marqueeScroll 28s linear infinite;
+        }
+
+        .marquee-track:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes marqueeScroll {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .marquee-item {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.875rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .marquee-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #3B82F6;
+            flex-shrink: 0;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+        }
+
+        /* ── HOW IT WORKS SECTION ── */
+        .how-it-works {
+            max-width: 1350px;
+            margin: 6rem auto;
+            padding: 0 2rem;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            position: relative;
+            margin-top: 3.5rem;
+        }
+
+        .steps-grid::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(to right, #0355F3, #042458, #3B82F6);
+            z-index: 0;
+            border-radius: 99px;
+        }
+
+        @media (max-width: 900px) {
+            .steps-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .steps-grid::before {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 22px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border: 1.5px solid var(--border-color);
+            box-shadow: 0 8px 25px rgba(4, 36, 88, 0.04);
+            position: relative;
+            z-index: 1;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(3, 85, 243, 0.15);
+            border-color: #0355F3;
+        }
+
+        .step-number {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #042458 0%, #0355F3 100%);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            box-shadow: 0 8px 20px rgba(3, 85, 243, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .step-card:hover .step-number {
+            transform: scale(1.15) rotate(-5deg);
+            box-shadow: 0 12px 28px rgba(3, 85, 243, 0.4);
+        }
+
+        .step-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #042458;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-card p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Noise Grain Overlay -->
+    <svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg">
+        <filter id="noiseFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+    </svg>
+
+    <!-- ════════ PREMIUM HERO ════════ -->
+    <div class="aurora-hero-wrapper">
+
+        <!-- Navbar -->
+        <header class="landing-header" id="mainHeader">
+            <!-- Logo -->
+            <a href="index.html" class="logo">
+                <span>DomiKnow<sup>™</sup></span>
+            </a>
+
+            <!-- Centered Nav -->
+            <nav class="nav-links">
+                <a href="#searchSection" class="nav-link">Search Map</a>
+                <a href="#featuresSection" class="nav-link">Features</a>
+                <a href="#howItWorks" class="nav-link">How It Works</a>
+            </nav>
+
+            <!-- Auth / CTA Button -->
+            <div class="auth-buttons">
+                <a href="pages/auth/register.html" class="btn-signup">
+                    <span>Inquire Now</span>
+                    <span class="btn-arrow-circle">↗</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Giant backdrop headline -->
+        <h1 class="hero-backdrop-title">DOMIKNOW</h1>
+
+        <!-- Dark info card -->
+        <div class="hero-dark-card">
+
+            <!-- Floating 3D Skyscraper Building Illustration (User Uploaded & Background Cleaned) -->
+            <div class="hero-building-container" id="heroBuilding">
+                <img src="images/new_building_clean.png" alt="3D Modern Luxury Skyscraper Building"
+                    class="hero-building-image" loading="eager">
+            </div>
+
+            <!-- LEFT: tagline + stair-step pills -->
+            <div class="hero-left-col">
+                <p class="hero-tagline">We match renters to spaces, finding the perfect verified rental home in
+                    Siniloan.</p>
+
+                <div class="hero-badge-stack">
+                    <div class="hero-badge-pill">Verified student spaces</div>
+                    <div class="hero-badge-pill">Zero hidden broker fees</div>
+                    <div class="hero-badge-pill">Smart utility tracking</div>
+                    <div class="hero-badge-pill">Seamless digital leases</div>
+                    <div class="hero-badge-pill">Handpicked Siniloan rentals</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: discover more CTA -->
+            <div class="hero-right-col">
+                <span class="hero-discover-label">Discover More</span>
+                <a href="#searchSection" class="hero-arrow-btn" aria-label="Discover more">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="7" y1="17" x2="17" y2="7"></line>
+                        <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                </a>
+            </div>
+
+        </div><!-- /hero-dark-card -->
+    </div><!-- /aurora-hero-wrapper -->
+
+    <!-- Scrolling Marquee Feature Strip -->
+    <div class="marquee-strip">
+        <div class="marquee-track">
+            <span class="marquee-item"><span class="marquee-dot"></span>Digital Lease Contracts</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Submeter Electricity Billing</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Verified Landlords</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Transparent Monthly Bills</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>E-Signature Lease Execution</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Tenant Screening Portal</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Water & Internet Monitoring</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Interactive Property Map</span>
+            <!-- Duplicate set for seamless loop -->
+            <span class="marquee-item"><span class="marquee-dot"></span>Digital Lease Contracts</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Submeter Electricity Billing</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Verified Landlords</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Transparent Monthly Bills</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>E-Signature Lease Execution</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Tenant Screening Portal</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Water & Internet Monitoring</span>
+            <span class="marquee-item"><span class="marquee-dot"></span>Interactive Property Map</span>
+        </div>
+    </div>
+
+    <!-- Search Section with reveal-scale -->
+    <div class="search-container reveal-scale" id="searchSection">
+        <div class="search-card">
+            <div class="search-header">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    Interactive Property Search Map
+                </h2>
+                <p class="search-instructions">Click anywhere on the map to discover available rental properties near
+                    that area, or use the quick filter buttons below.</p>
+                <div id="propertyCount"
+                    style="font-size: 0.875rem; margin-top: 0.625rem; font-weight: 700; color: rgba(255, 255, 255, 0.85);">
+                    <span id="countText">Loading verified listings...</span>
+                </div>
+            </div>
+
+            <div class="search-actions">
+                <button id="btnMyLocation" class="search-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M22 12h-4M6 12H2M12 2v4M12 18v4"></path>
+                    </svg>
+                    Properties Near Me
+                </button>
+                <button id="btnCenterSiniloan" class="search-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <line x1="15" y1="3" x2="15" y2="21"></line>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="3" y1="15" x2="21" y2="15"></line>
+                    </svg>
+                    Siniloan Center
+                </button>
+                <button id="btnNearSchool" class="search-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                        <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+                    </svg>
+                    Near LSPU Campus
+                </button>
+                <button id="btnShowAll" class="search-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    Show All Properties
+                </button>
+            </div>
+
+            <div class="map-search-layout">
+                <div class="properties-sidebar" id="propertiesSidebar">
+                    <div class="no-properties">
+                        <div style="margin-bottom: 1rem; color: var(--primary);">
+                            <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="40" height="40"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round"
+                                style="animation: spin 1.5s linear infinite;">
+                                <line x1="12" y1="2" x2="12" y2="6"></line>
+                                <line x1="12" y1="18" x2="12" y2="22"></line>
+                                <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                                <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                                <line x1="2" y1="12" x2="6" y2="12"></line>
+                                <line x1="18" y1="12" x2="22" y2="12"></line>
+                                <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                                <line x1="16.24" y1="7.76" x2="19.07" y2="4.93">
+                            </svg>
+                        </div>
+                        <div style="font-weight: 700; margin-bottom: 0.5rem; color: var(--primary);">Loading
+                            properties...</div>
+                        <div style="font-size: 0.875rem;">Fetching available listings in Siniloan</div>
+                    </div>
+                </div>
+                <div id="searchMap"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Grid Section with staggered reveal -->
+    <section class="features-section" id="featuresSection">
+        <div class="section-header reveal-up">
+            <h2>Why Choose DomiKnow?</h2>
+            <p>Empowering tenants and landlords with modern, legally transparent rental management.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card reveal-up stagger-1">
+                <div class="card-inner-glow"></div>
+                <div class="feature-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <polyline points="9 11 12 14 15 9"></polyline>
+                    </svg>
+                </div>
+                <h3>Verified Trust Score</h3>
+                <p>Landlords and tenants undergo screening and trust score evaluation to maintain a safe, fraud-free
+                    rental ecosystem.</p>
+            </div>
+
+            <div class="feature-card reveal-up stagger-2">
+                <div class="card-inner-glow"></div>
+                <div class="feature-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                </div>
+                <h3>Digital Lease Execution</h3>
+                <p>Legally binding lease agreements with electronic signatures and enforceable utility configuration
+                    terms.</p>
+            </div>
+
+            <div class="feature-card reveal-up stagger-3">
+                <div class="card-inner-glow"></div>
+                <div class="feature-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
+                <h3>Submeter Utilities Tracking</h3>
+                <p>Automated monthly utility billing based on submeter readings or fixed rent inclusions configured in
+                    your lease.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="howItWorks">
+        <div class="section-header reveal-up">
+            <h2>How DomiKnow Works</h2>
+            <p>From browsing to signing a lease — everything is streamlined and transparent.</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card reveal-up stagger-1">
+                <div class="step-number">1</div>
+                <h3>Browse Properties</h3>
+                <p>Explore the interactive map to discover verified rentals near schools, work, or any location.</p>
+            </div>
+            <div class="step-card reveal-up stagger-2">
+                <div class="step-number">2</div>
+                <h3>Apply Online</h3>
+                <p>Submit your rental application digitally. Attach documents and track your status in real time.</p>
+            </div>
+            <div class="step-card reveal-up stagger-3">
+                <div class="step-number">3</div>
+                <h3>Sign Your Lease</h3>
+                <p>Receive and e-sign your digital lease contract. Utility terms are locked in from the start.</p>
+            </div>
+            <div class="step-card reveal-up" style="transition-delay:0.55s">
+                <div class="step-number">4</div>
+                <h3>Monitor & Pay</h3>
+                <p>Track submeter readings, view itemized billing, and pay monthly rent — all in one dashboard.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                    </div>
+                    <span>DomiKnow</span>
+                </div>
+                <p>Smart rental management & boarding house directory dedicated to Siniloan, Laguna.</p>
+            </div>
+
+            <div>
+                <div class="footer-title">Platform</div>
+                <ul class="footer-links">
+                    <li><a href="#searchSection">Explore Listings</a></li>
+                    <li><a href="pages/auth/login.html">Tenant Portal</a></li>
+                    <li><a href="pages/auth/login.html">Landlord Portal</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-title">Services</div>
+                <ul class="footer-links">
+                    <li><a href="#featuresSection">Utilities Monitoring</a></li>
+                    <li><a href="#featuresSection">Lease Management</a></li>
+                    <li><a href="#featuresSection">Tenant Screening</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-title">Location</div>
+                <p style="font-size:0.875rem; color:rgba(255,255,255,0.7); line-height:1.6;">
+                    📍 Siniloan, Laguna, Philippines<br>
+                    Serving LSPU Siniloan Students & Residents
+                </p>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>© 2026 DomiKnow. All rights reserved.</div>
+            <div>Built for Siniloan Rental Community</div>
+        </div>
+    </footer>
+
+    <script>
+        let map, searchMarker;
+        let propertiesData = [];
+        let propertyMarkers = [];
+        const defaultLat = 14.425;
+        const defaultLng = 121.440;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Intersection Observer for Multi-directional & Staggered Scroll Animations
+            const revealCallback = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('reveal-active');
+                    }
+                });
+            };
+
+            const revealObserver = new IntersectionObserver(revealCallback, {
+                threshold: 0.12,
+                rootMargin: '0px 0px -30px 0px'
+            });
+
+            document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+                revealObserver.observe(el);
+            });
+
+            // 2. Mouse parallax on backdrop title
+            document.addEventListener('mousemove', (e) => {
+                const mouseX = (e.clientX / window.innerWidth - 0.5) * 12;
+                const mouseY = (e.clientY / window.innerHeight - 0.5) * 12;
+                const heroTitle = document.querySelector('.hero-backdrop-title');
+                if (heroTitle) {
+                    heroTitle.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+                }
+            });
+
+            // 3. Header Scroll Shrink on Window Scroll
+            window.addEventListener('scroll', () => {
+                const scrollY = window.scrollY;
+                const header = document.querySelector('.landing-header');
+
+                if (scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+
+            // 4. Counter Animation for stat numbers
+            const counterObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    const el = entry.target;
+                    const target = parseInt(el.dataset.target);
+                    const suffix = el.dataset.suffix || '';
+                    if (target === 0) { el.textContent = '0' + suffix; counterObserver.unobserve(el); return; }
+                    let current = 0;
+                    const duration = 1500;
+                    const step = target / (duration / 16);
+                    const tick = () => {
+                        current = Math.min(current + step, target);
+                        el.textContent = Math.floor(current) + suffix;
+                        if (current < target) requestAnimationFrame(tick);
+                    };
+                    requestAnimationFrame(tick);
+                    counterObserver.unobserve(el);
+                });
+            }, { threshold: 0.5 });
+
+            document.querySelectorAll('.stat-number[data-target]').forEach(el => counterObserver.observe(el));
+
+
+
+            // 6. Button Ripple Effect
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple';
+                    const rect = btn.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    ripple.style.cssText = `
+                        width: ${size}px;
+                        height: ${size}px;
+                        left: ${e.clientX - rect.left - size / 2}px;
+                        top: ${e.clientY - rect.top - size / 2}px;
+                    `;
+                    btn.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // 7. 3D Tilt Effect on Feature Cards
+            document.querySelectorAll('.feature-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = ((y - centerY) / centerY) * -10;
+                    const rotateY = ((x - centerX) / centerX) * 10;
+                    card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px)`;
+                    const glow = card.querySelector('.card-inner-glow');
+                    if (glow) {
+                        glow.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(3, 85, 243, 0.18), transparent 70%)`;
+                    }
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = '';
+                });
+            });
+
+            initializeMap();
+            loadAllProperties();
+
+            // Button actions
+            document.getElementById('btnMyLocation').addEventListener('click', getMyLocation);
+            document.getElementById('btnCenterSiniloan').addEventListener('click', () => searchByLocation(14.425, 121.440));
+            document.getElementById('btnNearSchool').addEventListener('click', () => searchByLocation(14.430, 121.445));
+            document.getElementById('btnShowAll').addEventListener('click', showAllProperties);
+
+            // Sidebar click delegation
+            document.getElementById('propertiesSidebar').addEventListener('click', (e) => {
+                const item = e.target.closest('.property-item');
+                if (item) {
+                    const propertyId = item.getAttribute('data-property-id');
+                    showPropertyDetails(propertyId);
+                }
+            });
+        });
+
+        function initializeMap() {
+            map = L.map('searchMap').setView([defaultLat, defaultLng], 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            map.on('click', function (e) {
+                const { lat, lng } = e.latlng;
+                searchByLocation(lat, lng);
+            });
+
+            map.on('popupopen', function (e) {
+                const container = e.popup.getElement();
+                if (container) {
+                    const btn = container.querySelector('.view-details-btn');
+                    if (btn) {
+                        btn.addEventListener('click', function () {
+                            const propertyId = btn.getAttribute('data-property-id');
+                            showPropertyDetails(propertyId);
+                        });
+                    }
+                }
+            });
+        }
+
+        async function loadAllProperties() {
+            try {
+                const response = await fetch('/api/properties');
+                const result = await response.json();
+
+                if (response.ok) {
+                    const properties = result.data?.properties || result.data || [];
+                    propertiesData = properties;
+                    showAllProperties();
+                } else {
+                    throw new Error(result.message || 'Failed to load properties');
+                }
+            } catch (err) {
+                console.error('Error loading properties:', err);
+                document.getElementById('propertiesSidebar').innerHTML = `
+                    <div class="no-properties">
+                        <div style="margin-bottom: 1rem; color: #ef4444;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                        </div>
+                        <div style="font-weight: 700; margin-bottom: 0.5rem; color: #ef4444;">Error loading properties</div>
+                        <div style="font-size: 0.875rem;">${err.message || 'Please refresh the page or try again later'}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function searchByLocation(lat, lng) {
+            if (searchMarker) {
+                map.removeLayer(searchMarker);
+            }
+
+            searchMarker = L.marker([lat, lng], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            }).addTo(map);
+
+            searchMarker.bindPopup(`
+                <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: var(--primary);">
+                    📍 Search Center
+                </div>
+            `).openPopup();
+            map.setView([lat, lng], 15);
+
+            const nearbyProperties = findNearbyProperties(lat, lng, 5);
+            displayProperties(nearbyProperties, lat, lng);
+            showPropertyMarkers(nearbyProperties);
+        }
+
+        function findNearbyProperties(lat, lng, radiusKm) {
+            return propertiesData
+                .filter(property => property.latitude && property.longitude)
+                .map(property => {
+                    const distance = calculateDistance(lat, lng, property.latitude, property.longitude);
+                    return { ...property, distance };
+                })
+                .filter(property => property.distance <= radiusKm)
+                .sort((a, b) => a.distance - b.distance);
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function displayProperties(properties, searchLat, searchLng) {
+            const sidebar = document.getElementById('propertiesSidebar');
+            const countText = document.getElementById('countText');
+
+            countText.textContent = `Showing ${properties.length} verified ${properties.length === 1 ? 'property' : 'properties'}`;
+
+            if (properties.length === 0) {
+                sidebar.innerHTML = `
+                    <div class="no-properties">
+                        <div style="margin-bottom: 1rem; color: var(--primary);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                        </div>
+                        <div style="font-weight: 700; margin-bottom: 0.5rem; color: var(--primary);">No properties found</div>
+                        <div style="font-size: 0.875rem;">Try clicking a different area on the map</div>
+                    </div>
+                `;
+                return;
+            }
+
+            sidebar.innerHTML = properties.map(property => {
+                const distanceBadge = property.distance !== undefined
+                    ? `<span class="distance-badge">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                         <span>${property.distance.toFixed(2)} km</span>
+                       </span>`
+                    : '';
+
+                const propertyType = property.property_type ? property.property_type.replace(/_/g, ' ') : 'N/A';
+
+                return `
+                    <div class="property-item" data-property-id="${property.id}">
+                        <div class="property-name">${property.property_name || 'Unnamed Property'}</div>
+                        <div class="property-price">₱${parseFloat(property.monthly_rent || 0).toLocaleString()}/month</div>
+                        <div class="property-address">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            <span>${property.address || 'N/A'}, ${property.barangay || 'N/A'}</span>
+                        </div>
+                        <div class="property-meta">
+                            ${distanceBadge}
+                            <span class="property-meta-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span>${propertyType}</span>
+                            </span>
+                            <span class="property-meta-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <span>Max ${property.max_occupants || 'N/A'}</span>
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showPropertyMarkers(properties) {
+            propertyMarkers.forEach(marker => map.removeLayer(marker));
+            propertyMarkers = [];
+
+            properties.forEach(property => {
+                if (!property.latitude || !property.longitude) return;
+
+                const marker = L.marker([property.latitude, property.longitude], {
+                    icon: L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                    })
+                }).addTo(map);
+
+                marker.bindPopup(`
+                    <div style="min-width: 200px; font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <div style="font-weight: 800; font-size: 0.9375rem; margin-bottom: 0.25rem; color: var(--primary);">${property.property_name || 'Unnamed Property'}</div>
+                        <div style="font-weight: 800; color: var(--accent); margin-bottom: 0.25rem; font-size: 1.1rem;">₱${parseFloat(property.monthly_rent || 0).toLocaleString()}/month</div>
+                        <div style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.75rem;">${property.address || 'N/A'}</div>
+                        <button class="view-details-btn" data-property-id="${property.id}" style="width: 100%; padding: 0.55rem; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                            View Property Details
+                        </button>
+                    </div>
+                `);
+
+                marker.on('click', () => {
+                    document.querySelectorAll('.property-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    const sidebarItem = document.querySelector(`[data-property-id="${property.id}"]`);
+                    if (sidebarItem) {
+                        sidebarItem.classList.add('selected');
+                        sidebarItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                });
+
+                propertyMarkers.push(marker);
+            });
+        }
+
+        function showPropertyDetails(propertyId) {
+            window.location.href = `/pages/public/property-details.html?id=${propertyId}`;
+        }
+
+        function showAllProperties() {
+            const sortedProperties = [...propertiesData].sort((a, b) =>
+                parseFloat(a.monthly_rent) - parseFloat(b.monthly_rent)
+            );
+
+            displayProperties(sortedProperties, defaultLat, defaultLng);
+            showPropertyMarkers(sortedProperties);
+            map.setView([defaultLat, defaultLng], 13);
+
+            if (searchMarker) {
+                map.removeLayer(searchMarker);
+                searchMarker = null;
+            }
+        }
+
+        function getMyLocation() {
+            const btn = document.getElementById('btnMyLocation');
+            btn.disabled = true;
+            btn.textContent = 'Locating...';
+
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                btn.disabled = false;
+                btn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4M6 12H2M12 2v4M12 18v4"></path></svg>
+                    Properties Near Me
+                `;
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    searchByLocation(lat, lng);
+                    btn.disabled = false;
+                    btn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4M6 12H2M12 2v4M12 18v4"></path></svg>
+                        Properties Near Me
+                    `;
+                },
+                (error) => {
+                    console.error('Geolocation error:', error);
+                    alert('Unable to get your location. Please click on the map instead.');
+                    btn.disabled = false;
+                    btn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4M6 12H2M12 2v4M12 18v4"></path></svg>
+                        Properties Near Me
+                    `;
+                }
+            );
+        }
+    </script>
+</body>
+
+</html>

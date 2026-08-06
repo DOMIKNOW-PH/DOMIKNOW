@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Billings & Payments - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        /* Modern aesthetic styling */
+        .current-bill-card {
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            color: white;
+            border-radius: var(--radius-lg, 12px);
+            padding: 1.75rem 2rem;
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .current-bill-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.9;
+            margin-bottom: 0.35rem;
+            font-weight: 600;
+        }
+        .current-bill-amount {
+            font-size: 2.25rem;
+            font-weight: 850;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+        .current-bill-due {
+            font-size: 0.9rem;
+            opacity: 0.95;
+            margin-top: 0.35rem;
+        }
+        .current-bill-status-badge {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            backdrop-filter: blur(4px);
+        }
+
+        .billing-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9125rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1.15rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+
+        /* Modal Overlay & Containers */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+        .modal-container {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 580px;
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-primary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 1rem 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-primary);
+            gap: 1rem;
+        }
+        .modal-close-x {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            padding: 0.2rem;
+        }
+
+        .action-btn {
+            padding: 0.45rem 1rem;
+            font-size: 0.8125rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-pay {
+            background-color: var(--tenant);
+            color: white;
+        }
+        .btn-pay:hover {
+            background-color: var(--tenant-hover);
+        }
+        .btn-detail {
+            background-color: var(--bg-primary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .btn-detail:hover {
+            background-color: var(--border-color);
+        }
+        .btn-close {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+
+        /* Detail Breakdown system */
+        .breakdown-box {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.88rem;
+        }
+        .breakdown-row:last-of-type {
+            border-bottom: none;
+        }
+        .breakdown-row.total {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--tenant);
+            border-top: 2px solid var(--border-color);
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
+        }
+        .movein-text {
+            font-weight: 700;
+            color: var(--tenant);
+        }
+    </style>
+</head>
+<body class="app-loading" data-role="tenant" data-page-title="My Billings & Payments">
+    <!-- Navbar -->
+    <nav class="navbar navbar-tenant">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="properties.html" class="navbar-menu-link">Property Discovery</a>
+                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
+                <a href="compare.html" class="navbar-menu-link">Compare Properties</a>
+                <a href="reservations.html" class="navbar-menu-link">My Reservations</a>
+                <a href="applications.html" class="navbar-menu-link">My Applications</a>
+                <a href="screening.html" class="navbar-menu-link">Screening</a>
+                <a href="leases.html" class="navbar-menu-link">My Lease</a>
+                <a href="billings.html" class="navbar-menu-link active">My Billings</a>
+                <a href="payments.html" class="navbar-menu-link">My Payments</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>My Billing Statements</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Monitor monthly accounts rent, submeters utilities, and make payments.</p>
+
+        <!-- Current Active Billing Banner Card -->
+        <div id="currentBillContainer">
+            <!-- Rendered by JS -->
+        </div>
+
+        <!-- Billing Invoice Log History -->
+        <h3>Billing Statement Logs</h3>
+        <div class="billing-card" style="margin-top: 1rem;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Billing Cycle</th>
+                        <th>Property Name</th>
+                        <th>Rent Amount</th>
+                        <th>Total Invoiced</th>
+                        <th>Due Date</th>
+                        <th>Payment Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="billingsTableBody">
+                    <tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Loading statements history...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Bill Details & Pay Modal -->
+    <div id="billDetailModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modalLeaseNumber" style="margin:0;color:var(--text-primary);">Billing statement</h3>
+                <button id="closeDetailModalBtn" class="modal-close-x" title="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="detailModalContent">
+                <!-- Loaded dynamically by JS -->
+            </div>
+            <div class="modal-footer" id="detailModalFooter">
+                <!-- Buttons rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Manual Payment Modal -->
+    <div id="submitPaymentModal" class="modal-overlay hidden">
+        <div class="modal-container" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 style="margin:0;color:var(--text-primary);">Submit Proof of Payment</h3>
+                <button id="closePaymentModalBtn" class="modal-close-x" title="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="paymentForm">
+                <div class="modal-body">
+                    <div id="paymentErrorMsg" class="status-badge status-rejected hidden" style="margin-bottom: 1rem; padding: 0.75rem;"></div>
+                    
+                    <input type="hidden" id="formBillingId" name="billing_id">
+
+                    <div class="form-group">
+                        <label class="form-label">Total Amount Due</label>
+                        <div id="formTotalDue" style="font-size:1.3rem; font-weight:800; color:var(--tenant);">₱0.00</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="formAmountPaid">Amount Paid (₱ PHP)</label>
+                        <input type="number" id="formAmountPaid" class="form-input" required min="0.01" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.4rem;">
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:600;">
+                                <input type="radio" name="payment_method" value="gcash" required>
+                                <span>GCash</span>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:600;">
+                                <input type="radio" name="payment_method" value="maya" required>
+                                <span>Maya</span>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:600;">
+                                <input type="radio" name="payment_method" value="bank_transfer" required>
+                                <span>Bank Transfer</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label class="form-label" for="formReference">Transaction Reference Number</label>
+                        <input type="text" id="formReference" class="form-input" placeholder="e.g. Trace code / Ref #" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="formProofFile">Upload Payment Receipt Proof</label>
+                        <input type="file" id="formProofFile" class="form-input" accept="image/jpeg,image/png,image/jpg,application/pdf" required style="padding:0.4rem;">
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            Accepted formats: JPG, JPEG, PNG, PDF. Max limit: 10MB.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnCancelPayment" class="action-btn btn-detail">Cancel</button>
+                    <button type="submit" id="btnSubmitPayment" class="action-btn btn-pay">Submit Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let myBillings = [];
+        let selectedBill = null;
+
+        function parseUtilitiesConfig(raw) {
+            if (!raw) return {};
+            if (typeof raw === 'object') return raw;
+            if (typeof raw === 'string') {
+                try { return JSON.parse(raw); } catch (e) { return {}; }
+            }
+            return {};
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+
+            loadTenantBillings();
+
+            // Static modals close
+            document.getElementById('closeDetailModalBtn').addEventListener('click', closeDetailModal);
+            document.getElementById('closePaymentModalBtn').addEventListener('click', closePaymentModal);
+            document.getElementById('btnCancelPayment').addEventListener('click', closePaymentModal);
+
+            // Dynamic event delegation on table / dashboard container
+            document.getElementById('currentBillContainer').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-bill-id]');
+                if (btn) openDetailModal(btn.dataset.billId);
+            });
+
+            document.getElementById('billingsTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-bill-id]');
+                if (btn) openDetailModal(btn.dataset.billId);
+            });
+
+            // Dynamic delegation on modal footer
+            document.getElementById('detailModalFooter').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                if (action === 'close') closeDetailModal();
+                if (action === 'pay') {
+                    closeDetailModal();
+                    openPaymentModal(btn.dataset.billId);
+                }
+            });
+
+            document.getElementById('paymentForm').addEventListener('submit', handlePaymentSubmit);
+        });
+
+        async function loadTenantBillings() {
+            const tbody = document.getElementById('billingsTableBody');
+            const dashboard = document.getElementById('currentBillContainer');
+            try {
+                const res = await fetch('/api/billings/my', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444;">Failed to load billing statements.</td></tr>`;
+                    return;
+                }
+
+                const { data: bills } = await res.json();
+                myBillings = bills || [];
+
+                // Filter out 'draft' bills - they should not be visible to the tenant
+                const visibleBills = myBillings.filter(b => b.billing_status !== 'draft');
+
+                if (visibleBills.length === 0) {
+                    dashboard.innerHTML = `
+                        <div class="current-bill-card" style="background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-primary);">
+                            <div>
+                                <h3 style="margin:0;">No Current Outstanding Bill</h3>
+                                <p style="color:var(--text-secondary); margin-top:0.25rem;">You currently have no active or unpaid invoices listed for this month.</p>
+                            </div>
+                        </div>
+                    `;
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem;">No logs found.</td></tr>`;
+                    return;
+                }
+
+                // Identify latest active/unpaid current bill
+                // Filter all unpaid / pending / overdue bills to calculate Total Outstanding Balance
+                const unpaidBills = visibleBills.filter(b => ['pending_payment', 'unpaid', 'overdue', 'waiting_verification'].includes(b.billing_status));
+                
+                if (unpaidBills.length > 0) {
+                    const totalOutstanding = unpaidBills.reduce((sum, b) => sum + parseFloat(b.total_amount || 0), 0);
+                    const formattedTotal = totalOutstanding.toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    
+                    // Identify earliest due bill
+                    const earliestBill = [...unpaidBills].sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0];
+                    const due = new Date(earliestBill.due_date).toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' });
+                    
+                    const isOverdue = unpaidBills.some(b => b.billing_status === 'overdue' || new Date(b.due_date) < new Date());
+                    const statusLabel = isOverdue ? 'OVERDUE BALANCE DETECTED' : `${unpaidBills.length} UNPAID INVOICE${unpaidBills.length > 1 ? 'S' : ''}`;
+                    const badgeBg = isOverdue ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.2)';
+
+                    dashboard.innerHTML = `
+                        <div class="current-bill-card">
+                            <div>
+                                <div class="current-bill-title">Total Outstanding Balance (${unpaidBills.length} Invoice${unpaidBills.length > 1 ? 's' : ''})</div>
+                                <div class="current-bill-amount">₱${formattedTotal}</div>
+                                <div class="current-bill-due">Earliest Due Date: <strong>${due}</strong></div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem;">
+                                <span class="current-bill-status-badge" id="bannerStatusBadge">${statusLabel}</span>
+                                <button class="action-btn btn-detail" data-bill-id="${earliestBill.id}" style="background-color:white; color:#4f46e5; border:none; margin-top:0.5rem;">View Earliest Invoice & Pay</button>
+                            </div>
+                        </div>
+                    `;
+                    const badgeEl = document.getElementById('bannerStatusBadge');
+                    if (badgeEl) badgeEl.style.backgroundColor = badgeBg;
+                } else {
+                    // Latest paid bill as summary
+                    const latestPaid = visibleBills.find(b => b.billing_status === 'paid');
+                    const paidMsg = latestPaid 
+                        ? `Your latest billing cycle for <strong>${latestPaid.billing_month}</strong> was fully paid.`
+                        : 'No pending statements currently require action.';
+                    
+                    dashboard.innerHTML = `
+                        <div class="current-bill-card" style="background:#10b981;">
+                            <div>
+                                <h3 style="margin:0;color:white;">All Bills Cleared</h3>
+                                <p style="color:white; opacity:0.9; margin-top:0.25rem;">${paidMsg}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Render Logs Table
+                tbody.innerHTML = '';
+                visibleBills.forEach(bill => {
+                    const rent = parseFloat(bill.rent_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    const total = parseFloat(bill.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    const due = new Date(bill.due_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                    
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    let statusLabel = bill.billing_status;
+                    let badgeClass = 'status-pending';
+
+                    if (statusLabel === 'paid') badgeClass = 'status-active';
+                    else if (statusLabel === 'cancelled') badgeClass = 'status-rejected';
+                    else if (statusLabel === 'overdue' || (statusLabel === 'pending_payment' && new Date(bill.due_date) < today)) {
+                        statusLabel = 'overdue';
+                        badgeClass = 'status-rejected';
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight:700;color:var(--primary);">${bill.billing_month}</td>
+                        <td>${bill.properties?.property_name || 'Property'}</td>
+                        <td>₱${rent}</td>
+                        <td style="font-weight:700;color:var(--text-primary);">₱${total}</td>
+                        <td style="font-weight:600;">${due}</td>
+                        <td><span class="status-badge ${badgeClass}">${statusLabel.replace('_',' ').toUpperCase()}</span></td>
+                        <td>
+                            <button class="action-btn btn-detail" data-bill-id="${bill.id}">View Details</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444;">Connection error loading billings.</td></tr>`;
+            }
+        }
+
+        async function openDetailModal(billId) {
+            const modal = document.getElementById('billDetailModal');
+            const content = document.getElementById('detailModalContent');
+            const footer = document.getElementById('detailModalFooter');
+
+            document.getElementById('modalLeaseNumber').textContent = 'Billing details';
+            content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading specifications...</div>';
+            footer.innerHTML = '';
+            modal.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`/api/billings/${billId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const { data: bill } = await res.json();
+                selectedBill = bill;
+
+                document.getElementById('modalLeaseNumber').textContent = `Statement: ${bill.lease_records?.lease_number || 'DRAFT'}`;
+
+                const landlord = bill.landlord || {};
+                const prop = bill.properties || {};
+                const rent = parseFloat(bill.rent_amount || 0);
+                const water = parseFloat(bill.water || 0);
+                const elec = parseFloat(bill.electricity || 0);
+                const internet = parseFloat(bill.internet || 0);
+                const parking = parseFloat(bill.parking || 0);
+                const other = parseFloat(bill.other_charges || 0);
+                const penalty = parseFloat(bill.penalty_amount || 0);
+                const total = parseFloat(bill.total_amount || 0);
+
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                let statusLabel = bill.billing_status;
+                let statusColor = '#f59e0b';
+                
+                if (statusLabel === 'paid') statusColor = '#10b981';
+                else if (statusLabel === 'cancelled') statusColor = '#ef4444';
+                else if (statusLabel === 'waiting_verification') statusColor = '#3b82f6';
+                else if (statusLabel === 'overdue' || (statusLabel === 'pending_payment' && new Date(bill.due_date) < today)) {
+                    statusLabel = 'overdue';
+                    statusColor = '#ef4444';
+                }
+
+                // Build dynamic breakdown rows matching lease terms
+                const uConfig = parseUtilitiesConfig(bill.lease_records && bill.lease_records.utilities_covered);
+                const isInc = (type) => {
+                    if (typeof uConfig === 'object' && uConfig !== null && !Array.isArray(uConfig)) {
+                        return uConfig[type] === 'included';
+                    }
+                    if (Array.isArray(uConfig)) return uConfig.includes(type);
+                    return false;
+                };
+
+                const isMoveInBill = bill.billing_month && bill.billing_month.includes('Move-In');
+                let breakdownRows = [];
+
+                // 1. Base Rent (Always)
+                breakdownRows.push(`<div class="breakdown-row"><span>Monthly Base Rent</span><span style="font-weight:700;">₱${rent.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+
+                // 2. Water
+                if (!isInc('water') || water > 0) {
+                    breakdownRows.push(`<div class="breakdown-row"><span>Water Utility Charge <small style="color:var(--tenant);font-weight:700;">(Billed Separately)</small></span><span>₱${water.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 3. Electricity
+                if (!isInc('electricity') || elec > 0) {
+                    breakdownRows.push(`<div class="breakdown-row"><span>Electricity Utility Charge <small style="color:var(--tenant);font-weight:700;">(Billed Separately)</small></span><span>₱${elec.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 4. Internet
+                if (!isInc('internet') || internet > 0) {
+                    breakdownRows.push(`<div class="breakdown-row"><span>Internet Subscription Charge <small style="color:var(--tenant);font-weight:700;">(Billed Separately)</small></span><span>₱${internet.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 5. Parking
+                if (parking > 0) {
+                    breakdownRows.push(`<div class="breakdown-row"><span>Parking Slot Fee</span><span>₱${parking.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 6. Security Deposit & Advance / Other Charges
+                if (isMoveInBill || (!isInc('association_fee') && (other > 0 || isMoveInBill))) {
+                    const label = isMoveInBill ? 'Security Deposit & Advance Payment' : 'Other Charges / Association Fee';
+                    const spanClass = isMoveInBill ? 'class="movein-text"' : '';
+                    breakdownRows.push(`<div class="breakdown-row"><span ${spanClass}>${label}</span><span style="font-weight:700;">₱${other.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 7. Late Penalty
+                if (penalty > 0) {
+                    breakdownRows.push(`<div class="breakdown-row"><span style="color:#ef4444; font-weight:700;">Late Penalty Fine</span><span style="color:#ef4444; font-weight:700;">₱${penalty.toLocaleString(undefined, {minimumFractionDigits:2})}</span></div>`);
+                }
+
+                // 8. Total Amount Due
+                breakdownRows.push(`<div class="breakdown-row total"><span>TOTAL AMOUNT DUE:</span><span>₱${total.toLocaleString(undefined, {minimumFractionDigits:2})} PHP</span></div>`);
+
+                content.innerHTML = `
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; background-color:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1rem;">
+                        <div class="detail-item"><span class="detail-label">Property Unit</span><span class="detail-value">${prop.property_name || '—'}</span></div>
+                        <div class="detail-item"><span class="detail-label">Landlord Name</span><span class="detail-value">${landlord.full_name || '—'}</span></div>
+                        <div class="detail-item"><span class="detail-label">Billing Cycle Month</span><span class="detail-value">${bill.billing_month}</span></div>
+                        <div class="detail-item"><span class="detail-label">Payment Due Date</span><span class="detail-value">${new Date(bill.due_date).toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' })}</span></div>
+                        <div class="detail-item" style="grid-column: span 2;"><span class="detail-label">Invoice Status</span><span class="detail-value" id="modalStatusText" style="font-weight:800;">${statusLabel.replace('_',' ').toUpperCase()}</span></div>
+                    </div>
+
+                    <h4 style="border-bottom:1px solid var(--border-color); padding-bottom:0.4rem; margin-bottom:0.75rem;">Billing Computations Breakdown</h4>
+                    <div class="breakdown-box">
+                        ${breakdownRows.join('')}
+                    </div>
+
+                    ${bill.remarks ? `<div style="margin-top:1rem;"><span class="detail-label">Landlord Remarks & Breakdown Details</span><div style="font-size:0.875rem; color:var(--text-secondary); background:var(--bg-primary); border:1px solid var(--border-color); padding:0.75rem; border-radius:4px; margin-top:0.25rem;">${bill.remarks}</div></div>` : ''}
+                `;
+
+                const statusTxt = document.getElementById('modalStatusText');
+                if (statusTxt) statusTxt.style.color = statusColor;
+
+                // Handle footer button logic:
+                // Show Pay Now / Resubmit button if status allows it
+                const canPay = ['pending_payment', 'unpaid', 'overdue'].includes(bill.billing_status) || (bill.billing_status === 'pending_payment' && statusLabel === 'overdue');
+                
+                if (canPay) {
+                    footer.innerHTML = `
+                        <button class="action-btn btn-close" data-action="close">Close</button>
+                        <button class="action-btn btn-pay" data-action="pay" data-bill-id="${bill.id}">Pay Now</button>
+                    `;
+                } else {
+                    footer.innerHTML = `
+                        <div></div>
+                        <button class="action-btn btn-close" data-action="close">Close</button>
+                    `;
+                }
+
+            } catch (err) {
+                console.error(err);
+                content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--error);">Failed to load details.</div>';
+                footer.innerHTML = `<div></div><button class="action-btn btn-close" data-action="close">Close</button>`;
+            }
+        }
+
+        function closeDetailModal() {
+            document.getElementById('billDetailModal').classList.add('hidden');
+            selectedBill = null;
+        }
+
+        function openPaymentModal(billId) {
+            const bill = myBillings.find(b => b.id === billId);
+            if (!bill) return;
+
+            document.getElementById('formBillingId').value = bill.id;
+            document.getElementById('formTotalDue').textContent = `₱${parseFloat(bill.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} PHP`;
+            document.getElementById('formAmountPaid').value = bill.total_amount;
+            document.getElementById('paymentErrorMsg').classList.add('hidden');
+
+            document.getElementById('submitPaymentModal').classList.remove('hidden');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('submitPaymentModal').classList.add('hidden');
+            document.getElementById('paymentForm').reset();
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function handlePaymentSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnSubmitPayment');
+            const errorDiv = document.getElementById('paymentErrorMsg');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+            errorDiv.classList.add('hidden');
+
+            const fileInput = document.getElementById('formProofFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                errorDiv.textContent = 'Please choose a transfer receipt screenshot to upload.';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Payment';
+                return;
+            }
+
+            // Get selected radio payment method
+            const methodInput = document.querySelector('input[name="payment_method"]:checked');
+            if (!methodInput) {
+                errorDiv.textContent = 'Please select a payment method.';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Payment';
+                return;
+            }
+
+            try {
+                const base64Data = await fileToBase64(file);
+
+                const payload = {
+                    billing_id: document.getElementById('formBillingId').value,
+                    payment_amount: parseFloat(document.getElementById('formAmountPaid').value),
+                    payment_method: methodInput.value,
+                    payment_reference_number: document.getElementById('formReference').value,
+                    base64_content: base64Data,
+                    file_name: file.name,
+                    mime_type: file.type,
+                    file_size: file.size
+                };
+
+                const response = await fetch('/api/payments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Payment transaction proof successfully submitted for validation.');
+                    closePaymentModal();
+                    loadTenantBillings();
+                } else {
+                    errorDiv.textContent = result.message || 'Payment submission failed.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = 'Error logging payment logs.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Payment';
+            }
+        }
+    </script>
+</body>
+</html>

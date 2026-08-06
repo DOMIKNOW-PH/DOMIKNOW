@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .stat-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            transition: all var(--transition-normal);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        .stat-val {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+        .stat-label {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+        .admin-actions {
+            margin-bottom: 2rem;
+            text-align: right;
+        }
+        .admin-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-fast);
+        }
+        .admin-link:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-admin">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-admin">Admin</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link active">Dashboard</a>
+                <a href="users.html" class="navbar-menu-link">Users</a>
+                <a href="property-review.html" class="navbar-menu-link">Property Review</a>
+                <a href="reservations.html" class="navbar-menu-link">Reservation Monitoring</a>
+                <a href="screening.html" class="navbar-menu-link">Screening Monitor</a>
+                <a href="leases.html" class="navbar-menu-link">Lease Monitor</a>
+                <a href="billings.html" class="navbar-menu-link">Billing Monitor</a>
+                <a href="payments.html" class="navbar-menu-link">Payment Monitor</a>
+                <a href="maintenance.html" class="navbar-menu-link">Maintenance Monitor</a>
+                <a href="reports.html" class="navbar-menu-link">Reports Monitor</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes Monitor</a>
+                <a href="policy-violations.html" class="navbar-menu-link">Violations Monitor</a>
+                <a href="feedback.html" class="navbar-menu-link">Feedback Monitor</a>
+                <a href="audit-logs.html" class="navbar-menu-link">Audit Logs</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <!-- Status Header -->
+        <div class="status-card status-card-admin">
+            <div class="status-card-info">
+                <h2>Admin Console</h2>
+                <p>System-wide user directory and registration monitoring.</p>
+            </div>
+            <div class="status-badge-container">
+                <span class="status-badge-label">Account Status</span>
+                <span id="accountStatus" class="status-badge status-active">ACTIVE</span>
+            </div>
+        </div>
+
+        <div class="admin-actions" style="display: flex; gap: 1rem; justify-content: flex-end; flex-wrap: wrap;">
+            <a href="property-review.html" class="admin-link" style="background-color: var(--landlord);">🏠 Review Property Listings</a>
+            <a href="users.html" class="admin-link">👥 Manage Users & Registrations</a>
+        </div>
+
+        <!-- System User Summary stats -->
+        <h3 style="margin-bottom: 1.25rem;">System User Summary</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div id="statTotalUsers" class="stat-val">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Tenants</div>
+                <div id="statTenants" class="stat-val" style="color: var(--tenant);">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Landlords</div>
+                <div id="statLandlords" class="stat-val" style="color: var(--landlord);">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Maintenance</div>
+                <div id="statMaintenance" class="stat-val" style="color: var(--maintenance);">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending Approval</div>
+                <div id="statPending" class="stat-val" style="color: var(--warning);">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Accounts</div>
+                <div id="statActive" class="stat-val" style="color: var(--success);">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Disabled Accounts</div>
+                <div id="statDisabled" class="stat-val" style="color: var(--text-muted);">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Rejected Accounts</div>
+                <div id="statRejected" class="stat-val" style="color: var(--error);">0</div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('domiknow_token');
+            if (!token) return;
+
+            try {
+                const response = await fetch('/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to fetch user counts');
+                    return;
+                }
+
+                const result = await response.json();
+                const users = result.data || [];
+
+                // Calculate metrics
+                const totalUsers = users.length;
+                const totalTenants = users.filter(u => u.role === 'tenant').length;
+                const totalLandlords = users.filter(u => u.role === 'landlord').length;
+                const totalMaintenance = users.filter(u => u.role === 'maintenance').length;
+
+                const pendingAccounts = users.filter(u => u.account_status === 'pending').length;
+                const activeAccounts = users.filter(u => u.account_status === 'active').length;
+                const disabledAccounts = users.filter(u => u.account_status === 'disabled').length;
+                const rejectedAccounts = users.filter(u => u.account_status === 'rejected').length;
+
+                // Update UI elements
+                document.getElementById('statTotalUsers').textContent = totalUsers;
+                document.getElementById('statTenants').textContent = totalTenants;
+                document.getElementById('statLandlords').textContent = totalLandlords;
+                document.getElementById('statMaintenance').textContent = totalMaintenance;
+                document.getElementById('statPending').textContent = pendingAccounts;
+                document.getElementById('statActive').textContent = activeAccounts;
+                document.getElementById('statDisabled').textContent = disabledAccounts;
+                document.getElementById('statRejected').textContent = rejectedAccounts;
+
+            } catch (err) {
+                console.error('Error fetching admin statistics:', err);
+            }
+        });
+    </script>
+</body>
+</html>

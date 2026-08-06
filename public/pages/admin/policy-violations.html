@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Violations Monitor - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .list-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: var(--shadow-lg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-admin">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-admin">Admin</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="users.html" class="navbar-menu-link">Users</a>
+                <a href="property-review.html" class="navbar-menu-link">Property Review</a>
+                <a href="reservations.html" class="navbar-menu-link">Reservation Monitoring</a>
+                <a href="screening.html" class="navbar-menu-link">Screening Monitor</a>
+                <a href="leases.html" class="navbar-menu-link">Lease Monitor</a>
+                <a href="billings.html" class="navbar-menu-link">Billing Monitor</a>
+                <a href="payments.html" class="navbar-menu-link">Payment Monitor</a>
+                <a href="maintenance.html" class="navbar-menu-link">Maintenance Monitor</a>
+                <a href="reports.html" class="navbar-menu-link">Reports Monitor</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes Monitor</a>
+                <a href="policy-violations.html" class="navbar-menu-link active">Violations Monitor</a>
+                <a href="feedback.html" class="navbar-menu-link">Feedback Monitor</a>
+                <a href="audit-logs.html" class="navbar-menu-link">Audit Logs</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <h2>Policy Violations Monitor</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Review lease contract violations, noise disturbances, and property rule breaches recorded across the platform.</p>
+
+        <div class="list-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property & Reporter</th>
+                        <th>Violator</th>
+                        <th>Type & Violation Summary</th>
+                        <th>Status</th>
+                        <th>Evidence</th>
+                        <th>Action Taken</th>
+                        <th>Date Filed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="violationsTableBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading violations registry...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Update Modal -->
+    <div id="updateModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem;">Review Policy Violation</h3>
+            <form id="updateForm">
+                <input type="hidden" id="violationId" name="id">
+                <div class="form-group">
+                    <label class="form-label" for="violationStatus">Status Decision</label>
+                    <select id="violationStatus" name="status" class="form-input" required>
+                        <option value="pending">Pending</option>
+                        <option value="under_review">Under Review</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="dismissed">Dismissed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="actionTaken">Action Taken / Resolution Notes</label>
+                    <textarea id="actionTaken" name="action_taken" class="form-input" style="height: 100px;" placeholder="Add final action taken, warnings issued, or reasons for dismissals..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn-primary" style="flex: 1;">Save Changes</button>
+                    <button type="button" onclick="closeModal()" class="navbar-btn" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        // Store violation data in memory for safe modal population
+        let violationsCache = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) return;
+            fetchViolations();
+
+            document.getElementById('updateForm').addEventListener('submit', handleUpdateSubmit);
+
+            // Event delegation for Take Action buttons
+            document.getElementById('violationsTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('.take-action-btn');
+                if (!btn) return;
+                const violId = btn.dataset.violationId;
+                const viol = violationsCache.find(v => v.id === violId);
+                if (viol) {
+                    openModal(viol.id, viol.status, viol.action_taken || '');
+                }
+            });
+        });
+
+        async function fetchViolations() {
+            const tableBody = document.getElementById('violationsTableBody');
+            try {
+                const response = await fetch('/api/admin/policy-violations', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Failed to load policy violations.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const violations = result.data || [];
+                violationsCache = violations;
+
+                if (violations.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">No policy violations filed globally.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                violations.forEach(viol => {
+                    let statusBadgeClass = 'status-pending';
+                    if (viol.status === 'resolved') statusBadgeClass = 'status-active';
+                    if (viol.status === 'dismissed') statusBadgeClass = 'status-rejected';
+                    if (viol.status === 'under_review') statusBadgeClass = 'status-pending';
+
+                    const createdDate = new Date(viol.created_at).toLocaleDateString();
+
+                    let evidenceHtml = '<span style="font-style:italic; color:var(--text-muted);">None</span>';
+                    if (viol.evidence_url) {
+                        evidenceHtml = `<a href="${viol.evidence_url}" target="_blank" style="color:var(--primary); font-weight:700;">Open Proof</a>`;
+                    }
+
+                    const escapedDescription = (viol.violation_description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const escapedActionTaken = (viol.action_taken || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div style="font-weight:700; color:var(--text-primary);">${viol.properties?.property_name || 'Property'}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">👤 Reporter: ${viol.reporter?.full_name || 'N/A'}</div>
+                        </td>
+                        <td>
+                            <strong>${viol.violator?.full_name || 'N/A'}</strong>
+                        </td>
+                        <td>
+                            <div style="text-transform:capitalize; font-size:0.8rem;"><strong>${viol.violation_type.replace('_', ' ')}</strong></div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${escapedDescription}</div>
+                        </td>
+                        <td>
+                            <span class="status-badge ${statusBadgeClass}" style="text-transform:capitalize;">${viol.status.replace('_', ' ')}</span>
+                        </td>
+                        <td>${evidenceHtml}</td>
+                        <td>
+                            <div style="font-size:0.8rem; color:var(--text-secondary); max-width: 150px;">
+                                ${escapedActionTaken || '<span style="font-style:italic; color:var(--text-muted);">Awaiting action</span>'}
+                            </div>
+                        </td>
+                        <td>${createdDate}</td>
+                        <td>
+                            <button class="btn-primary take-action-btn" data-violation-id="${viol.id}" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; cursor: pointer;">
+                                Take Action
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Error reaching service API.</td></tr>`;
+            }
+        }
+
+        function openModal(id, status, action) {
+            document.getElementById('violationId').value = id;
+            document.getElementById('violationStatus').value = status;
+            document.getElementById('actionTaken').value = action;
+            document.getElementById('updateModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('updateModal').classList.add('hidden');
+            document.getElementById('updateForm').reset();
+        }
+
+        async function handleUpdateSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('violationId').value;
+            const status = document.getElementById('violationStatus').value;
+            const action_taken = document.getElementById('actionTaken').value;
+
+            if (!id) {
+                alert('Error: No violation selected. Please close and try again.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/policy-violations/${id}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status, action_taken })
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    fetchViolations();
+                } else {
+                    const res = await response.json();
+                    alert(res.message || 'Failed to update record.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred during submission.');
+            }
+        }
+    </script>
+</body>
+</html>

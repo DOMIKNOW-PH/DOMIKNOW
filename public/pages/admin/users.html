@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - DomiKnow</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .table-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9375rem;
+        }
+        th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--bg-primary);
+        }
+        .action-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .btn-action-approve {
+            background-color: var(--success-bg);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .btn-action-approve:hover {
+            background-color: var(--success);
+            color: white;
+        }
+        .btn-action-reject {
+            background-color: var(--error-bg);
+            color: var(--error);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        .btn-action-reject:hover {
+            background-color: var(--error);
+            color: white;
+        }
+        .btn-action-disable {
+            background-color: #f1f5f9;
+            color: var(--text-secondary);
+            border-color: #cbd5e1;
+        }
+        .btn-action-disable:hover {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+        .btn-action-reactivate {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+        .btn-action-reactivate:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        .nav-back {
+            margin-bottom: 1.5rem;
+        }
+        .nav-back-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: color var(--transition-fast);
+        }
+        .nav-back-link:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-admin">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-admin">Admin</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="users.html" class="navbar-menu-link active">Users</a>
+                <a href="property-review.html" class="navbar-menu-link">Property Review</a>
+                <a href="reservations.html" class="navbar-menu-link">Reservation Monitoring</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <div class="nav-back">
+            <a href="dashboard.html" class="nav-back-link">← Back to Dashboard</a>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>User Directory Management</h2>
+            <div id="actionFeedback" class="alert alert-success hidden" style="margin-bottom: 0; padding: 0.5rem 1rem;"></div>
+        </div>
+
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Verified</th>
+                        <th>Account Status</th>
+                        <th>Registered Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading system users...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+
+        document.addEventListener('DOMContentLoaded', loadUsers);
+
+        async function loadUsers() {
+            if (!token) return;
+            const tableBody = document.getElementById('usersTableBody');
+
+            try {
+                const response = await fetch('/api/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--error);">Failed to load users. Check permissions.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                const users = result.data || [];
+
+                if (users.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No users found in system database.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    
+                    // Format role badge
+                    let roleBadgeClass = 'navbar-badge-tenant';
+                    if (user.role === 'landlord') roleBadgeClass = 'navbar-badge-landlord';
+                    if (user.role === 'maintenance') roleBadgeClass = 'navbar-badge-maintenance';
+                    if (user.role === 'admin') roleBadgeClass = 'navbar-badge-admin';
+                    
+                    // Format status badge
+                    let statusClass = 'status-pending';
+                    if (user.account_status === 'active') statusClass = 'status-active';
+                    if (user.account_status === 'disabled') statusClass = 'status-rejected';
+                    if (user.account_status === 'rejected') statusClass = 'status-rejected';
+
+                    // Format date
+                    const regDate = new Date(user.created_at).toLocaleDateString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                    });
+
+                    // Build action buttons HTML
+                    let actionsHtml = '';
+                    if (user.role !== 'admin') {
+                        if (user.account_status === 'pending') {
+                            actionsHtml += `<button data-user-id="${user.id}" data-action="active" class="btn-action btn-action-approve">Approve</button>`;
+                            actionsHtml += `<button data-user-id="${user.id}" data-action="rejected" class="btn-action btn-action-reject">Reject</button>`;
+                        } else if (user.account_status === 'active') {
+                            actionsHtml += `<button data-user-id="${user.id}" data-action="disabled" class="btn-action btn-action-disable">Disable</button>`;
+                        } else if (user.account_status === 'disabled' || user.account_status === 'rejected') {
+                            actionsHtml += `<button data-user-id="${user.id}" data-action="active" class="btn-action btn-action-reactivate">Reactivate</button>`;
+                        }
+                    } else {
+                        actionsHtml = `<span style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">No actions for Admin</span>`;
+                    }
+
+                    row.innerHTML = `
+                        <td style="font-weight: 600;">${user.full_name}</td>
+                        <td>${user.email}</td>
+                        <td><span class="navbar-badge ${roleBadgeClass}">${user.role}</span></td>
+                        <td style="font-weight: 600; color: ${user.is_verified ? 'var(--success)' : 'var(--error)'};">
+                            ${user.is_verified ? '✓ Yes' : '✗ No'}
+                        </td>
+                        <td><span class="status-badge ${statusClass}">${user.account_status}</span></td>
+                        <td>${regDate}</td>
+                        <td><div class="action-group">${actionsHtml}</div></td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                    
+                    // Attach event listeners to action buttons
+                    const actionButtons = row.querySelectorAll('.btn-action[data-user-id]');
+                    actionButtons.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const userId = this.getAttribute('data-user-id');
+                            const newStatus = this.getAttribute('data-action');
+                            updateStatus(userId, newStatus);
+                        });
+                    });
+                });
+
+            } catch (err) {
+                console.error('Error loading directory:', err);
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--error);">Error contacting registration service.</td></tr>`;
+            }
+        }
+
+        async function updateStatus(userId, newStatus) {
+            const feedbackEl = document.getElementById('actionFeedback');
+            try {
+                const response = await fetch(`/api/users/${userId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ account_status: newStatus })
+                });
+
+                if (response.ok) {
+                    feedbackEl.textContent = `User successfully marked as ${newStatus}.`;
+                    feedbackEl.classList.remove('hidden');
+                    setTimeout(() => feedbackEl.classList.add('hidden'), 4000);
+                    loadUsers();
+                } else {
+                    const result = await response.json();
+                    alert(result.message || 'Failed to update user status');
+                }
+            } catch (err) {
+                console.error('Error updating status:', err);
+                alert('An error occurred while updating status.');
+            }
+        }
+    </script>
+</body>
+</html>
