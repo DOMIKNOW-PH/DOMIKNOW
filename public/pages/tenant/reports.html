@@ -501,7 +501,14 @@
             return 'status-pending';
         }
         function statusLabel(s) {
-            return { pending_admin_review:'Pending Admin Review', approved:'Approved', rejected:'Rejected', needs_more_evidence:'Needs More Evidence' }[s] || capWords(s);
+            return {
+                pending_admin_review: 'Pending Admin Review',
+                in_review: 'In Review (Staff Assigned)',
+                approved: 'Action Enforced / Resolved',
+                rejected: 'Dismissed',
+                dismissed: 'Dismissed',
+                needs_more_evidence: 'Needs Evidence / Response'
+            }[s] || capWords(s);
         }
 
         document.addEventListener('DOMContentLoaded', () => {

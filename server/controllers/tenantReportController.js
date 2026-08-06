@@ -391,10 +391,11 @@ const tenantReportController = {
             let auditAction = 'UPDATE_TENANT_REPORT';
             let successMessage = 'Report status updated.';
 
-            if (action === 'triage' || status === 'in_review') {
-                finalStatus = 'in_review';
+            if (action === 'triage') {
+                finalStatus = status || 'in_review';
+                finalSeverity = severity || report.severity;
                 auditAction = 'TRIAGE_TENANT_REPORT';
-                successMessage = 'Report ticket moved to In Review stage.';
+                successMessage = `Report triage updated to stage "${finalStatus}" and priority "${finalSeverity}".`;
             } else if (action === 'dismiss' || status === 'dismissed' || status === 'rejected') {
                 finalStatus = 'dismissed';
                 auditAction = 'DISMISS_TENANT_REPORT';
