@@ -462,8 +462,11 @@ const reportController = {
             const userId = req.user.id;
             const userRole = req.user.role;
 
-            if (!message_text || message_text.trim().length === 0) {
-                return responseHelper.error(res, 'Message text cannot be empty.');
+            // Allow image-only messages (no text required if attachment present)
+            const hasText = message_text && message_text.trim().length > 0;
+            const hasAttachment = base64_content && file_name && mime_type;
+            if (!hasText && !hasAttachment) {
+                return responseHelper.error(res, 'Message cannot be empty. Please type a message or attach an image.');
             }
 
             let reportRow = null;
@@ -513,7 +516,7 @@ const reportController = {
                 sender_id: userId,
                 sender_role: userRole,
                 recipient_role: finalRecipientRole,
-                message_text: message_text.trim(),
+                message_text: hasText ? message_text.trim() : '',
                 attachment_url: attachmentUrl,
                 attachment_path: attachmentPath
             });

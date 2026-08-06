@@ -623,9 +623,19 @@
             <div id="chatHeadTypingContainer" style="margin-bottom:0.4rem;"></div>
             <!-- Inquiry Form -->
             <form id="chatHeadPostForm" class="chat-head-form">
-                <div style="display:flex; gap:0.5rem;">
-                    <input type="text" id="chatHeadTextInput" class="form-input" placeholder="Type inquiry message to Admin..." style="flex:1; font-size:0.82rem; padding:0.45rem 0.75rem;">
-                    <button type="submit" class="btn-action-primary" style="background:#9333ea; padding:0.45rem 0.85rem; font-size:0.82rem;">Send</button>
+                <!-- Image preview -->
+                <div id="chatHeadAttachPreview" style="display:none; margin-bottom:0.4rem; position:relative;">
+                    <img id="chatHeadAttachImg" src="" alt="preview" style="max-width:100%; max-height:100px; border-radius:6px; border:1px solid var(--border-color); object-fit:cover;">
+                    <button type="button" id="chatHeadRemoveAttach" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.55);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">&times;</button>
+                </div>
+                <div style="display:flex; gap:0.4rem; align-items:center;">
+                    <!-- Attach image button -->
+                    <label for="chatHeadFileInput" style="cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary); color:var(--text-muted); transition:all 0.2s;" title="Attach image/file evidence">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </label>
+                    <input type="file" id="chatHeadFileInput" accept="image/*,video/*,.pdf,.doc,.docx" style="display:none;">
+                    <input type="text" id="chatHeadTextInput" class="form-input" placeholder="Type message or attach evidence..." style="flex:1; font-size:0.82rem; padding:0.45rem 0.75rem;">
+                    <button type="submit" id="chatHeadSendBtn" class="btn-action-primary" style="background:#9333ea; padding:0.45rem 0.85rem; font-size:0.82rem; flex-shrink:0;">Send</button>
                 </div>
             </form>
         </div>
@@ -704,23 +714,82 @@
                 });
             }
 
+            // File attachment handler
+            let chatAttachBase64 = null;
+            let chatAttachFileName = null;
+            let chatAttachMimeType = null;
+
+            const fileInput = $('chatHeadFileInput');
+            if (fileInput) {
+                fileInput.addEventListener('change', () => {
+                    const file = fileInput.files[0];
+                    if (!file) return;
+                    if (file.size > 8 * 1024 * 1024) {
+                        alert('File too large. Maximum size is 8MB.');
+                        fileInput.value = '';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        chatAttachBase64 = ev.target.result.split(',')[1];
+                        chatAttachFileName = file.name;
+                        chatAttachMimeType = file.type;
+                        const preview = $('chatHeadAttachPreview');
+                        const img = $('chatHeadAttachImg');
+                        if (file.type.startsWith('image/')) {
+                            img.src = ev.target.result;
+                            img.style.display = 'block';
+                        } else {
+                            img.src = '';
+                            img.style.display = 'none';
+                            img.alt = file.name;
+                        }
+                        if (preview) preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            const removeAttachBtn = $('chatHeadRemoveAttach');
+            if (removeAttachBtn) {
+                removeAttachBtn.addEventListener('click', () => {
+                    chatAttachBase64 = null; chatAttachFileName = null; chatAttachMimeType = null;
+                    if (fileInput) fileInput.value = '';
+                    const preview = $('chatHeadAttachPreview');
+                    if (preview) preview.style.display = 'none';
+                });
+            }
+
             const chatForm = $('chatHeadPostForm');
             if (chatForm) {
                 chatForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     if (!activeChatReportId || !activeChatReportType) return;
-                    const text = chatInput.value.trim();
-                    if (!text) return;
+                    const text = chatInput ? chatInput.value.trim() : '';
+                    if (!text && !chatAttachBase64) return;
+
+                    const sendBtn = $('chatHeadSendBtn');
+                    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '...'; }
 
                     try {
                         sendChatHeadTypingPulse(false);
+                        const payload = { message_text: text, recipient_role: activeChatThread };
+                        if (chatAttachBase64) {
+                            payload.base64_content = chatAttachBase64;
+                            payload.file_name = chatAttachFileName;
+                            payload.mime_type = chatAttachMimeType;
+                        }
                         const res = await fetch(`/api/reports/messages/${activeChatReportType}/${activeChatReportId}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                            body: JSON.stringify({ message_text: text, recipient_role: activeChatThread })
+                            body: JSON.stringify(payload)
                         });
                         if (res.ok) {
-                            chatInput.value = '';
+                            if (chatInput) chatInput.value = '';
+                            chatAttachBase64 = null; chatAttachFileName = null; chatAttachMimeType = null;
+                            if (fileInput) fileInput.value = '';
+                            const preview = $('chatHeadAttachPreview');
+                            if (preview) preview.style.display = 'none';
                             chatLastMessageCount = -1;
                             await pollChatHeadThread();
                             const feed = $('chatHeadMessagesFeed');
@@ -732,6 +801,8 @@
                     } catch (err) {
                         console.error(err);
                         alert('Network error posting message.');
+                    } finally {
+                        if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send'; }
                     }
                 });
             }
@@ -816,16 +887,28 @@
                 const isMe = m.sender_role === 'tenant';
                 const senderName = isMe ? 'You (Tenant)' : (m.sender?.full_name || (m.sender_role === 'admin' ? 'System Admin' : m.sender_role));
                 const dateStr = new Date(m.created_at).toLocaleString();
+                const hasText = m.message_text && m.message_text.trim().length > 0;
+
+                let attachmentHtml = '';
+                if (m.attachment_url) {
+                    const isImg = /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(m.attachment_url) || (m.attachment_path || '').match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+                    if (isImg) {
+                        attachmentHtml = `<div style="margin-top:0.35rem;"><a href="${m.attachment_url}" target="_blank"><img src="${m.attachment_url}" alt="attachment" style="max-width:200px; max-height:150px; border-radius:6px; border:1px solid var(--border-color); object-fit:cover; display:block;"></a></div>`;
+                    } else {
+                        const fileName = m.attachment_path ? m.attachment_path.split('/').pop() : 'Attachment';
+                        attachmentHtml = `<div style="margin-top:0.35rem;"><a href="${m.attachment_url}" target="_blank" style="display:inline-flex; align-items:center; gap:0.35rem; color:#9333ea; font-weight:700; font-size:0.78rem; text-decoration:none; background:rgba(147,51,234,0.08); padding:0.3rem 0.6rem; border-radius:6px; border:1px solid rgba(147,51,234,0.2);">📎 ${fileName} ↗</a></div>`;
+                    }
+                }
 
                 const item = document.createElement('div');
                 item.style.cssText = `background:${isMe ? 'rgba(147,51,234,0.1)' : 'var(--bg-secondary)'}; border:1px solid var(--border-color); padding:0.6rem 0.85rem; border-radius:8px; font-size:0.84rem; align-self:${isMe ? 'flex-end' : 'flex-start'}; max-width:90%;`;
                 item.innerHTML = `
                     <div style="display:flex; justify-content:space-between; margin-bottom:0.2rem; font-size:0.72rem; gap:0.5rem;">
-                        <span style="font-weight:800; color:${isMe ? '#9333ea' : 'var(--text-primary)'};">${senderName}</span>
+                        <span style="font-weight:800; color:${isMe ? '#9333ea' : 'var(--text-primary)'}">${senderName}</span>
                         <span style="color:var(--text-muted);">${dateStr}</span>
                     </div>
-                    <div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>
-                    ${m.attachment_url ? `<div style="margin-top:0.3rem;"><a href="${m.attachment_url}" target="_blank" style="color:#9333ea; font-weight:700; font-size:0.78rem;">📎 View Attachment ↗</a></div>` : ''}
+                    ${hasText ? `<div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>` : ''}
+                    ${attachmentHtml}
                 `;
                 feed.appendChild(item);
             });
