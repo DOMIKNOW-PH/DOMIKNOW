@@ -412,7 +412,7 @@ const reportController = {
                     targetUserId = reportRow.tenant_id;
                 }
             } else if (type === 'landlord_report') {
-                reportRow = await landlordReportModel.getLandlordReportDetailForAdmin(id);
+                reportRow = await landlordReportModel.findLandlordReportById(id);
                 if (reportRow) {
                     reporterId = reportRow.tenant_id;
                     targetUserId = reportRow.landlord_id;
@@ -477,7 +477,7 @@ const reportController = {
                     targetUserId = reportRow.tenant_id;
                 }
             } else if (type === 'landlord_report') {
-                reportRow = await landlordReportModel.getLandlordReportDetailForAdmin(id);
+                reportRow = await landlordReportModel.findLandlordReportById(id);
                 if (reportRow) {
                     reporterId = reportRow.tenant_id;
                     targetUserId = reportRow.landlord_id;
