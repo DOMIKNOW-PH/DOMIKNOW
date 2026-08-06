@@ -509,8 +509,12 @@
                 }
 
                 // Triage controls
+                let currentStage = currentTicket.status || 'pending_admin_review';
+                if (currentStage === 'pending_admin_review' && currentTicket.admin_id) {
+                    currentStage = 'in_review';
+                }
                 document.getElementById('triagePrioritySelect').value = currentTicket.severity || 'normal';
-                document.getElementById('triageStageSelect').value    = currentTicket.status || 'pending_admin_review';
+                document.getElementById('triageStageSelect').value    = currentStage;
 
                 // Narrative
                 document.getElementById('categoryBadge').textContent = (currentTicket.report_category || 'General').replace(/_/g, ' ');

@@ -334,12 +334,15 @@ const landlordReportController = {
             let successMessage = 'Report status updated.';
 
             if (action === 'triage') {
-                finalStatus = status || 'in_review';
+                let targetStatus = status || 'pending_admin_review';
+                if (targetStatus === 'in_review') targetStatus = 'pending_admin_review';
+                if (targetStatus === 'dismissed') targetStatus = 'rejected';
+                finalStatus = targetStatus;
                 finalSeverity = severity || report.severity;
                 auditAction = 'TRIAGE_LANDLORD_REPORT';
                 successMessage = `Report triage updated to stage "${finalStatus}" and priority "${finalSeverity}".`;
             } else if (action === 'dismiss' || status === 'dismissed' || status === 'rejected') {
-                finalStatus = 'dismissed';
+                finalStatus = 'rejected';
                 auditAction = 'DISMISS_LANDLORD_REPORT';
                 successMessage = 'Report has been dismissed.';
             } else if (action === 'needs_more_evidence' || status === 'needs_more_evidence') {
