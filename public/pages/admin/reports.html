@@ -36,23 +36,24 @@
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
-            padding: 0.6rem 0.85rem;
+            padding: 0.65rem 0.85rem;
             display: flex;
             align-items: flex-start;
             gap: 0.5rem;
         }
         .action-banner-item-icon {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             line-height: 1;
         }
         .action-banner-item-name {
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             font-weight: 750;
             color: var(--text-primary);
         }
         .action-banner-item-desc {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
+            line-height: 1.3;
         }
 
         /* ── KPI Summary Strip ─────────────────────────────────── */
@@ -123,6 +124,7 @@
         }
         table {
             width: 100%;
+            min-width: 1100px;
             border-collapse: collapse;
             text-align: left;
             font-size: 0.88rem;
@@ -171,13 +173,14 @@
         .prio-normal, .prio-moderate { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
         .prio-low, .prio-minor { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
+        /* ── Prominent Action Buttons in Table ──────────────────── */
         .btn-investigate {
             background-color: var(--admin);
             color: white;
             border: none;
-            padding: 0.4rem 0.8rem;
+            padding: 0.4rem 0.75rem;
             font-size: 0.78rem;
-            font-weight: 700;
+            font-weight: 750;
             border-radius: var(--radius-sm);
             cursor: pointer;
             display: inline-flex;
@@ -187,37 +190,47 @@
         }
         .btn-investigate:hover { opacity: 0.9; }
 
-        .quick-action-btn {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 0.25rem 0.5rem;
+        .action-pill-group {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+            margin-top: 0.4rem;
+        }
+        .action-pill-btn {
+            padding: 0.25rem 0.55rem;
             font-size: 0.72rem;
-            font-weight: 700;
+            font-weight: 750;
             border-radius: 4px;
             cursor: pointer;
-            margin-top: 0.35rem;
             display: inline-flex;
             align-items: center;
             gap: 0.2rem;
-            transition: all 0.15s;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
         }
-        .quick-action-btn:hover {
-            border-color: var(--admin);
-            color: var(--admin);
-        }
+        .action-pill-warn { background: #ffedd5; color: #c2410c; border-color: #fed7aa; }
+        .action-pill-warn:hover { background: #fed7aa; }
+
+        .action-pill-suspend { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+        .action-pill-suspend:hover { background: #fca5a5; }
+
+        .action-pill-ban { background: #7f1d1d; color: #ffffff; border-color: #991b1b; }
+        .action-pill-ban:hover { background: #991b1b; }
+
+        .action-pill-dismiss { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+        .action-pill-dismiss:hover { background: #e2e8f0; }
 
         /* ── Modal Styling ─────────────────────────────────────── */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(15, 23, 42, 0.65);
             backdrop-filter: blur(4px);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            padding: 1.5rem;
+            padding: 1rem;
         }
         .modal-box {
             background-color: var(--bg-secondary);
@@ -232,7 +245,7 @@
             overflow: hidden;
         }
         .modal-header {
-            padding: 1.25rem 1.75rem;
+            padding: 1.1rem 1.5rem;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -240,7 +253,7 @@
             background: var(--bg-primary);
         }
         .modal-body {
-            padding: 1.5rem 1.75rem;
+            padding: 1.25rem 1.5rem;
             overflow-y: auto;
             flex: 1;
             display: flex;
@@ -248,7 +261,7 @@
             gap: 1.25rem;
         }
         .modal-footer {
-            padding: 1rem 1.75rem;
+            padding: 0.9rem 1.5rem;
             border-top: 1px solid var(--border-color);
             background: var(--bg-primary);
             display: flex;
@@ -261,7 +274,7 @@
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
-            padding: 1.15rem;
+            padding: 1.1rem;
         }
         .case-section-title {
             font-size: 0.82rem;
@@ -350,8 +363,8 @@
         }
         .action-card-btn.selected {
             border-color: var(--admin);
-            background: rgba(59, 130, 246, 0.1);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+            background: rgba(59, 130, 246, 0.12);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
         .action-card-title {
             font-size: 0.85rem;
@@ -408,7 +421,7 @@
         <div class="actions-capability-banner">
             <div class="actions-banner-title">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                Available Admin Disciplinary & Enforcement Actions
+                Admin Enforcement Action Capabilities
             </div>
             <div class="actions-banner-grid">
                 <div class="action-banner-item">
@@ -482,13 +495,13 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ticket & Type</th>
-                        <th>Reporter & Target User</th>
+                        <th style="width: 140px;">Ticket & Type</th>
+                        <th style="width: 200px;">Reporter & Target User</th>
                         <th>Category & Incident Summary</th>
-                        <th>Triage Priority</th>
-                        <th>Status Stage</th>
-                        <th>Date Filed</th>
-                        <th>Admin Actions & Enforcement</th>
+                        <th style="width: 110px;">Priority</th>
+                        <th style="width: 120px;">Status Stage</th>
+                        <th style="width: 100px;">Date Filed</th>
+                        <th style="width: 230px;">Admin Actions & Enforcement</th>
                     </tr>
                 </thead>
                 <tbody id="reportsTableBody">
@@ -546,69 +559,11 @@
                     </div>
                 </div>
 
-                <!-- 2. Triage Controls -->
-                <div class="case-section" style="background: rgba(59, 130, 246, 0.04); border-color: rgba(59, 130, 246, 0.2);">
-                    <div class="case-section-title" style="color: var(--landlord);">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                        Stage 2: Intake & Triage Priority Control
-                    </div>
-                    <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
-                        <div class="form-group" style="margin-bottom:0; flex:1; min-width:160px;">
-                            <label class="form-label" for="triagePrioritySelect">Priority Level</label>
-                            <select id="triagePrioritySelect" class="form-input">
-                                <option value="critical">🚨 Critical / High (Threats, Safety, Scams)</option>
-                                <option value="major">⚠️ Major / High Priority</option>
-                                <option value="moderate">🔵 Moderate / Normal Priority</option>
-                                <option value="minor">⚪ Minor / Low Priority</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="margin-bottom:0; flex:1; min-width:160px;">
-                            <label class="form-label" for="triageStageSelect">Investigation Stage</label>
-                            <select id="triageStageSelect" class="form-input">
-                                <option value="pending_admin_review">Pending Review</option>
-                                <option value="in_review">In Review (Staff Assigned)</option>
-                                <option value="needs_more_evidence">Waiting for User / Evidence</option>
-                            </select>
-                        </div>
-                        <button type="button" id="saveTriageBtn" class="btn-investigate" style="background:var(--landlord); padding:0.6rem 1.25rem;">
-                            Update Triage Stage
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 3. Statement Narrative & Evidence Gallery -->
-                <div class="case-section">
-                    <div class="case-section-title">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                        Stage 3: Evidence Media & Statements
-                    </div>
-
-                    <div style="margin-bottom:1rem;">
-                        <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Incident Category & Narrative</label>
-                        <div id="modalCategoryBadge" style="font-weight:700; color:var(--text-primary); margin:0.2rem 0;">—</div>
-                        <div id="modalDescription" style="font-size:0.88rem; color:var(--text-secondary); background:var(--bg-secondary); padding:0.85rem; border-radius:var(--radius-sm); border:1px solid var(--border-color); white-space:pre-wrap;">—</div>
-                    </div>
-
-                    <div style="margin-bottom:1rem;">
-                        <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Uploaded Evidence Gallery</label>
-                        <div id="modalEvidenceContainer" class="evidence-grid">
-                            <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No evidence attachments provided.</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Reported User Response / Defense Statement</label>
-                        <div id="modalExplanation" style="font-size:0.88rem; color:var(--text-secondary); background:var(--bg-secondary); padding:0.85rem; border-radius:var(--radius-sm); border:1px dashed var(--border-color); white-space:pre-wrap; margin-top:0.25rem;">
-                            <span style="font-style:italic; color:var(--text-muted);">No response submitted yet by the reported user.</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. Decision & Enforcement Action Selection -->
-                <div class="case-section" style="background: rgba(225, 29, 72, 0.03); border-color: rgba(225, 29, 72, 0.2);">
-                    <div class="case-section-title" style="color: var(--error);">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        Stage 4: Select Disciplinary Action (Platform TOS)
+                <!-- 2. PLACED AT THE TOP FOR IMMEDIATE VISIBILITY: Decision & Enforcement Action Selection -->
+                <div class="case-section" style="background: rgba(225, 29, 72, 0.04); border: 2px solid rgba(225, 29, 72, 0.3);">
+                    <div class="case-section-title" style="color: var(--error); font-size:0.9rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Admin Action Enforcement Panel (Platform TOS)
                     </div>
 
                     <div class="action-options-grid">
@@ -641,7 +596,65 @@
 
                     <div class="form-group" style="margin-top:1rem; margin-bottom:0;">
                         <label class="form-label" for="decisionRemarks">Official Findings & Decision Remarks <span style="color:var(--error);">*</span></label>
-                        <textarea id="decisionRemarks" class="form-input" rows="3" placeholder="State official findings, platform TOS grounds, or reasons for dismissal/disciplinary sanction..."></textarea>
+                        <textarea id="decisionRemarks" class="form-input" rows="2" placeholder="State official findings, platform TOS grounds, or reasons for dismissal/disciplinary sanction..."></textarea>
+                    </div>
+                </div>
+
+                <!-- 3. Triage Controls -->
+                <div class="case-section" style="background: rgba(59, 130, 246, 0.04); border-color: rgba(59, 130, 246, 0.2);">
+                    <div class="case-section-title" style="color: var(--landlord);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        Intake & Priority Triage Stage Control
+                    </div>
+                    <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
+                        <div class="form-group" style="margin-bottom:0; flex:1; min-width:160px;">
+                            <label class="form-label" for="triagePrioritySelect">Priority Level</label>
+                            <select id="triagePrioritySelect" class="form-input">
+                                <option value="critical">🚨 Critical / High (Threats, Safety, Scams)</option>
+                                <option value="major">⚠️ Major / High Priority</option>
+                                <option value="moderate">🔵 Moderate / Normal Priority</option>
+                                <option value="minor">⚪ Minor / Low Priority</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0; flex:1; min-width:160px;">
+                            <label class="form-label" for="triageStageSelect">Investigation Stage</label>
+                            <select id="triageStageSelect" class="form-input">
+                                <option value="pending_admin_review">Pending Review</option>
+                                <option value="in_review">In Review (Staff Assigned)</option>
+                                <option value="needs_more_evidence">Waiting for User / Evidence</option>
+                            </select>
+                        </div>
+                        <button type="button" id="saveTriageBtn" class="btn-investigate" style="background:var(--landlord); padding:0.6rem 1.25rem;">
+                            Update Triage Stage
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. Statement Narrative & Evidence Gallery -->
+                <div class="case-section">
+                    <div class="case-section-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        Evidence Media & Statements
+                    </div>
+
+                    <div style="margin-bottom:1rem;">
+                        <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Incident Category & Narrative</label>
+                        <div id="modalCategoryBadge" style="font-weight:700; color:var(--text-primary); margin:0.2rem 0;">—</div>
+                        <div id="modalDescription" style="font-size:0.88rem; color:var(--text-secondary); background:var(--bg-secondary); padding:0.85rem; border-radius:var(--radius-sm); border:1px solid var(--border-color); white-space:pre-wrap;">—</div>
+                    </div>
+
+                    <div style="margin-bottom:1rem;">
+                        <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Uploaded Evidence Gallery</label>
+                        <div id="modalEvidenceContainer" class="evidence-grid">
+                            <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No evidence attachments provided.</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Reported User Response / Defense Statement</label>
+                        <div id="modalExplanation" style="font-size:0.88rem; color:var(--text-secondary); background:var(--bg-secondary); padding:0.85rem; border-radius:var(--radius-sm); border:1px dashed var(--border-color); white-space:pre-wrap; margin-top:0.25rem;">
+                            <span style="font-style:italic; color:var(--text-muted);">No response submitted yet by the reported user.</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -785,13 +798,13 @@
                     <td>
                         <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'investigate')" class="btn-investigate">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            Triage & Investigate
+                            🔍 Investigate
                         </button>
-                        <div style="display:flex; gap:0.25rem; flex-wrap:wrap; margin-top:0.35rem;">
-                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'warning')" class="quick-action-btn" title="Issue Warning">⚠️ Warning</button>
-                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'suspend')" class="quick-action-btn" title="Suspend User">⛔ Suspend</button>
-                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'ban')" class="quick-action-btn" style="color:var(--error);" title="Ban Account">🚫 Ban</button>
-                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'dismiss')" class="quick-action-btn" title="Dismiss Ticket">🛡️ Dismiss</button>
+                        <div class="action-pill-group">
+                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'warning')" class="action-pill-btn action-pill-warn" title="Issue Formal Warning">⚠️ Warn</button>
+                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'suspend')" class="action-pill-btn action-pill-suspend" title="Temporary Suspension">⛔ Suspend</button>
+                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'ban')" class="action-pill-btn action-pill-ban" title="Permanent Ban">🚫 Ban</button>
+                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'dismiss')" class="action-pill-btn action-pill-dismiss" title="Dismiss Ticket">🛡️ Dismiss</button>
                         </div>
                     </td>
                 `;
