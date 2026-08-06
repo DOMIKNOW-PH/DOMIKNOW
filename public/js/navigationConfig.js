@@ -106,12 +106,6 @@ const NAVIGATION_CONFIG = {
         { label: 'Dashboard', href: 'dashboard.html' },
         { label: 'Assigned Tasks', href: 'tasks.html' }
       ]
-    },
-    {
-      section: 'Support',
-      items: [
-        { label: 'Task Details', href: 'task-details.html' }
-      ]
     }
   ]
 };

@@ -204,12 +204,6 @@ function renderNewDashboardLayout(user) {
                     { label: 'Dashboard', href: 'dashboard.html' },
                     { label: 'Assigned Tasks', href: 'tasks.html' }
                 ]
-            },
-            {
-                section: 'Support',
-                items: [
-                    { label: 'Reports', href: 'task-details.html' }
-                ]
             }
         ]
     };
