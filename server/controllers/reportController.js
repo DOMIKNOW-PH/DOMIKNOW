@@ -1,4 +1,6 @@
 const reportModel = require('../models/reportModel');
+const tenantReportModel = require('../models/tenantReportModel');
+const landlordReportModel = require('../models/landlordReportModel');
 const reportMessageModel = require('../models/reportMessageModel');
 const auditLogModel = require('../models/auditLogModel');
 const responseHelper = require('../utils/responseHelper');
@@ -395,7 +397,7 @@ const reportController = {
     async getInvestigationMessages(req, res) {
         try {
             const { type, id } = req.params;
-            const targetThread = req.query.thread || 'reporter';
+            const targetThread = req.query?.thread || 'reporter';
             const userId = req.user.id;
             const userRole = req.user.role;
 
@@ -548,7 +550,7 @@ const reportController = {
 
     getTypingState(req, res) {
         const { type, id } = req.params;
-        const targetThread = req.query.thread || 'reporter';
+        const targetThread = req.query?.thread || 'reporter';
         const userId = req.user.id;
         const typers = getActiveTypers(type, id, targetThread, userId);
         return responseHelper.success(res, 'Active typers retrieved.', typers);
