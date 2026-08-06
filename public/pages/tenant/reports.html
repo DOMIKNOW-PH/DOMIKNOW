@@ -905,15 +905,19 @@
 
                 const bannerColors = {
                     pending_admin_review: 'background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.3);',
+                    in_review:            'background:rgba(59,130,246,.1);color:#2563eb;border:1px solid rgba(59,130,246,.3);',
                     approved:             'background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.3);',
                     rejected:             'background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.3);',
+                    dismissed:            'background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.3);',
                     needs_more_evidence:  'background:rgba(99,102,241,.1);color:var(--primary);border:1px solid rgba(99,102,241,.3);'
                 };
                 const bannerMessages = {
-                    pending_admin_review: 'This report is currently pending admin review. No action has been taken yet.',
-                    approved:             'This report has been approved by admin. It is now part of your tenant record.',
-                    rejected:             'This report was rejected by admin. No action will be taken against you.',
-                    needs_more_evidence:  'The admin has requested more evidence from the landlord. Review is ongoing.'
+                    pending_admin_review: 'This report is currently pending admin review. You may submit your explanation below.',
+                    in_review:            'Admin staff has been assigned and investigation is ongoing. You may submit your explanation below.',
+                    approved:             'This report has been approved by admin.',
+                    rejected:             'This report was dismissed by admin. No action will be taken against you.',
+                    dismissed:            'This report was dismissed by admin. No action will be taken against you.',
+                    needs_more_evidence:  'The admin has requested more evidence regarding this report.'
                 };
                 $('mStatusBanner').style.cssText = bannerColors[r.status] || bannerColors.pending_admin_review;
                 $('mStatusBanner').textContent   = bannerMessages[r.status] || statusLabel(r.status);
@@ -938,7 +942,7 @@
                     $('mExplanationSubmitted').style.display = 'block';
                     $('mExplanationText').textContent = r.tenant_explanation;
                     $('mExplanationDate').textContent = `Submitted: ${fmtDT(r.tenant_responded_at)}`;
-                } else if (r.status === 'pending_admin_review') {
+                } else if (['pending_admin_review', 'in_review', 'needs_more_evidence'].includes(r.status)) {
                     $('mExplanationForm').style.display = 'block';
                 } else {
                     $('mExplanationClosed').style.display = 'block';
