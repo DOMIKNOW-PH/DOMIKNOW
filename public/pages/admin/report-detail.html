@@ -620,8 +620,8 @@
                 });
             }
 
-            // Real-time polling interval (every 2 seconds)
-            setInterval(pollRealtimeThread, 2000);
+            // Real-time polling interval (every 800ms for instant typing & message sync)
+            setInterval(pollRealtimeThread, 800);
         });
 
         async function fetchTicketDetail() {
@@ -905,10 +905,11 @@
                 container.innerHTML = '';
                 return;
             }
-            const names = typers.map(t => `${t.userName} (${t.userRole.toUpperCase()})`).join(', ');
+            const names = typers.map(t => t.isSelf ? 'You' : `${t.userName} (${t.userRole.toUpperCase()})`).join(', ');
+            const verb = (typers.length > 1 || (typers.length === 1 && typers[0].isSelf)) ? 'are' : 'is';
             container.innerHTML = `
                 <div class="typing-indicator-box">
-                    <span>✍️ <strong>${names}</strong> is typing</span>
+                    <span>✍️ <strong>${names}</strong> ${verb} typing</span>
                     <span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>
                 </div>
             `;
@@ -922,6 +923,12 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ is_typing: isTyping })
                 });
+                // Immediately check typing state
+                const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (typingRes.ok) {
+                    const { data: typers } = await typingRes.json();
+                    renderTypingState(typers);
+                }
             } catch (e) {}
         }
 
