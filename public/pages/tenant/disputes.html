@@ -850,8 +850,12 @@
                             <div class="tl-notes">${c.rejection_reason ? escHtml(c.rejection_reason) : 'Complaint rejected.'}</div>
                         </div>`;
                 } else {
-                    STATUS_FLOW.forEach(step => {
-                        const past = STATUS_FLOW.slice(0, STATUS_FLOW.indexOf(c.status) + 1);
+                    const flow = (c.status === 'closed') 
+                        ? ['submitted', 'under_review', 'in_progress', 'resolved', 'closed'] 
+                        : ['submitted', 'under_review', 'in_progress', 'resolved'];
+
+                    flow.forEach(step => {
+                        const past = flow.slice(0, flow.indexOf(c.status) + 1);
                         const isDone   = past.includes(step);
                         const isActive = (step === c.status);
                         const cls = isActive ? 'tla' : (isDone ? 'tldone' : '');

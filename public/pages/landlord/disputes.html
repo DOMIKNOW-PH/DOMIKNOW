@@ -492,8 +492,12 @@
                         </div>
                     </div>`;
             } else {
-                STATUS_FLOW.forEach(step => {
-                    const pastStatuses = STATUS_FLOW.slice(0, STATUS_FLOW.indexOf(c.status) + 1);
+                const flow = (c.status === 'closed') 
+                    ? ['submitted', 'under_review', 'in_progress', 'resolved', 'closed'] 
+                    : ['submitted', 'under_review', 'in_progress', 'resolved'];
+
+                flow.forEach(step => {
+                    const pastStatuses = flow.slice(0, flow.indexOf(c.status) + 1);
                     const isDone = pastStatuses.includes(step);
                     const isActive = step === c.status;
                     const log = logs.find(l => l.new_status === step);
@@ -564,11 +568,9 @@
             const sec = document.getElementById('actionSection');
             const status = c.status;
 
-            // Determine available actions based on current status
             let html = '';
 
-            if (['resolved', 'closed', 'rejected'].includes(status)) {
-                // No more actions
+            if (['closed', 'rejected'].includes(status)) {
                 sec.innerHTML = '';
                 return;
             }
@@ -601,7 +603,7 @@
             } else if (status === 'resolved') {
                 html += `
                     <div class="action-buttons-row">
-                        <button class="btn-close-complaint" data-action="closed">Close Complaint</button>
+                        <button class="btn-close-complaint" data-action="closed">Close & Archive Complaint</button>
                     </div>`;
             }
 
