@@ -395,9 +395,48 @@ const reportController = {
     async getInvestigationMessages(req, res) {
         try {
             const { type, id } = req.params;
-            const messages = await reportMessageModel.getMessagesByReportId(type, id);
+            const targetThread = req.query.thread || 'reporter';
+            const userId = req.user.id;
+            const userRole = req.user.role;
 
-            for (const m of messages) {
+            let reportRow = null;
+            let reporterId = null;
+            let targetUserId = null;
+
+            if (type === 'tenant_report') {
+                reportRow = await tenantReportModel.findTenantReportById(id);
+                if (reportRow) {
+                    reporterId = reportRow.landlord_id;
+                    targetUserId = reportRow.tenant_id;
+                }
+            } else if (type === 'landlord_report') {
+                reportRow = await landlordReportModel.getLandlordReportDetailForAdmin(id);
+                if (reportRow) {
+                    reporterId = reportRow.tenant_id;
+                    targetUserId = reportRow.landlord_id;
+                }
+            }
+
+            // Determine active thread filter for user
+            let activeThreadFilter = targetThread;
+            if (userRole !== 'admin') {
+                if (userId === reporterId) {
+                    activeThreadFilter = 'reporter';
+                } else if (userId === targetUserId) {
+                    activeThreadFilter = 'target';
+                } else {
+                    return responseHelper.success(res, 'Investigation messages retrieved.', []);
+                }
+            }
+
+            const allMessages = await reportMessageModel.getMessagesByReportId(type, id);
+
+            // Confidentiality Filter: Only messages matching activeThreadFilter or 'all'
+            const filtered = allMessages.filter(m => 
+                m.recipient_role === activeThreadFilter || m.recipient_role === 'all'
+            );
+
+            for (const m of filtered) {
                 if (m.attachment_path) {
                     try {
                         m.attachment_url = await getSignedUrl('report-attachments', m.attachment_path);
@@ -407,7 +446,7 @@ const reportController = {
                 }
             }
 
-            return responseHelper.success(res, 'Investigation messages retrieved.', messages);
+            return responseHelper.success(res, 'Investigation messages retrieved.', filtered);
         } catch (error) {
             console.error('getInvestigationMessages error:', error);
             return responseHelper.error(res, 'Failed to fetch investigation messages.', error, 500);
@@ -417,12 +456,42 @@ const reportController = {
     async postInvestigationMessage(req, res) {
         try {
             const { type, id } = req.params;
-            const { message_text, recipient_role, base64_content, file_name, mime_type, file_size } = req.body;
+            const { message_text, recipient_role, base64_content, file_name, mime_type } = req.body;
             const userId = req.user.id;
             const userRole = req.user.role;
 
             if (!message_text || message_text.trim().length === 0) {
                 return responseHelper.error(res, 'Message text cannot be empty.');
+            }
+
+            let reportRow = null;
+            let reporterId = null;
+            let targetUserId = null;
+
+            if (type === 'tenant_report') {
+                reportRow = await tenantReportModel.findTenantReportById(id);
+                if (reportRow) {
+                    reporterId = reportRow.landlord_id;
+                    targetUserId = reportRow.tenant_id;
+                }
+            } else if (type === 'landlord_report') {
+                reportRow = await landlordReportModel.getLandlordReportDetailForAdmin(id);
+                if (reportRow) {
+                    reporterId = reportRow.tenant_id;
+                    targetUserId = reportRow.landlord_id;
+                }
+            }
+
+            // Determine recipient_role automatically if user is not admin
+            let finalRecipientRole = recipient_role || 'reporter';
+            if (userRole !== 'admin') {
+                if (userId === reporterId) {
+                    finalRecipientRole = 'reporter';
+                } else if (userId === targetUserId) {
+                    finalRecipientRole = 'target';
+                } else {
+                    return responseHelper.error(res, 'Unauthorized to post message to this report thread.', null, 403);
+                }
             }
 
             let attachmentUrl = null;
@@ -441,7 +510,7 @@ const reportController = {
                 report_id: id,
                 sender_id: userId,
                 sender_role: userRole,
-                recipient_role: recipient_role || 'all',
+                recipient_role: finalRecipientRole,
                 message_text: message_text.trim(),
                 attachment_url: attachmentUrl,
                 attachment_path: attachmentPath
@@ -459,15 +528,16 @@ const reportController = {
     // ----------------- Real-Time Typing Indicator -----------------
     postTypingState(req, res) {
         const { type, id } = req.params;
-        const { is_typing } = req.body;
+        const { is_typing, thread } = req.body;
         const userId = req.user.id;
         const userRole = req.user.role;
         const userName = req.user.full_name || (userRole === 'admin' ? 'System Admin' : userRole);
 
-        const key = `${type}_${id}_${userId}`;
+        const threadKey = thread || 'reporter';
+        const key = `${type}_${id}_${threadKey}_${userId}`;
         if (is_typing) {
             typingStateStore.set(key, {
-                type, id, userId, userRole, userName,
+                type, id, thread: threadKey, userId, userRole, userName,
                 expiresAt: Date.now() + 3500
             });
         } else {
@@ -478,22 +548,23 @@ const reportController = {
 
     getTypingState(req, res) {
         const { type, id } = req.params;
+        const targetThread = req.query.thread || 'reporter';
         const userId = req.user.id;
-        const typers = getActiveTypers(type, id, userId);
+        const typers = getActiveTypers(type, id, targetThread, userId);
         return responseHelper.success(res, 'Active typers retrieved.', typers);
     }
 };
 
-// In-memory store for typing states: key = `${type}_${id}_${userId}`
+// In-memory store for typing states: key = `${type}_${id}_${thread}_${userId}`
 const typingStateStore = new Map();
 
-function getActiveTypers(type, id, currentUserId) {
+function getActiveTypers(type, id, targetThread, currentUserId) {
     const now = Date.now();
     const active = [];
     for (const [key, info] of typingStateStore.entries()) {
         if (info.expiresAt < now) {
             typingStateStore.delete(key);
-        } else if (info.type === type && info.id === id && info.userId !== currentUserId) {
+        } else if (info.type === type && info.id === id && info.thread === targetThread && info.userId !== currentUserId) {
             active.push(info);
         }
     }

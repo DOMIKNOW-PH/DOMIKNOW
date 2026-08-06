@@ -280,6 +280,21 @@
         .chat-head-close-btn:hover {
             background: rgba(255, 255, 255, 0.35);
         }
+        .chat-head-switch-btn {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            padding: 0.3rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.74rem;
+            font-weight: 750;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .chat-head-switch-btn:hover {
+            background: rgba(255, 255, 255, 0.38);
+        }
         .chat-head-modal-body {
             padding: 0.85rem;
             display: flex;
@@ -549,31 +564,25 @@
     <!-- Floating Chat Head Drawer Modal -->
     <div id="chatHeadModal" class="chat-head-modal hidden">
         <div class="chat-head-modal-header">
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span style="font-weight:700; font-size:0.95rem;">Case Inquiry & Thread</span>
+            <div style="display:flex; align-items:center; gap:0.4rem; flex:1; overflow:hidden;">
+                <span id="chatHeaderTitle" style="font-weight:750; font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">💬 Reporter Convo</span>
             </div>
-            <button id="closeChatHeadModalBtn" class="chat-head-close-btn">&times;</button>
+            <div style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
+                <button type="button" id="switchConvoBtn" class="chat-head-switch-btn">Switch to Target ➔</button>
+                <button id="closeChatHeadModalBtn" class="chat-head-close-btn">&times;</button>
+            </div>
         </div>
         <div class="chat-head-modal-body">
             <!-- Messages Feed -->
             <div id="messagesFeed" class="chat-head-feed">
-                <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>
+                <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this thread.</div>
             </div>
             <!-- Typing Indicator Container -->
-            <div id="typingIndicatorContainer" style="margin-bottom:0.5rem;"></div>
-            <!-- Inquiry Form -->
+            <div id="typingIndicatorContainer" style="margin-bottom:0.4rem;"></div>
+            <!-- Inquiry Form (Recipient dropdown removed) -->
             <form id="postInquiryForm" class="chat-head-form">
-                <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem;">
-                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Recipient:</label>
-                    <select id="msgRecipientRole" class="form-input" style="padding:0.3rem 0.5rem; font-size:0.78rem; flex:1;">
-                        <option value="reporter">Complainant (Reporter)</option>
-                        <option value="target">Reported User (Target)</option>
-                        <option value="all">All Case Parties</option>
-                    </select>
-                </div>
                 <div style="display:flex; gap:0.5rem;">
-                    <input type="text" id="msgTextInput" class="form-input" placeholder="Type inquiry message..." style="flex:1; font-size:0.82rem; padding:0.45rem 0.75rem;">
+                    <input type="text" id="msgTextInput" class="form-input" placeholder="Type inquiry to Reporter..." style="flex:1; font-size:0.82rem; padding:0.45rem 0.75rem;">
                     <button type="submit" class="btn-action-primary" style="background:#9333ea; padding:0.45rem 0.85rem; font-size:0.82rem;">Send</button>
                 </div>
             </form>
@@ -591,6 +600,27 @@
 
         let currentTicket = null;
         let selectedAction = 'dismiss';
+        let activeThread = 'reporter'; // 'reporter' or 'target'
+
+        function updateConvoHeaderUI() {
+            const isReporter = activeThread === 'reporter';
+            const reporterName = (document.getElementById('reporterName')?.textContent || '').trim().split('\n')[0] || 'Reporter';
+            const targetName = (document.getElementById('targetName')?.textContent || '').trim().split('\n')[0] || 'Target';
+
+            const headerTitle = document.getElementById('chatHeaderTitle');
+            const switchBtn = document.getElementById('switchConvoBtn');
+            const msgInput = document.getElementById('msgTextInput');
+
+            if (headerTitle) {
+                headerTitle.textContent = isReporter ? `💬 Reporter: ${reporterName}` : `💬 Target: ${targetName}`;
+            }
+            if (switchBtn) {
+                switchBtn.textContent = isReporter ? `Switch to Target ➔` : `Switch to Reporter ➔`;
+            }
+            if (msgInput) {
+                msgInput.placeholder = isReporter ? `Type inquiry to Reporter (${reporterName})...` : `Type inquiry to Target (${targetName})...`;
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!token || !reportId || !reportType) {
@@ -613,12 +643,23 @@
                 fab.addEventListener('click', () => {
                     chatModal.classList.toggle('hidden');
                     if (!chatModal.classList.contains('hidden')) {
+                        updateConvoHeaderUI();
                         const feed = document.getElementById('messagesFeed');
                         if (feed) feed.scrollTop = feed.scrollHeight;
                     }
                 });
                 closeBtn.addEventListener('click', () => {
                     chatModal.classList.add('hidden');
+                });
+            }
+
+            const switchBtn = document.getElementById('switchConvoBtn');
+            if (switchBtn) {
+                switchBtn.addEventListener('click', () => {
+                    activeThread = activeThread === 'reporter' ? 'target' : 'reporter';
+                    lastMessageCount = -1;
+                    updateConvoHeaderUI();
+                    pollRealtimeThread();
                 });
             }
 
@@ -856,13 +897,13 @@
             if (!reportType || !reportId) return;
 
             try {
-                // 1. Fetch messages
-                const res = await fetch(`/api/reports/messages/${reportType}/${reportId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                // 1. Fetch messages for activeThread
+                const res = await fetch(`/api/reports/messages/${reportType}/${reportId}?thread=${activeThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     const { data } = await res.json();
                     const messages = data || [];
                     if (messages.length !== lastMessageCount) {
-                        const shouldScroll = lastMessageCount > 0;
+                        const shouldScroll = lastMessageCount > 0 || lastMessageCount === -1;
                         lastMessageCount = messages.length;
                         renderMessagesFeed(messages);
                         if (shouldScroll) {
@@ -872,8 +913,8 @@
                     }
                 }
 
-                // 2. Fetch active typers
-                const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing`, { headers: { 'Authorization': `Bearer ${token}` } });
+                // 2. Fetch active typers for activeThread
+                const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing?thread=${activeThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (typingRes.ok) {
                     const { data: typers } = await typingRes.json();
                     renderTypingState(typers);
@@ -885,7 +926,8 @@
             const feed = document.getElementById('messagesFeed');
             if (!feed) return;
             if (!data || data.length === 0) {
-                feed.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
+                const isReporter = activeThread === 'reporter';
+                feed.innerHTML = `<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in ${isReporter ? 'Reporter' : 'Target'} thread.</div>`;
                 return;
             }
 
@@ -899,7 +941,7 @@
                 item.style.cssText = `background:${isMe ? 'rgba(59,130,246,0.1)' : 'var(--bg-secondary)'}; border:1px solid var(--border-color); padding:0.75rem 1rem; border-radius:8px; font-size:0.88rem;`;
                 item.innerHTML = `
                     <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.75rem;">
-                        <span style="font-weight:800; color:${isMe ? 'var(--landlord)' : 'var(--text-primary)'};">${senderName} (${m.sender_role.toUpperCase()}) ➔ ${m.recipient_role.toUpperCase()}</span>
+                        <span style="font-weight:800; color:${isMe ? 'var(--landlord)' : 'var(--text-primary)'};">${senderName} (${m.sender_role.toUpperCase()})</span>
                         <span style="color:var(--text-muted);">${dateStr}</span>
                     </div>
                     <div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>
@@ -936,10 +978,9 @@
                 await fetch(`/api/reports/messages/${reportType}/${reportId}/typing`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ is_typing: isTyping })
+                    body: JSON.stringify({ is_typing: isTyping, thread: activeThread })
                 });
-                // Immediately check typing state
-                const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing?thread=${activeThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (typingRes.ok) {
                     const { data: typers } = await typingRes.json();
                     renderTypingState(typers);
@@ -956,7 +997,6 @@
             if (!currentTicket) return;
 
             const msgInput = document.getElementById('msgTextInput');
-            const recipSelect = document.getElementById('msgRecipientRole');
             const text = msgInput.value.trim();
             if (!text) return;
 
@@ -965,10 +1005,11 @@
                 const res = await fetch(`/api/reports/messages/${reportType}/${reportId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ message_text: text, recipient_role: recipSelect.value })
+                    body: JSON.stringify({ message_text: text, recipient_role: activeThread })
                 });
                 if (res.ok) {
                     msgInput.value = '';
+                    lastMessageCount = -1;
                     await pollRealtimeThread();
                     const feed = document.getElementById('messagesFeed');
                     if (feed) feed.scrollTop = feed.scrollHeight;
