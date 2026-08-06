@@ -916,11 +916,11 @@
                 container.innerHTML = '';
                 return;
             }
-            const names = typers.map(t => `${t.userName} (${t.userRole.toUpperCase()})`).join(', ');
+            const roleLabels = typers.map(t => t.userRole.charAt(0).toUpperCase() + t.userRole.slice(1).toLowerCase()).join(', ');
             const verb = typers.length > 1 ? 'are' : 'is';
             container.innerHTML = `
                 <div class="typing-indicator-box">
-                    <span><strong>${names}</strong> ${verb} typing</span>
+                    <span><strong>${roleLabels}</strong> ${verb} typing</span>
                     <div class="messenger-dots">
                         <span></span>
                         <span></span>
