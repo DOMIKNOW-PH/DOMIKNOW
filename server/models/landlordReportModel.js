@@ -177,7 +177,7 @@ const landlordReportModel = {
 
     // ─── Update – Admin Decision & Trust Score ─────────────────────────────────
 
-    async updateLandlordReportStatus(id, { status, admin_remarks, admin_id }) {
+    async updateLandlordReportStatus(id, { status, severity, admin_remarks, admin_id }) {
         // Fetch report first to get landlord_id and severity
         const { data: report, error: fetchErr } = await supabase
             .from('landlord_reports')
@@ -187,18 +187,23 @@ const landlordReportModel = {
 
         if (fetchErr) throw fetchErr;
 
-        // Update status
+        const updatePayload = {
+            updated_at: new Date()
+        };
+        if (status) updatePayload.status = status;
+        if (severity) updatePayload.severity = severity;
+        if (admin_remarks !== undefined) updatePayload.admin_remarks = admin_remarks;
+        if (admin_id) {
+            updatePayload.admin_id = admin_id;
+            updatePayload.reviewed_at = new Date();
+        }
+
+        // Update status & severity
         const { data, error } = await supabase
             .from('landlord_reports')
-            .update({
-                status,
-                admin_remarks: admin_remarks || null,
-                admin_id,
-                reviewed_at: new Date(),
-                updated_at: new Date()
-            })
+            .update(updatePayload)
             .eq('id', id)
-            .select('id, status, admin_remarks, admin_id, reviewed_at, updated_at, landlord_id, severity')
+            .select('id, status, severity, admin_remarks, admin_id, reviewed_at, updated_at, landlord_id')
             .single();
 
         if (error) throw error;

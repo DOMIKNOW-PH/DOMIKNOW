@@ -1,4 +1,5 @@
 const tenantReportModel = require('../models/tenantReportModel');
+const userModel         = require('../models/userModel');
 const auditLogModel     = require('../models/auditLogModel');
 const responseHelper    = require('../utils/responseHelper');
 const { uploadFile, getSignedUrl } = require('../utils/storageHelper');
@@ -372,53 +373,71 @@ const tenantReportController = {
 
     /**
      * PUT /api/admin/tenant-reports/:id/decision
-     * Admin makes a decision: approve, reject, or needs_more_evidence.
+     * Admin processes triage or decision action (dismiss, warning, suspend, ban, needs_more_evidence, in_review).
      */
     async adminDecision(req, res) {
         try {
             const adminId = req.user.id;
             const { id } = req.params;
-            const { status, admin_remarks } = req.body;
+            const { status, severity, action, admin_remarks, suspension_days } = req.body;
 
-            const allowed = ['approved', 'rejected', 'needs_more_evidence'];
-            if (!allowed.includes(status)) {
-                return responseHelper.error(res, `Invalid decision. Allowed: ${allowed.join(', ')}.`);
+            const report = await tenantReportModel.findTenantReportById(id);
+            if (!report) {
+                return responseHelper.error(res, 'Tenant report not found.', null, 404);
             }
 
-            // Require remarks for rejection
-            if (status === 'rejected' && (!admin_remarks || admin_remarks.trim().length < 5)) {
-                return responseHelper.error(res, 'A reason/remarks are required when rejecting a report.');
-            }
-            // Require remarks for requesting more evidence
-            if (status === 'needs_more_evidence' && (!admin_remarks || admin_remarks.trim().length < 5)) {
-                return responseHelper.error(res, 'Please specify what additional evidence is needed.');
+            let finalStatus = status || report.status;
+            let finalSeverity = severity || report.severity;
+            let auditAction = 'UPDATE_TENANT_REPORT';
+            let successMessage = 'Report status updated.';
+
+            if (action === 'triage' || status === 'in_review') {
+                finalStatus = 'in_review';
+                auditAction = 'TRIAGE_TENANT_REPORT';
+                successMessage = 'Report ticket moved to In Review stage.';
+            } else if (action === 'dismiss' || status === 'dismissed' || status === 'rejected') {
+                finalStatus = 'dismissed';
+                auditAction = 'DISMISS_TENANT_REPORT';
+                successMessage = 'Report has been dismissed.';
+            } else if (action === 'needs_more_evidence' || status === 'needs_more_evidence') {
+                finalStatus = 'needs_more_evidence';
+                auditAction = 'REQUEST_MORE_EVIDENCE_TENANT_REPORT';
+                successMessage = 'Additional evidence requested from landlord.';
+            } else if (action === 'warning') {
+                finalStatus = 'approved';
+                auditAction = 'ISSUE_WARNING_TENANT';
+                successMessage = `Formal warning issued to tenant ${report.tenant?.full_name || ''}.`;
+            } else if (action === 'suspend') {
+                finalStatus = 'approved';
+                auditAction = 'SUSPEND_TENANT_ACCOUNT';
+                await userModel.updateStatus(report.tenant_id, 'suspended');
+                successMessage = `Tenant account suspended for ${suspension_days || 7} days.`;
+            } else if (action === 'ban') {
+                finalStatus = 'approved';
+                auditAction = 'BAN_TENANT_ACCOUNT';
+                await userModel.updateStatus(report.tenant_id, 'banned');
+                successMessage = 'Tenant account permanently banned.';
+            } else if (status === 'approved') {
+                finalStatus = 'approved';
+                auditAction = 'APPROVE_TENANT_REPORT';
+                successMessage = 'Report approved and resolved.';
             }
 
+            // Update status in database
             const updated = await tenantReportModel.updateTenantReportStatus(id, {
-                status,
+                status: finalStatus,
+                severity: finalSeverity,
                 admin_remarks: admin_remarks?.trim() || null,
                 admin_id: adminId
             });
 
-            const actionLabel = {
-                approved:            'APPROVE_TENANT_REPORT',
-                rejected:            'REJECT_TENANT_REPORT',
-                needs_more_evidence: 'REQUEST_MORE_EVIDENCE_TENANT_REPORT'
-            }[status];
-
             await auditLogModel.log(
                 adminId,
-                actionLabel,
-                `Admin set tenant report ${id} to "${status}". Remarks: ${admin_remarks || 'none'}`
+                auditAction,
+                `Admin set tenant report ${id} status="${finalStatus}", severity="${finalSeverity}", action="${action || 'status_change'}". Remarks: ${admin_remarks || 'none'}`
             );
 
-            const messages = {
-                approved:            'Report approved. Tenant record and trust score updated.',
-                rejected:            'Report rejected. Landlord and tenant will be notified.',
-                needs_more_evidence: 'Admin has requested additional evidence from the landlord.'
-            };
-
-            return responseHelper.success(res, messages[status], updated);
+            return responseHelper.success(res, successMessage, updated);
 
         } catch (error) {
             console.error('adminDecision error:', error);

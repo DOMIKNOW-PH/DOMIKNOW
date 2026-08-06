@@ -1,5 +1,6 @@
 const landlordReportModel = require('../models/landlordReportModel');
-const responseHelper = require('../utils/responseHelper');
+const userModel          = require('../models/userModel');
+const responseHelper     = require('../utils/responseHelper');
 const auditLogModel  = require('../models/auditLogModel');
 const storageHelper  = require('../utils/storageHelper');
 
@@ -320,30 +321,64 @@ const landlordReportController = {
         try {
             const adminId  = req.user.id;
             const reportId = req.params.id;
-            const { status, admin_remarks } = req.body;
+            const { status, severity, action, admin_remarks, suspension_days } = req.body;
 
-            const VALID_STATUSES = ['approved', 'rejected', 'needs_more_evidence'];
-            if (!VALID_STATUSES.includes(status)) {
-                return responseHelper.error(res, `Invalid status. Allowed: ${VALID_STATUSES.join(', ')}`);
+            const report = await landlordReportModel.findLandlordReportById(reportId);
+            if (!report) {
+                return responseHelper.error(res, 'Landlord report not found.', null, 404);
             }
 
-            if ((status === 'rejected' || status === 'needs_more_evidence') && (!admin_remarks || admin_remarks.trim().length === 0)) {
-                return responseHelper.error(res, 'Admin remarks are mandatory when rejecting or requesting more evidence.');
+            let finalStatus = status || report.status;
+            let finalSeverity = severity || report.severity;
+            let auditAction = 'UPDATE_LANDLORD_REPORT';
+            let successMessage = 'Report status updated.';
+
+            if (action === 'triage' || status === 'in_review') {
+                finalStatus = 'in_review';
+                auditAction = 'TRIAGE_LANDLORD_REPORT';
+                successMessage = 'Report ticket moved to In Review stage.';
+            } else if (action === 'dismiss' || status === 'dismissed' || status === 'rejected') {
+                finalStatus = 'dismissed';
+                auditAction = 'DISMISS_LANDLORD_REPORT';
+                successMessage = 'Report has been dismissed.';
+            } else if (action === 'needs_more_evidence' || status === 'needs_more_evidence') {
+                finalStatus = 'needs_more_evidence';
+                auditAction = 'REQUEST_MORE_EVIDENCE_LANDLORD_REPORT';
+                successMessage = 'Additional evidence requested from tenant.';
+            } else if (action === 'warning') {
+                finalStatus = 'approved';
+                auditAction = 'ISSUE_WARNING_LANDLORD';
+                successMessage = `Formal warning issued to landlord ${report.landlord?.full_name || ''}.`;
+            } else if (action === 'suspend') {
+                finalStatus = 'approved';
+                auditAction = 'SUSPEND_LANDLORD_ACCOUNT';
+                await userModel.updateStatus(report.landlord_id, 'suspended');
+                successMessage = `Landlord account suspended for ${suspension_days || 7} days.`;
+            } else if (action === 'ban') {
+                finalStatus = 'approved';
+                auditAction = 'BAN_LANDLORD_ACCOUNT';
+                await userModel.updateStatus(report.landlord_id, 'banned');
+                successMessage = 'Landlord account permanently banned.';
+            } else if (status === 'approved') {
+                finalStatus = 'approved';
+                auditAction = 'APPROVE_LANDLORD_REPORT';
+                successMessage = 'Report approved and resolved.';
             }
 
             const updatedReport = await landlordReportModel.updateLandlordReportStatus(reportId, {
-                status,
+                status: finalStatus,
+                severity: finalSeverity,
                 admin_remarks: admin_remarks ? admin_remarks.trim() : null,
                 admin_id:      adminId
             });
 
             await auditLogModel.log(
                 adminId,
-                `ADMIN_${status.toUpperCase()}_LANDLORD_REPORT`,
-                `Admin ${adminId} marked landlord report ${reportId} as '${status}' (Remarks: ${admin_remarks || 'N/A'})`
+                auditAction,
+                `Admin set landlord report ${reportId} status="${finalStatus}", severity="${finalSeverity}", action="${action || 'status_change'}". Remarks: ${admin_remarks || 'N/A'}`
             );
 
-            return responseHelper.success(res, `Landlord report successfully updated to '${status}'.`, updatedReport);
+            return responseHelper.success(res, successMessage, updatedReport);
         } catch (error) {
             console.error('processAdminDecision error:', error);
             return responseHelper.error(res, 'Failed to update landlord report status.', error, 500);

@@ -192,18 +192,23 @@ const tenantReportModel = {
 
     // ─── Update – Admin Decision ──────────────────────────────────────────────
 
-    async updateTenantReportStatus(id, { status, admin_remarks, admin_id }) {
+    async updateTenantReportStatus(id, { status, severity, admin_remarks, admin_id }) {
+        const updatePayload = {
+            updated_at: new Date()
+        };
+        if (status) updatePayload.status = status;
+        if (severity) updatePayload.severity = severity;
+        if (admin_remarks !== undefined) updatePayload.admin_remarks = admin_remarks;
+        if (admin_id) {
+            updatePayload.admin_id = admin_id;
+            updatePayload.reviewed_at = new Date();
+        }
+
         const { data, error } = await supabase
             .from('tenant_reports')
-            .update({
-                status,
-                admin_remarks: admin_remarks || null,
-                admin_id,
-                reviewed_at: new Date(),
-                updated_at: new Date()
-            })
+            .update(updatePayload)
             .eq('id', id)
-            .select('id, status, admin_remarks, admin_id, reviewed_at, updated_at')
+            .select('id, status, severity, admin_remarks, admin_id, reviewed_at, updated_at')
             .single();
 
         if (error) throw error;
