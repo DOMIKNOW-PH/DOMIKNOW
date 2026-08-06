@@ -94,7 +94,8 @@ const tenantReportModel = {
                 id, report_category, incident_date, severity, status,
                 admin_remarks, created_at, updated_at,
                 tenant:users!tenant_reports_tenant_id_fkey ( id, full_name, email ),
-                properties ( property_name, unit_number )
+                properties ( property_name, unit_number, address ),
+                lease_records ( lease_number, property_units ( unit_number ) )
             `)
             .eq('landlord_id', landlordId)
             .order('created_at', { ascending: false });
@@ -149,7 +150,7 @@ const tenantReportModel = {
                 landlord:users!tenant_reports_landlord_id_fkey ( id, full_name, email, contact_number ),
                 tenant:users!tenant_reports_tenant_id_fkey ( id, full_name, email, contact_number ),
                 properties ( id, property_name, address, unit_number ),
-                lease_records ( id, lease_number, lease_status, lease_start_date, lease_end_date, monthly_rent )
+                lease_records ( id, lease_number, lease_status, lease_start_date, lease_end_date, monthly_rent, property_units ( unit_number, rental_style ) )
             `)
             .eq('id', id)
             .maybeSingle();
