@@ -274,6 +274,15 @@
             </div>
         </div>
 
+        <!-- Target User Prior Report History & Offenses -->
+        <div class="case-card" id="historyCard" style="display:none; background: rgba(245, 158, 11, 0.04); border-color: rgba(245, 158, 11, 0.25);">
+            <div class="case-card-title" style="color: #d97706;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+                Target User Prior Report History & Offenses
+            </div>
+            <div id="historyFeed" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
+        </div>
+
         <!-- 2. Disciplinary Action Enforcement Panel (Platform TOS) -->
         <div class="case-card" style="background: rgba(225, 29, 72, 0.03); border: 2px solid rgba(225, 29, 72, 0.3);">
             <div class="case-card-title" style="color: var(--error);">
@@ -467,8 +476,31 @@
                 document.getElementById('targetContact').textContent = `${target?.email || ''} ${target?.contact_number ? '· ' + target.contact_number : ''}`;
 
                 document.getElementById('propertyName').textContent = currentTicket.properties?.property_name || '—';
-                document.getElementById('unitInfo').textContent = `Unit: ${currentTicket.properties?.unit_number || 'N/A'}`;
-                document.getElementById('leaseNum').textContent = currentTicket.lease_records?.lease_number || '—';
+                document.getElementById('unitInfo').textContent = `Unit: ${currentTicket.properties?.unit_number || currentTicket.units?.unit_number || 'N/A'}`;
+                document.getElementById('leaseNum').textContent = currentTicket.lease_records?.lease_number || currentTicket.leases?.lease_number || '—';
+
+                // Target user prior report history
+                const prevList = currentTicket.previous_reports || [];
+                const histCard = document.getElementById('historyCard');
+                const histFeed = document.getElementById('historyFeed');
+                if (prevList.length > 0) {
+                    histFeed.innerHTML = '';
+                    prevList.forEach(p => {
+                        const item = document.createElement('div');
+                        item.style.cssText = 'background:var(--bg-primary); padding:0.6rem 0.85rem; border-radius:6px; border:1px solid var(--border-color); font-size:0.82rem; display:flex; justify-content:space-between; align-items:center;';
+                        item.innerHTML = `
+                            <div>
+                                <strong>Category:</strong> ${(p.report_category || 'General').replace(/_/g, ' ')} · 
+                                <span style="color:var(--text-muted);">Filed Date: ${new Date(p.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <span class="prio-badge prio-critical" style="font-size:0.75rem; text-transform:uppercase;">Status: ${p.status}</span>
+                        `;
+                        histFeed.appendChild(item);
+                    });
+                    histCard.style.display = 'block';
+                } else {
+                    histCard.style.display = 'none';
+                }
 
                 // Triage controls
                 document.getElementById('triagePrioritySelect').value = currentTicket.severity || 'normal';
