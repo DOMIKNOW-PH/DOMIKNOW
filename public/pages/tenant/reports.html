@@ -550,7 +550,7 @@
                     const input = $('againstMsgTextInput');
                     const text = input.value.trim();
                     if (!text) return;
-                    sendTenantTypingPulse('tenant_report', currentReportId, false);
+                    sendTenantTypingPulse('tenant_report', currentReportId, 'target', false);
                     const res = await fetch(`/api/reports/messages/tenant_report/${currentReportId}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -569,21 +569,22 @@
                 if (input) {
                     input.addEventListener('input', () => {
                         const type = id === 'filedMsgTextInput' ? 'landlord_report' : 'tenant_report';
-                        sendTenantTypingPulse(type, currentReportId, true);
+                        const thread = id === 'filedMsgTextInput' ? 'reporter' : 'target';
+                        sendTenantTypingPulse(type, currentReportId, thread, true);
                         clearTimeout(tenantTypingTimer);
-                        tenantTypingTimer = setTimeout(() => sendTenantTypingPulse(type, currentReportId, false), 3000);
+                        tenantTypingTimer = setTimeout(() => sendTenantTypingPulse(type, currentReportId, thread, false), 3000);
                     });
                 }
             });
         });
 
-        async function sendTenantTypingPulse(type, id, isTyping) {
+        async function sendTenantTypingPulse(type, id, thread, isTyping) {
             if (!type || !id) return;
             try {
                 await fetch(`/api/reports/messages/${type}/${id}/typing`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ is_typing: isTyping })
+                    body: JSON.stringify({ is_typing: isTyping, thread: thread || 'reporter' })
                 });
             } catch (e) {}
         }

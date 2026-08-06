@@ -576,7 +576,7 @@
                     const input = $('againstMsgTextInput');
                     const text = input.value.trim();
                     if (!text) return;
-                    sendLandlordTypingPulse('landlord_report', currentReportId, false);
+                    sendLandlordTypingPulse('landlord_report', currentReportId, 'target', false);
                     const res = await fetch(`/api/reports/messages/landlord_report/${currentReportId}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -595,21 +595,22 @@
                 if (input) {
                     input.addEventListener('input', () => {
                         const type = id === 'filedMsgTextInput' ? 'tenant_report' : 'landlord_report';
-                        sendLandlordTypingPulse(type, currentReportId, true);
+                        const thread = id === 'filedMsgTextInput' ? 'reporter' : 'target';
+                        sendLandlordTypingPulse(type, currentReportId, thread, true);
                         clearTimeout(landlordTypingTimer);
-                        landlordTypingTimer = setTimeout(() => sendLandlordTypingPulse(type, currentReportId, false), 3000);
+                        landlordTypingTimer = setTimeout(() => sendLandlordTypingPulse(type, currentReportId, thread, false), 3000);
                     });
                 }
             });
         });
 
-        async function sendLandlordTypingPulse(type, id, isTyping) {
+        async function sendLandlordTypingPulse(type, id, thread, isTyping) {
             if (!type || !id) return;
             try {
                 await fetch(`/api/reports/messages/${type}/${id}/typing`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ is_typing: isTyping })
+                    body: JSON.stringify({ is_typing: isTyping, thread: thread || 'reporter' })
                 });
             } catch (e) {}
         }
