@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Investigation Detail - DomiKnow Admin</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        .page-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .btn-back {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+        .btn-back:hover {
+            border-color: var(--admin);
+            color: var(--admin);
+        }
+
+        /* ── Case Section Boxes ─────────────────────────────────── */
+        .case-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1.5rem;
+        }
+        .case-card-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* ── Info Grid ─────────────────────────────────────────── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+        }
+        .info-block label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        .info-block div {
+            font-size: 0.9rem;
+            font-weight: 650;
+            color: var(--text-primary);
+        }
+
+        /* ── Action Choice Grid ────────────────────────────────── */
+        .action-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+        .action-card-btn {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            background: var(--bg-primary);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+        .action-card-btn:hover {
+            border-color: var(--admin);
+        }
+        .action-card-btn.selected {
+            border-color: var(--admin);
+            background: rgba(59, 130, 246, 0.12);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+        .action-card-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.3rem;
+        }
+        .action-card-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* ── Evidence Media Items ──────────────────────────────── */
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+        .evidence-thumb {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: #000;
+            position: relative;
+            aspect-ratio: 4/3;
+        }
+        .evidence-thumb img, .evidence-thumb video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .evidence-thumb-link {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .evidence-thumb:hover .evidence-thumb-link { opacity: 1; }
+
+        /* ── Badges ────────────────────────────────────────────── */
+        .chip-type {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .chip-landlord-vs-tenant { background: rgba(59, 130, 246, 0.15); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .chip-tenant-vs-landlord { background: rgba(168, 85, 247, 0.15); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+        .btn-action-primary {
+            background-color: var(--error);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.5rem;
+            font-size: 0.85rem;
+            font-weight: 750;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: opacity 0.2s;
+        }
+        .btn-action-primary:hover { opacity: 0.9; }
+
+        .btn-action-landlord {
+            background-color: var(--landlord);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.5rem;
+            font-size: 0.85rem;
+            font-weight: 750;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: opacity 0.2s;
+        }
+        .btn-action-landlord:hover { opacity: 0.9; }
+    </style>
+</head>
+<body class="app-loading" data-role="admin" data-page-title="Case Investigation Console">
+    <!-- Navbar -->
+    <nav class="navbar navbar-admin">
+        <div class="navbar-container">
+            <div class="navbar-brand-group">
+                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
+                <span class="navbar-badge navbar-badge-admin">Admin</span>
+            </div>
+            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
+                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
+                <a href="users.html" class="navbar-menu-link">Users</a>
+                <a href="property-review.html" class="navbar-menu-link">Property Review</a>
+                <a href="screening.html" class="navbar-menu-link">Screening Monitor</a>
+                <a href="leases.html" class="navbar-menu-link">Lease Monitor</a>
+                <a href="billings.html" class="navbar-menu-link">Billing Monitor</a>
+                <a href="payments.html" class="navbar-menu-link">Payment Monitor</a>
+                <a href="maintenance.html" class="navbar-menu-link">Maintenance Monitor</a>
+                <a href="reports.html" class="navbar-menu-link active">Reports Triage</a>
+                <a href="disputes.html" class="navbar-menu-link">Disputes Monitor</a>
+                <a href="policy-violations.html" class="navbar-menu-link">Violations Monitor</a>
+                <a href="feedback.html" class="navbar-menu-link">Feedback Monitor</a>
+                <a href="audit-logs.html" class="navbar-menu-link">Audit Logs</a>
+            </div>
+            <div class="navbar-right">
+                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
+                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Console -->
+    <main class="dashboard-container">
+        <!-- Top Back & Header Row -->
+        <div class="page-header-row">
+            <div>
+                <a href="reports.html" class="btn-back">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    Back to Incident Reports List
+                </a>
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.75rem;">
+                    <h2 id="caseTicketTitle" style="margin:0; font-size:1.4rem; font-weight:800;">Ticket Investigation</h2>
+                    <span id="caseTypeChip" class="chip-type"></span>
+                </div>
+                <p id="caseTicketSubtitle" style="color: var(--text-secondary); margin-top:0.25rem;">Filed Date: —</p>
+            </div>
+        </div>
+
+        <div id="pageAlert" style="display:none;" class="alert"></div>
+
+        <!-- 1. Involved Parties & Rental Context -->
+        <div class="case-card">
+            <div class="case-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Involved Parties & Rental Context
+            </div>
+            <div class="info-grid">
+                <div class="info-block">
+                    <label>Complainant (Reporter)</label>
+                    <div id="reporterName">—</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted);" id="reporterContact">—</div>
+                </div>
+                <div class="info-block">
+                    <label>Reported User (Target)</label>
+                    <div id="targetName" style="color:var(--error);">—</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted);" id="targetContact">—</div>
+                </div>
+                <div class="info-block">
+                    <label>Property & Unit</label>
+                    <div id="propertyName">—</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted);" id="unitInfo">—</div>
+                </div>
+                <div class="info-block">
+                    <label>Lease Contract</label>
+                    <div id="leaseNum">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Disciplinary Action Enforcement Panel (Platform TOS) -->
+        <div class="case-card" style="background: rgba(225, 29, 72, 0.03); border: 2px solid rgba(225, 29, 72, 0.3);">
+            <div class="case-card-title" style="color: var(--error);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Admin Disciplinary Action Enforcement Panel (Platform TOS)
+            </div>
+
+            <div class="action-options-grid">
+                <div class="action-card-btn selected" data-action-type="dismiss" onclick="selectActionType('dismiss')">
+                    <div class="action-card-title">🛡️ Dismissal</div>
+                    <div class="action-card-desc">Dismiss report due to lack of evidence or no policy violation.</div>
+                </div>
+                <div class="action-card-btn" data-action-type="warning" onclick="selectActionType('warning')">
+                    <div class="action-card-title">⚠️ Formal Warning</div>
+                    <div class="action-card-desc">Issue official warning notice to reported user.</div>
+                </div>
+                <div class="action-card-btn" data-action-type="suspend" onclick="selectActionType('suspend')">
+                    <div class="action-card-title">⛔ Temporary Suspension</div>
+                    <div class="action-card-desc">Temporarily lock account & hide listings (7, 14, 30 days).</div>
+                </div>
+                <div class="action-card-btn" data-action-type="ban" onclick="selectActionType('ban')">
+                    <div class="action-card-title" style="color:var(--error);">🚫 Permanent Ban</div>
+                    <div class="action-card-desc">Permanently ban account & deactivate all property listings.</div>
+                </div>
+            </div>
+
+            <div id="suspensionDurationBox" style="display:none; margin-bottom:1rem;">
+                <label class="form-label" for="suspensionDaysInput">Suspension Duration (Days)</label>
+                <select id="suspensionDaysInput" class="form-input" style="max-width:240px;">
+                    <option value="7">7 Days Suspension</option>
+                    <option value="14">14 Days Suspension</option>
+                    <option value="30">30 Days Suspension</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1.25rem;">
+                <label class="form-label" for="decisionRemarks">Official Findings & Sanction Decision Remarks <span style="color:var(--error);">*</span></label>
+                <textarea id="decisionRemarks" class="form-input" rows="3" placeholder="State official findings, platform TOS grounds, or reasons for dismissal/disciplinary sanction..."></textarea>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end;">
+                <button type="button" id="executeDecisionBtn" class="btn-action-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Enforce Selected Sanction & Update Ticket
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. Intake & Priority Triage Stage Control -->
+        <div class="case-card" style="background: rgba(59, 130, 246, 0.04); border: 1px solid rgba(59, 130, 246, 0.25);">
+            <div class="case-card-title" style="color: var(--landlord);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Intake & Priority Triage Stage Control
+            </div>
+            <div style="display:flex; gap:1.25rem; flex-wrap:wrap; align-items:flex-end;">
+                <div class="form-group" style="margin-bottom:0; flex:1; min-width:200px;">
+                    <label class="form-label" for="triagePrioritySelect">Priority Level</label>
+                    <select id="triagePrioritySelect" class="form-input">
+                        <option value="critical">🚨 Critical / High (Threats, Safety, Scams)</option>
+                        <option value="major">⚠️ Major / High Priority</option>
+                        <option value="moderate">🔵 Moderate / Normal Priority</option>
+                        <option value="minor">⚪ Minor / Low Priority</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0; flex:1; min-width:200px;">
+                    <label class="form-label" for="triageStageSelect">Investigation Stage</label>
+                    <select id="triageStageSelect" class="form-input">
+                        <option value="pending_admin_review">Pending Review</option>
+                        <option value="in_review">In Review (Staff Assigned)</option>
+                        <option value="needs_more_evidence">Waiting for User / Evidence</option>
+                    </select>
+                </div>
+                <button type="button" id="saveTriageBtn" class="btn-action-landlord">
+                    Update Triage Stage
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. Evidence Media & Statements -->
+        <div class="case-card">
+            <div class="case-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Evidence Media & Statements
+            </div>
+
+            <div style="margin-bottom:1.25rem;">
+                <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Incident Category & Narrative</label>
+                <div id="categoryBadge" style="font-weight:700; font-size:1.05rem; color:var(--text-primary); margin:0.3rem 0;">—</div>
+                <div id="incidentDescription" style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-color); white-space:pre-wrap;">—</div>
+            </div>
+
+            <div style="margin-bottom:1.25rem;">
+                <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Uploaded Evidence Gallery</label>
+                <div id="evidenceContainer" class="evidence-grid">
+                    <div style="font-size:0.85rem; color:var(--text-muted); font-style:italic; grid-column:1/-1;">No evidence attachments provided.</div>
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Reported User Response / Defense Statement</label>
+                <div id="userExplanation" style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); padding:1rem; border-radius:var(--radius-md); border:1px dashed var(--border-color); white-space:pre-wrap; margin-top:0.35rem;">
+                    <span style="font-style:italic; color:var(--text-muted);">No response submitted yet by the reported user.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Admin Case Inquiry & Discussion Thread -->
+        <div class="case-card" style="background: rgba(168, 85, 247, 0.04); border-color: rgba(168, 85, 247, 0.25);">
+            <div class="case-card-title" style="color: #9333ea;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Admin Case Inquiry & Discussion Thread
+            </div>
+            
+            <!-- Messages Feed -->
+            <div id="messagesFeed" style="display:flex; flex-direction:column; gap:0.75rem; max-height:260px; overflow-y:auto; padding:0.85rem; background:var(--bg-primary); border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:1rem;">
+                <div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>
+            </div>
+
+            <!-- Admin Post Inquiry Form -->
+            <form id="postInquiryForm" style="display:flex; flex-direction:column; gap:0.75rem;">
+                <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+                    <label class="form-label" style="margin-bottom:0; font-size:0.8rem;">Target Recipient:</label>
+                    <select id="msgRecipientRole" class="form-input" style="max-width:220px; padding:0.4rem 0.65rem; font-size:0.82rem;">
+                        <option value="reporter">Complainant (Reporter)</option>
+                        <option value="target">Reported User (Target)</option>
+                        <option value="all">All Case Parties</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:0.75rem;">
+                    <input type="text" id="msgTextInput" class="form-input" placeholder="Type official inquiry or request for evidence..." style="flex:1;">
+                    <button type="submit" class="btn-action-primary" style="background:#9333ea; padding:0.6rem 1.25rem;">Send Inquiry Message</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        const params = new URLSearchParams(window.location.search);
+        const reportId = params.get('id');
+        const reportType = params.get('type');
+        const defaultAction = params.get('action') || 'dismiss';
+
+        let currentTicket = null;
+        let selectedAction = 'dismiss';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token || !reportId || !reportType) {
+                alert('Invalid ticket parameters.');
+                window.location.href = 'reports.html';
+                return;
+            }
+
+            fetchTicketDetail();
+
+            document.getElementById('saveTriageBtn').addEventListener('click', handleSaveTriage);
+            document.getElementById('executeDecisionBtn').addEventListener('click', handleExecuteDecision);
+            document.getElementById('postInquiryForm').addEventListener('submit', handlePostInquiry);
+        });
+
+        async function fetchTicketDetail() {
+            clearAlert();
+            const endpoint = reportType === 'landlord_report' 
+                ? `/api/admin/landlord-reports/${reportId}` 
+                : `/api/admin/tenant-reports/${reportId}`;
+
+            try {
+                const res = await fetch(endpoint, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { alert('Failed to fetch ticket detail.'); return; }
+
+                const { data } = await res.json();
+                currentTicket = { ...data, _type: reportType };
+
+                const isLandlordReport = reportType === 'landlord_report';
+
+                document.getElementById('caseTicketTitle').textContent = `Ticket Investigation #${reportId.slice(0,8)}`;
+                document.getElementById('caseTypeChip').textContent = isLandlordReport ? 'Tenant vs Landlord' : 'Landlord vs Tenant';
+                document.getElementById('caseTypeChip').className = `chip-type ${isLandlordReport ? 'chip-tenant-vs-landlord' : 'chip-landlord-vs-tenant'}`;
+                document.getElementById('caseTicketSubtitle').textContent = `Filed Date: ${new Date(currentTicket.created_at).toLocaleString()}`;
+
+                // Involved parties
+                const reporter = isLandlordReport ? currentTicket.tenant : currentTicket.landlord;
+                const target   = isLandlordReport ? currentTicket.landlord : currentTicket.tenant;
+
+                document.getElementById('reporterName').textContent = reporter?.full_name || '—';
+                document.getElementById('reporterContact').textContent = `${reporter?.email || ''} ${reporter?.contact_number ? '· ' + reporter.contact_number : ''}`;
+                
+                document.getElementById('targetName').textContent = target?.full_name || '—';
+                document.getElementById('targetContact').textContent = `${target?.email || ''} ${target?.contact_number ? '· ' + target.contact_number : ''}`;
+
+                document.getElementById('propertyName').textContent = currentTicket.properties?.property_name || '—';
+                document.getElementById('unitInfo').textContent = `Unit: ${currentTicket.properties?.unit_number || 'N/A'}`;
+                document.getElementById('leaseNum').textContent = currentTicket.lease_records?.lease_number || '—';
+
+                // Triage controls
+                document.getElementById('triagePrioritySelect').value = currentTicket.severity || 'normal';
+                document.getElementById('triageStageSelect').value    = currentTicket.status || 'pending_admin_review';
+
+                // Narrative
+                document.getElementById('categoryBadge').textContent = (currentTicket.report_category || 'General').replace(/_/g, ' ');
+                document.getElementById('incidentDescription').textContent = currentTicket.incident_description || 'No statement narrative recorded.';
+
+                // Explanation / Defense
+                const explanationText = isLandlordReport ? currentTicket.landlord_explanation : currentTicket.tenant_explanation;
+                if (explanationText) {
+                    document.getElementById('userExplanation').innerHTML = `<div style="font-weight:700; color:var(--text-primary); margin-bottom:0.2rem;">Submitted Statement:</div>${explanationText}`;
+                } else {
+                    document.getElementById('userExplanation').innerHTML = `<span style="font-style:italic; color:var(--text-muted);">No response submitted yet by the reported user.</span>`;
+                }
+
+                // Evidence
+                const evContainer = document.getElementById('evidenceContainer');
+                evContainer.innerHTML = '';
+                const evidenceList = currentTicket.evidence || [];
+                if (evidenceList.length === 0) {
+                    evContainer.innerHTML = `<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic; grid-column:1/-1;">No evidence attachments provided.</div>`;
+                } else {
+                    evidenceList.forEach(ev => {
+                        const thumb = document.createElement('div');
+                        thumb.className = 'evidence-thumb';
+
+                        if (ev.file_type === 'video' || (ev.file_name && ev.file_name.match(/\.(mp4|webm|mov)$/i))) {
+                            thumb.innerHTML = `
+                                <video src="${ev.file_url}" muted></video>
+                                <a href="${ev.file_url}" target="_blank" class="evidence-thumb-link">Play Video ↗</a>
+                            `;
+                        } else {
+                            thumb.innerHTML = `
+                                <img src="${ev.file_url}" alt="Evidence" onerror="this.src='https://placehold.co/160x120?text=Doc'">
+                                <a href="${ev.file_url}" target="_blank" class="evidence-thumb-link">View File ↗</a>
+                            `;
+                        }
+                        evContainer.appendChild(thumb);
+                    });
+                }
+
+                // Load case discussion thread
+                loadInvestigationMessages(reportType, reportId);
+
+                // Select action
+                const targetAction = ['dismiss', 'warning', 'suspend', 'ban'].includes(defaultAction) ? defaultAction : 'dismiss';
+                selectActionType(targetAction);
+                document.getElementById('decisionRemarks').value = currentTicket.admin_remarks || '';
+
+            } catch (err) {
+                console.error(err);
+                showAlert('Error loading ticket details.');
+            }
+        }
+
+        function selectActionType(type) {
+            selectedAction = type;
+            document.querySelectorAll('.action-card-btn').forEach(btn => {
+                if (btn.dataset.actionType === type) btn.classList.add('selected');
+                else btn.classList.remove('selected');
+            });
+
+            const durBox = document.getElementById('suspensionDurationBox');
+            if (type === 'suspend') durBox.style.display = 'block';
+            else durBox.style.display = 'none';
+        }
+
+        function showAlert(msg, type = 'error') {
+            const el = document.getElementById('pageAlert');
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function clearAlert() {
+            const el = document.getElementById('pageAlert');
+            el.style.display = 'none';
+        }
+
+        async function handleSaveTriage() {
+            if (!currentTicket) return;
+            clearAlert();
+
+            const priority = document.getElementById('triagePrioritySelect').value;
+            const stage    = document.getElementById('triageStageSelect').value;
+
+            const endpoint = reportType === 'landlord_report' 
+                ? `/api/admin/landlord-reports/${reportId}/decision` 
+                : `/api/admin/tenant-reports/${reportId}/decision`;
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ action: 'triage', status: stage, severity: priority })
+                });
+
+                if (res.ok) {
+                    showAlert('Triage stage and priority updated successfully.', 'success');
+                    fetchTicketDetail();
+                } else {
+                    const r = await res.json();
+                    showAlert(r.message || 'Failed to update triage.');
+                }
+            } catch (err) {
+                console.error(err);
+                showAlert('Network error during triage update.');
+            }
+        }
+
+        async function handleExecuteDecision() {
+            if (!currentTicket) return;
+            clearAlert();
+
+            const remarks = document.getElementById('decisionRemarks').value.trim();
+            if (!remarks || remarks.length < 5) {
+                showAlert('Please provide official decision & findings remarks (at least 5 characters).');
+                return;
+            }
+
+            const suspensionDays = selectedAction === 'suspend' ? parseInt(document.getElementById('suspensionDaysInput').value) : null;
+
+            const endpoint = reportType === 'landlord_report' 
+                ? `/api/admin/landlord-reports/${reportId}/decision` 
+                : `/api/admin/tenant-reports/${reportId}/decision`;
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ action: selectedAction, admin_remarks: remarks, suspension_days: suspensionDays })
+                });
+
+                if (res.ok) {
+                    alert('Sanction enforced and ticket updated successfully!');
+                    fetchTicketDetail();
+                } else {
+                    const r = await res.json();
+                    showAlert(r.message || 'Failed to enforce decision.');
+                }
+            } catch (err) {
+                console.error(err);
+                showAlert('Network error during decision enforcement.');
+            }
+        }
+
+        async function loadInvestigationMessages(type, id) {
+            const feed = document.getElementById('messagesFeed');
+            feed.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">Loading inquiry thread...</div>';
+            try {
+                const res = await fetch(`/api/reports/messages/${type}/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) {
+                    feed.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
+                    return;
+                }
+                const { data } = await res.json();
+                if (!data || data.length === 0) {
+                    feed.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
+                    return;
+                }
+
+                feed.innerHTML = '';
+                data.forEach(m => {
+                    const isMe = m.sender_role === 'admin';
+                    const senderName = m.sender?.full_name || (m.sender_role === 'admin' ? 'System Admin' : m.sender_role);
+                    const dateStr = new Date(m.created_at).toLocaleString();
+
+                    const item = document.createElement('div');
+                    item.style.cssText = `background:${isMe ? 'rgba(59,130,246,0.1)' : 'var(--bg-secondary)'}; border:1px solid var(--border-color); padding:0.75rem 1rem; border-radius:8px; font-size:0.88rem;`;
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.75rem;">
+                            <span style="font-weight:800; color:${isMe ? 'var(--landlord)' : 'var(--text-primary)'};">${senderName} (${m.sender_role.toUpperCase()}) ➔ ${m.recipient_role.toUpperCase()}</span>
+                            <span style="color:var(--text-muted);">${dateStr}</span>
+                        </div>
+                        <div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>
+                        ${m.attachment_url ? `<div style="margin-top:0.4rem;"><a href="${m.attachment_url}" target="_blank" style="color:var(--landlord); font-weight:700; font-size:0.8rem;">📎 View Attached Media ↗</a></div>` : ''}
+                    `;
+                    feed.appendChild(item);
+                });
+                feed.scrollTop = feed.scrollHeight;
+            } catch (e) {
+                console.error(e);
+                feed.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
+            }
+        }
+
+        async function handlePostInquiry(e) {
+            e.preventDefault();
+            if (!currentTicket) return;
+
+            const msgInput = document.getElementById('msgTextInput');
+            const recipSelect = document.getElementById('msgRecipientRole');
+            const text = msgInput.value.trim();
+            if (!text) return;
+
+            try {
+                const res = await fetch(`/api/reports/messages/${reportType}/${reportId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ message_text: text, recipient_role: recipSelect.value })
+                });
+                if (res.ok) {
+                    msgInput.value = '';
+                    loadInvestigationMessages(reportType, reportId);
+                } else {
+                    const r = await res.json();
+                    alert(r.message || 'Failed to post message.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Network error posting message.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -826,111 +826,20 @@
                     <td>${statusBadge}</td>
                     <td>${createdDate}</td>
                     <td>
-                        <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'investigate')" class="btn-investigate">
+                        <a href="report-detail.html?id=${t.id}&type=${t._type}&action=investigate" class="btn-investigate" style="text-decoration:none;">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            🔍 Investigate
-                        </button>
+                            🔍 Investigate Console
+                        </a>
                         <div class="action-pill-group">
-                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'warning')" class="action-pill-btn action-pill-warn" title="Issue Formal Warning">⚠️ Warn</button>
-                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'suspend')" class="action-pill-btn action-pill-suspend" title="Temporary Suspension">⛔ Suspend</button>
-                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'ban')" class="action-pill-btn action-pill-ban" title="Permanent Ban">🚫 Ban</button>
-                            <button onclick="openInvestigateModal('${t.id}', '${t._type}', 'dismiss')" class="action-pill-btn action-pill-dismiss" title="Dismiss Ticket">🛡️ Dismiss</button>
+                            <a href="report-detail.html?id=${t.id}&type=${t._type}&action=warning" class="action-pill-btn action-pill-warn" style="text-decoration:none;" title="Issue Formal Warning">⚠️ Warn</a>
+                            <a href="report-detail.html?id=${t.id}&type=${t._type}&action=suspend" class="action-pill-btn action-pill-suspend" style="text-decoration:none;" title="Temporary Suspension">⛔ Suspend</a>
+                            <a href="report-detail.html?id=${t.id}&type=${t._type}&action=ban" class="action-pill-btn action-pill-ban" style="text-decoration:none;" title="Permanent Ban">🚫 Ban</a>
+                            <a href="report-detail.html?id=${t.id}&type=${t._type}&action=dismiss" class="action-pill-btn action-pill-dismiss" style="text-decoration:none;" title="Dismiss Ticket">🛡️ Dismiss</a>
                         </div>
                     </td>
                 `;
                 tableBody.appendChild(row);
             });
-        }
-
-        async function openInvestigateModal(id, type, defaultAction = 'dismiss') {
-            currentTicket = null;
-            clearModalAlert();
-
-            const endpoint = type === 'landlord_report' ? `/api/admin/landlord-reports/${id}` : `/api/admin/tenant-reports/${id}`;
-            try {
-                const res = await fetch(endpoint, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) { alert('Failed to fetch ticket detail.'); return; }
-
-                const { data } = await res.json();
-                currentTicket = { ...data, _type: type };
-
-                const isLandlordReport = type === 'landlord_report';
-
-                document.getElementById('modalTicketTitle').textContent = `Ticket #${id.slice(0,8)}`;
-                document.getElementById('modalTypeChip').textContent = isLandlordReport ? 'Tenant vs Landlord' : 'Landlord vs Tenant';
-                document.getElementById('modalTypeChip').className = `chip-type ${isLandlordReport ? 'chip-tenant-vs-landlord' : 'chip-landlord-vs-tenant'}`;
-                document.getElementById('modalTicketSubtitle').textContent = `Filed Date: ${new Date(currentTicket.created_at).toLocaleString()}`;
-
-                // Involved parties
-                const reporter = isLandlordReport ? currentTicket.tenant : currentTicket.landlord;
-                const target   = isLandlordReport ? currentTicket.landlord : currentTicket.tenant;
-
-                document.getElementById('modalReporterName').textContent = reporter?.full_name || '—';
-                document.getElementById('modalReporterContact').textContent = `${reporter?.email || ''} ${reporter?.contact_number ? '· ' + reporter.contact_number : ''}`;
-                
-                document.getElementById('modalTargetName').textContent = target?.full_name || '—';
-                document.getElementById('modalTargetContact').textContent = `${target?.email || ''} ${target?.contact_number ? '· ' + target.contact_number : ''}`;
-
-                document.getElementById('modalPropertyName').textContent = currentTicket.properties?.property_name || '—';
-                document.getElementById('modalUnitInfo').textContent = `Unit: ${currentTicket.properties?.unit_number || 'N/A'}`;
-                document.getElementById('modalLeaseNum').textContent = currentTicket.lease_records?.lease_number || '—';
-
-                // Triage controls
-                document.getElementById('triagePrioritySelect').value = currentTicket.severity || 'normal';
-                document.getElementById('triageStageSelect').value    = currentTicket.status || 'pending_admin_review';
-
-                // Narrative
-                document.getElementById('modalCategoryBadge').textContent = (currentTicket.report_category || 'General').replace(/_/g, ' ');
-                document.getElementById('modalDescription').textContent = currentTicket.incident_description || 'No statement narrative recorded.';
-
-                // Explanation / Defense
-                const explanationText = isLandlordReport ? currentTicket.landlord_explanation : currentTicket.tenant_explanation;
-                if (explanationText) {
-                    document.getElementById('modalExplanation').innerHTML = `<div style="font-weight:700; color:var(--text-primary); margin-bottom:0.2rem;">Submitted Statement:</div>${explanationText}`;
-                } else {
-                    document.getElementById('modalExplanation').innerHTML = `<span style="font-style:italic; color:var(--text-muted);">No response submitted yet by the reported user.</span>`;
-                }
-
-                // Evidence
-                const evContainer = document.getElementById('modalEvidenceContainer');
-                evContainer.innerHTML = '';
-                const evidenceList = currentTicket.evidence || [];
-                if (evidenceList.length === 0) {
-                    evContainer.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); font-style:italic; grid-column:1/-1;">No evidence attachments provided.</div>`;
-                } else {
-                    evidenceList.forEach(ev => {
-                        const thumb = document.createElement('div');
-                        thumb.className = 'evidence-thumb';
-
-                        if (ev.file_type === 'video' || (ev.file_name && ev.file_name.match(/\.(mp4|webm|mov)$/i))) {
-                            thumb.innerHTML = `
-                                <video src="${ev.file_url}" muted></video>
-                                <a href="${ev.file_url}" target="_blank" class="evidence-thumb-link">Play Video ↗</a>
-                            `;
-                        } else {
-                            thumb.innerHTML = `
-                                <img src="${ev.file_url}" alt="Evidence" onerror="this.src='https://placehold.co/140x100?text=Doc'">
-                                <a href="${ev.file_url}" target="_blank" class="evidence-thumb-link">View File ↗</a>
-                            `;
-                        }
-                        evContainer.appendChild(thumb);
-                    });
-                }
-
-                // Load case discussion thread
-                loadInvestigationMessages(currentTicket._type, currentTicket.id);
-
-                // Select default action
-                const targetAction = ['dismiss', 'warning', 'suspend', 'ban'].includes(defaultAction) ? defaultAction : 'dismiss';
-                selectActionType(targetAction);
-                document.getElementById('decisionRemarks').value = currentTicket.admin_remarks || '';
-
-                document.getElementById('investigateModal').classList.remove('hidden');
-
-            } catch (err) {
-                console.error(err);
-                alert('Error loading ticket details.');
-            }
         }
 
         async function loadInvestigationMessages(type, id) {
