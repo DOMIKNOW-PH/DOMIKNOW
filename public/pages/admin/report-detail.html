@@ -475,8 +475,14 @@
                 document.getElementById('targetName').textContent = target?.full_name || '—';
                 document.getElementById('targetContact').textContent = `${target?.email || ''} ${target?.contact_number ? '· ' + target.contact_number : ''}`;
 
+                const unitNum = currentTicket.lease_records?.property_units?.unit_number ||
+                                currentTicket.lease_records?.units?.unit_number ||
+                                currentTicket.properties?.unit_number ||
+                                currentTicket.units?.unit_number ||
+                                'N/A';
+
                 document.getElementById('propertyName').textContent = currentTicket.properties?.property_name || '—';
-                document.getElementById('unitInfo').textContent = `Unit: ${currentTicket.properties?.unit_number || currentTicket.units?.unit_number || 'N/A'}`;
+                document.getElementById('unitInfo').textContent = `Unit: ${unitNum}`;
                 document.getElementById('leaseNum').textContent = currentTicket.lease_records?.lease_number || currentTicket.leases?.lease_number || '—';
 
                 // Target user prior report history
