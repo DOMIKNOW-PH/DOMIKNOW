@@ -905,8 +905,8 @@
                 container.innerHTML = '';
                 return;
             }
-            const names = typers.map(t => t.isSelf ? 'You' : `${t.userName} (${t.userRole.toUpperCase()})`).join(', ');
-            const verb = (typers.length > 1 || (typers.length === 1 && typers[0].isSelf)) ? 'are' : 'is';
+            const names = typers.map(t => `${t.userName} (${t.userRole.toUpperCase()})`).join(', ');
+            const verb = typers.length > 1 ? 'are' : 'is';
             container.innerHTML = `
                 <div class="typing-indicator-box">
                     <span>✍️ <strong>${names}</strong> ${verb} typing</span>

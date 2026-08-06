@@ -493,8 +493,8 @@ function getActiveTypers(type, id, currentUserId) {
     for (const [key, info] of typingStateStore.entries()) {
         if (info.expiresAt < now) {
             typingStateStore.delete(key);
-        } else if (info.type === type && info.id === id) {
-            active.push({ ...info, isSelf: info.userId === currentUserId });
+        } else if (info.type === type && info.id === id && info.userId !== currentUserId) {
+            active.push(info);
         }
     }
     return active;

@@ -576,6 +576,7 @@
                     const input = $('againstMsgTextInput');
                     const text = input.value.trim();
                     if (!text) return;
+                    sendLandlordTypingPulse('landlord_report', currentReportId, false);
                     const res = await fetch(`/api/reports/messages/landlord_report/${currentReportId}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -587,7 +588,31 @@
                     }
                 });
             }
+
+            let landlordTypingTimer = null;
+            ['filedMsgTextInput', 'againstMsgTextInput'].forEach(id => {
+                const input = $(id);
+                if (input) {
+                    input.addEventListener('input', () => {
+                        const type = id === 'filedMsgTextInput' ? 'tenant_report' : 'landlord_report';
+                        sendLandlordTypingPulse(type, currentReportId, true);
+                        clearTimeout(landlordTypingTimer);
+                        landlordTypingTimer = setTimeout(() => sendLandlordTypingPulse(type, currentReportId, false), 3000);
+                    });
+                }
+            });
         });
+
+        async function sendLandlordTypingPulse(type, id, isTyping) {
+            if (!type || !id) return;
+            try {
+                await fetch(`/api/reports/messages/${type}/${id}/typing`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ is_typing: isTyping })
+                });
+            } catch (e) {}
+        }
 
         // ── Tab Switching ──────────────────────────────────────────────────────
         function switchTab(tab) {

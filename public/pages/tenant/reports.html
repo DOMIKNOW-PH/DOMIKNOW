@@ -550,6 +550,7 @@
                     const input = $('againstMsgTextInput');
                     const text = input.value.trim();
                     if (!text) return;
+                    sendTenantTypingPulse('tenant_report', currentReportId, false);
                     const res = await fetch(`/api/reports/messages/tenant_report/${currentReportId}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -561,7 +562,31 @@
                     }
                 });
             }
+
+            let tenantTypingTimer = null;
+            ['filedMsgTextInput', 'againstMsgTextInput'].forEach(id => {
+                const input = $(id);
+                if (input) {
+                    input.addEventListener('input', () => {
+                        const type = id === 'filedMsgTextInput' ? 'landlord_report' : 'tenant_report';
+                        sendTenantTypingPulse(type, currentReportId, true);
+                        clearTimeout(tenantTypingTimer);
+                        tenantTypingTimer = setTimeout(() => sendTenantTypingPulse(type, currentReportId, false), 3000);
+                    });
+                }
+            });
         });
+
+        async function sendTenantTypingPulse(type, id, isTyping) {
+            if (!type || !id) return;
+            try {
+                await fetch(`/api/reports/messages/${type}/${id}/typing`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ is_typing: isTyping })
+                });
+            } catch (e) {}
+        }
 
         // ── Tab Switching ──────────────────────────────────────────────────────
         function switchTab(tab) {
