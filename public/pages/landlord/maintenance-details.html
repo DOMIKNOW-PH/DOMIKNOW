@@ -591,9 +591,11 @@
                 const d = btn.dataset.decision;
                 if (a === 'respond') handleRespond(d);
                 if (a === 'verify')  handleVerify(d);
+                if (a === 'assign')  { e.preventDefault(); handleAssign(); }
             });
             document.getElementById('actionBody').addEventListener('submit', (e) => {
-                if (e.target.id === 'assignForm') { e.preventDefault(); handleAssign(); }
+                e.preventDefault();
+                handleAssign();
             });
         });
 
@@ -804,7 +806,7 @@
                             <label class="form-label" for="assignInstructions">Job Instructions / Directives</label>
                             <textarea id="assignInstructions" class="form-input" rows="3" placeholder="e.g. Replace faucet cartridge, check supply line for leaks…"></textarea>
                         </div>
-                        <button type="submit" class="btn btn-assign">
+                        <button type="submit" class="btn btn-assign" data-action="assign">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
                             Assign ${trade}
                         </button>
@@ -812,9 +814,10 @@
                 `;
                 panel.style.display = 'block';
 
-                // Set min due date to today
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('dueDate').min = today;
+                // Set min due date to local today
+                const now = new Date();
+                const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                document.getElementById('dueDate').min = localToday;
 
                 // Bind modal event for registering worker on-the-fly
                 const detailAddWorkerBtn = document.getElementById('openAddWorkerBtnDetail');
