@@ -4,186 +4,475 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maintenance Requests - DomiKnow</title>
+    <meta name="description" content="File and track maintenance requests for your rented property on DomiKnow.">
     <link href="../../css/input.css" rel="stylesheet">
     <style>
-        .maintenance-grid {
-            display: grid;
-            grid-template-columns: 1.15fr 1.85fr;
-            gap: 2rem;
-            margin-top: 1.5rem;
+        /* ── Page Header ────────────────────────────────────── */
+        .page-hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
-        @media (max-width: 1024px) {
-            .maintenance-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        .form-card, .history-card {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            box-shadow: var(--shadow-lg);
-            height: fit-content;
-        }
-        .history-card {
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.9rem;
-        }
-        th {
-            font-weight: 700;
-            color: var(--text-secondary);
-            padding: 0.75rem 1rem;
-            border-bottom: 2px solid var(--border-color);
-            text-transform: uppercase;
-            font-size: 0.72rem;
-            letter-spacing: 0.05em;
-        }
-        td {
-            padding: 1.1rem 1rem;
-            border-bottom: 1px solid var(--border-color);
+        .page-hero-text h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
             color: var(--text-primary);
+            margin-bottom: 0.25rem;
         }
-        tr:hover td {
-            background-color: var(--bg-primary);
+        .page-hero-text p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        .btn-new-request {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 800;
+            border: none;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--tenant) 0%, #7c3aed 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+        }
+        .btn-new-request:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(139, 92, 246, 0.4);
         }
 
-        /* Modal Overlay & Timeline details */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 1.5rem;
+        /* ── Stats Row ──────────────────────────────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.75rem;
         }
-        .modal-container {
-            background-color: var(--bg-secondary);
+        @media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px) { .stats-row { grid-template-columns: 1fr; } }
+
+        .stat-card {
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            width: 100%;
-            max-width: 650px;
-            max-height: 92vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            border-radius: var(--radius-md);
+            padding: 1.1rem 1.25rem;
             display: flex;
-            flex-direction: column;
-        }
-        .modal-header {
-            padding: 1.25rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            background-color: var(--bg-primary);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .modal-body {
-            padding: 2rem;
-            overflow-y: auto;
-        }
-        .modal-footer {
-            padding: 1.25rem 2rem;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            background-color: var(--bg-primary);
             gap: 1rem;
         }
-        .modal-close-x {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            color: var(--text-secondary);
+        .stat-icon {
+            width: 42px; height: 42px;
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+        .stat-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* ── History Panel ──────────────────────────────────── */
+        .history-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        .history-panel-header {
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            padding: 0.2rem;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
         }
+        .history-panel-header h3 { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0; }
 
-        .action-btn {
-            padding: 0.45rem 1rem;
-            font-size: 0.8125rem;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
+        /* Filter tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 0.3rem;
+            padding: 0.85rem 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab {
+            padding: 0.4rem 0.9rem;
+            font-size: 0.78rem;
             font-weight: 700;
-            border: 1px solid transparent;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            display: inline-block;
+            color: var(--text-muted);
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
         }
-        .btn-view {
-            background-color: var(--tenant);
-            color: white;
-        }
-        .btn-view:hover {
-            background-color: var(--tenant-hover);
-        }
-        .btn-close {
-            background-color: var(--text-secondary);
-            color: white;
-        }
-        .btn-confirm {
-            background-color: var(--success);
-            color: white;
-        }
-        .btn-confirm:hover {
-            background-color: #059669;
-        }
-        .btn-rework {
-            background-color: var(--error);
-            color: white;
-        }
-        .btn-rework:hover {
-            background-color: #dc2626;
+        .filter-tab:hover { color: var(--text-primary); border-color: var(--tenant); }
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--tenant), #7c3aed);
+            color: white; border-color: transparent;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
         }
 
-        /* Timeline system */
-        .timeline {
+        /* ── Request Cards ──────────────────────────────────── */
+        .requests-list {
+            padding: 1.25rem 1.75rem 1.75rem;
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
-            margin-top: 1rem;
-            border-left: 2px solid var(--border-color);
-            padding-left: 1.25rem;
-            margin-left: 0.5rem;
+            gap: 0.75rem;
         }
-        .timeline-item {
+        .request-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+        .request-card:hover {
+            border-color: var(--tenant);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transform: translateX(3px);
+        }
+        .request-card-icon {
+            width: 46px; height: 46px;
+            border-radius: var(--radius-md);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; flex-shrink: 0;
+        }
+        .request-card-body { flex: 1; min-width: 0; }
+        .request-card-title { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .request-card-meta  { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+        .request-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; flex-shrink: 0; }
+        .request-card-arrow { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.1rem; }
+
+        /* ── Badges ─────────────────────────────────────────── */
+        .badge {
+            font-size: 0.68rem; font-weight: 800;
+            padding: 0.22rem 0.65rem;
+            border-radius: 999px; text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: inline-flex; align-items: center; gap: 0.3rem;
+        }
+        .badge::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+        .badge-pending    { background:rgba(245,158,11,.14); color:#f59e0b; }
+        .badge-approved   { background:rgba(59,130,246,.14); color:#3b82f6; }
+        .badge-assigned   { background:rgba(139,92,246,.14); color:#8b5cf6; }
+        .badge-accepted   { background:rgba(139,92,246,.14); color:#8b5cf6; }
+        .badge-repairing  { background:rgba(249,115,22,.14); color:#f97316; }
+        .badge-travelling { background:rgba(249,115,22,.14); color:#f97316; }
+        .badge-arrived    { background:rgba(249,115,22,.14); color:#f97316; }
+        .badge-completed  { background:rgba(16,185,129,.12); color:#10b981; }
+        .badge-verified   { background:rgba(16,185,129,.12); color:#10b981; }
+        .badge-closed     { background:rgba(107,114,128,.12);color:#6b7280; }
+        .badge-rejected   { background:rgba(239,68,68,.12);  color:#ef4444; }
+        .badge-prio-low       { background:rgba(16,185,129,.12); color:#10b981; }
+        .badge-prio-medium    { background:rgba(245,158,11,.12); color:#f59e0b; }
+        .badge-prio-high      { background:rgba(249,115,22,.12); color:#f97316; }
+        .badge-prio-emergency { background:rgba(239,68,68,.12);  color:#ef4444; }
+
+        /* ── Empty / loading states ─────────────────────────── */
+        .empty-state { text-align:center; padding:3.5rem 1rem; color:var(--text-muted); }
+        .empty-state .ei { font-size:2.75rem; margin-bottom:0.75rem; }
+        .empty-state p { font-size:0.875rem; }
+
+        /* ══════════════════════════════════════════════════════
+           FORM MODAL
+        ══════════════════════════════════════════════════════ */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(8, 8, 20, 0.72);
+            backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; padding: 1.25rem;
+        }
+
+        /* — Form Modal — */
+        .form-modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%; max-width: 780px;
+            max-height: 92vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+            animation: modalIn 0.22s ease;
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform:translateY(12px) scale(0.98); }
+            to   { opacity:1; transform:none; }
+        }
+        .form-modal-head {
+            padding: 0;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--tenant) 0%, #7c3aed 100%);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            flex-shrink: 0;
             position: relative;
+            overflow: hidden;
         }
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -27px;
-            top: 4px;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: var(--border-color);
-            border: 2px solid var(--bg-secondary);
+        .form-modal-head-bg {
+            position: absolute; inset:0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='30'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
         }
-        .timeline-item.active::before {
-            background-color: var(--tenant);
+        .form-modal-head-content {
+            position: relative;
+            padding: 1.5rem 1.75rem;
+            display: flex; align-items: center; justify-content: space-between;
         }
-        .timeline-meta {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            font-weight: 700;
-            text-transform: uppercase;
+        .form-modal-head h3 { color:white; font-size:1.1rem; font-weight:800; margin:0 0 0.2rem 0; }
+        .form-modal-head p  { color:rgba(255,255,255,0.75); font-size:0.8125rem; margin:0; }
+        .form-modal-close {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 0.4rem;
+            cursor: pointer; color: white;
+            transition: background 0.15s;
+            display:flex; align-items:center;
+            flex-shrink: 0; margin-left: 1rem;
         }
-        .timeline-notes {
-            font-size: 0.875rem;
-            color: var(--text-primary);
-            margin-top: 0.15rem;
+        .form-modal-close:hover { background: rgba(255,255,255,0.25); }
+
+        .form-modal-body {
+            padding: 1.75rem;
+            overflow-y: auto; flex: 1;
         }
+
+        /* ── Form 2-col layout ──────────────────────────────── */
+        .form-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1.5rem;
+        }
+        .form-col-full { grid-column: span 2; }
+        @media (max-width: 600px) {
+            .form-cols { grid-template-columns: 1fr; }
+            .form-col-full { grid-column: 1; }
+        }
+
+        /* ── Lease info card (inside form modal) ─────────────── */
+        .lease-info-bar {
+            display: flex; align-items: center; gap: 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+        .lease-info-bar-icon {
+            width: 38px; height: 38px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--tenant), #7c3aed);
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.1rem; flex-shrink:0;
+        }
+        .lib-name { font-weight:700; font-size:0.9rem; color:var(--text-primary); }
+        .lib-sub  { font-size:0.75rem; color:var(--text-muted); margin-top:0.1rem; }
+        .lib-badge {
+            margin-left: auto;
+            font-size:0.68rem; font-weight:700;
+            padding:0.2rem 0.6rem; border-radius:999px;
+            background:rgba(16,185,129,.12); color:#10b981;
+            border:1px solid rgba(16,185,129,.25); white-space:nowrap;
+        }
+
+        /* ── Info rows ──────────────────────────────────────── */
+        .info-rows { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+        .info-chip {
+            display:flex; align-items:center; gap:0.4rem;
+            background:var(--bg-primary); border:1px solid var(--border-color);
+            border-radius:var(--radius-sm); padding:0.45rem 0.75rem;
+            font-size:0.8rem;
+        }
+        .info-chip-label { color:var(--text-muted); font-weight:600; }
+        .info-chip-val   { color:var(--text-primary); font-weight:700; }
+
+        /* ── Section divider ────────────────────────────────── */
+        .form-section {
+            font-size:0.69rem; font-weight:800; letter-spacing:0.09em;
+            text-transform:uppercase; color:var(--text-muted);
+            display:flex; align-items:center; gap:0.6rem;
+            margin: 1.5rem 0 0.85rem;
+        }
+        .form-section::after { content:''; flex:1; height:1px; background:var(--border-color); }
+        .form-section:first-child { margin-top: 0; }
+
+        /* ── Category icon grid ─────────────────────────────── */
+        .cat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+        @media (max-width: 600px) { .cat-grid { grid-template-columns: repeat(4, 1fr); } }
+        .cat-card {
+            display:flex; flex-direction:column; align-items:center;
+            justify-content:center; gap:0.3rem;
+            padding:0.7rem 0.25rem;
+            border:1.5px solid var(--border-color);
+            border-radius:var(--radius-md);
+            background:var(--bg-primary);
+            cursor:pointer; transition:all 0.15s;
+            font-size:0.69rem; font-weight:700;
+            color:var(--text-secondary); text-align:center;
+            user-select:none;
+        }
+        .cat-card:hover { border-color:var(--tenant); color:var(--tenant); transform:translateY(-1px); }
+        .cat-card.selected { border-color:var(--tenant); background:rgba(139,92,246,.1); color:var(--tenant); box-shadow:0 0 0 3px rgba(139,92,246,.12); }
+        .cat-card .ci { font-size:1.3rem; }
+
+        /* ── Priority cards ─────────────────────────────────── */
+        .prio-row { display:grid; grid-template-columns:repeat(4,1fr); gap:0.5rem; }
+        .prio-card {
+            display:flex; flex-direction:column; align-items:center;
+            justify-content:center; gap:0.25rem;
+            padding:0.55rem 0.25rem;
+            border:1.5px solid var(--border-color);
+            border-radius:var(--radius-md);
+            background:var(--bg-primary);
+            cursor:pointer; transition:all 0.15s;
+            font-size:0.69rem; font-weight:700;
+            color:var(--text-secondary); text-align:center;
+            user-select:none;
+        }
+        .prio-dot { width:9px; height:9px; border-radius:50%; }
+        .prio-card[data-prio="low"]       .prio-dot { background:#10b981; }
+        .prio-card[data-prio="medium"]    .prio-dot { background:#f59e0b; }
+        .prio-card[data-prio="high"]      .prio-dot { background:#f97316; }
+        .prio-card[data-prio="emergency"] .prio-dot { background:#ef4444; }
+        .prio-card.selected[data-prio="low"]       { border-color:#10b981; color:#10b981; background:rgba(16,185,129,.08); }
+        .prio-card.selected[data-prio="medium"]    { border-color:#f59e0b; color:#f59e0b; background:rgba(245,158,11,.08); }
+        .prio-card.selected[data-prio="high"]      { border-color:#f97316; color:#f97316; background:rgba(249,115,22,.08); }
+        .prio-card.selected[data-prio="emergency"] { border-color:#ef4444; color:#ef4444; background:rgba(239,68,68,.08); }
+
+        /* ── Upload zone ────────────────────────────────────── */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.1rem; text-align:center; cursor:pointer;
+            transition:all 0.18s; position:relative;
+        }
+        .upload-zone:hover, .upload-zone.dragover { border-color:var(--tenant); background:rgba(139,92,246,.03); }
+        .upload-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+        .upload-preview {
+            display:flex; align-items:center; gap:0.75rem;
+            background:var(--bg-primary); border:1px solid var(--border-color);
+            border-radius:var(--radius-sm); padding:0.6rem 0.75rem; margin-top:0.6rem;
+        }
+        .upload-preview img { width:36px; height:36px; object-fit:cover; border-radius:4px; }
+        .upload-preview-name { font-size:0.8rem; font-weight:600; color:var(--text-primary); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .upload-remove { background:none; border:none; cursor:pointer; color:var(--error); font-size:1rem; padding:0 0.2rem; }
+
+        /* ── Submit btn ─────────────────────────────────────── */
+        .form-modal-footer {
+            padding: 1.15rem 1.75rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            display: flex; justify-content: flex-end;
+            gap: 0.75rem; flex-shrink: 0;
+        }
+        .btn-cancel {
+            padding: 0.65rem 1.35rem; font-size:0.875rem; font-weight:700;
+            background: var(--bg-secondary); border:1px solid var(--border-color);
+            border-radius: var(--radius-sm); color:var(--text-secondary);
+            cursor:pointer; transition:all 0.15s;
+        }
+        .btn-cancel:hover { border-color:var(--tenant); color:var(--tenant); }
+        .btn-submit {
+            display:inline-flex; align-items:center; gap:0.5rem;
+            padding: 0.65rem 1.5rem; font-size:0.9rem; font-weight:800;
+            background: linear-gradient(135deg, var(--tenant), #7c3aed);
+            border: none; border-radius: var(--radius-sm);
+            color: white; cursor:pointer; transition:all 0.2s;
+        }
+        .btn-submit:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 6px 20px rgba(139,92,246,.35); }
+        .btn-submit:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+        /* ── Alert msgs ─────────────────────────────────────── */
+        .form-alert {
+            border-radius: var(--radius-sm); padding:0.7rem 0.9rem;
+            font-size:0.825rem; font-weight:600; margin-bottom:1rem;
+            display:flex; align-items:center; gap:0.5rem;
+        }
+        .form-alert.err { background:rgba(239,68,68,.09); color:#ef4444; border:1px solid rgba(239,68,68,.22); }
+        .form-alert.ok  { background:rgba(16,185,129,.09); color:#10b981; border:1px solid rgba(16,185,129,.22); }
+
+        /* ══════════════════════════════════════════════════════
+           DETAILS MODAL
+        ══════════════════════════════════════════════════════ */
+        .details-modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%; max-width: 680px; max-height: 90vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+            animation: modalIn 0.2s ease;
+        }
+        .details-head {
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display:flex; justify-content:space-between; align-items:center;
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            flex-shrink: 0;
+        }
+        .details-head-title { font-weight:800; font-size:1rem; color:var(--text-primary); }
+        .details-head-close {
+            background:none; border:none; cursor:pointer; color:var(--text-muted);
+            padding:0.25rem; border-radius:6px; transition:color 0.15s; line-height:1;
+        }
+        .details-head-close:hover { color:var(--text-primary); }
+        .details-body { padding:1.75rem; overflow-y:auto; flex:1; }
+        .details-foot {
+            padding: 1.1rem 1.75rem;
+            border-top: 1px solid var(--border-color);
+            display:flex; justify-content:flex-end; gap:0.75rem;
+            background: var(--bg-primary);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            flex-shrink: 0;
+        }
+        .detail-grid {
+            display:grid; grid-template-columns:1fr 1fr;
+            gap:0.75rem; margin-bottom:1.25rem;
+            background:var(--bg-primary); border:1px solid var(--border-color);
+            border-radius:var(--radius-md); padding:1.1rem;
+        }
+        .dc-label { font-size:0.67rem; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); margin-bottom:0.2rem; }
+        .dc-val   { font-weight:700; font-size:0.875rem; color:var(--text-primary); }
+
+        /* Timeline */
+        .timeline { border-left:2px solid var(--border-color); padding-left:1.25rem; margin-left:0.5rem; display:flex; flex-direction:column; gap:1rem; }
+        .tl-item { position:relative; }
+        .tl-item::before { content:''; position:absolute; left:-26px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--border-color); border:2px solid var(--bg-secondary); }
+        .tl-item.tla::before { background:var(--tenant); }
+        .tl-meta  { font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); }
+        .tl-notes { font-size:0.85rem; color:var(--text-primary); margin-top:0.15rem; }
+
+        /* Modal action buttons */
+        .btn-m { padding:0.6rem 1.25rem; font-size:0.85rem; font-weight:700; border-radius:var(--radius-sm); border:1px solid transparent; cursor:pointer; transition:all 0.15s; }
+        .btn-m-gray  { background:var(--bg-secondary); color:var(--text-secondary); border-color:var(--border-color); }
+        .btn-m-gray:hover  { border-color:var(--tenant); color:var(--tenant); }
+        .btn-m-green { background:#10b981; color:white; }
+        .btn-m-green:hover { background:#059669; }
+        .btn-m-red   { background:#ef4444; color:white; }
+        .btn-m-red:hover   { background:#dc2626; }
+
+        /* ── Validation hints ───────────────────────────────── */
+        .val-hint { font-size:0.73rem; color:var(--error); margin-top:0.35rem; display:none; }
     </style>
 </head>
 <body class="app-loading" data-role="tenant" data-page-title="Maintenance Requests">
@@ -213,143 +502,235 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
+    <!-- ── Main Content ── -->
     <main class="dashboard-container">
-        <h2>Maintenance Coordination Center</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Report property issues and track maintenance technician progress in real time.</p>
 
-        <div class="maintenance-grid">
-            <!-- Submit Form -->
-            <div class="form-card">
-                <h3 style="margin-bottom: 1.5rem; color: var(--primary);">File Maintenance Request</h3>
-                <div id="errorMessage" class="status-badge status-rejected hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
-                <div id="successMessage" class="status-badge status-active hidden" style="width:100%; margin-bottom: 1rem; padding: 0.75rem;"></div>
-
-                <form id="requestForm">
-                    <!-- Dropdown shown only if multiple leases exist -->
-                    <div class="form-group hidden" id="leaseSelectorContainer">
-                        <label class="form-label" for="leaseSelector">Select Lease Property / Unit</label>
-                        <select id="leaseSelector" name="lease_id" class="form-input">
-                            <option value="">-- Choose Unit --</option>
-                        </select>
-                    </div>
-
-                    <!-- Hidden lease_id for single active lease -->
-                    <input type="hidden" id="hiddenLeaseId" name="lease_id">
-
-                    <!-- Prefilled read-only fields -->
-                    <div class="form-group">
-                        <label class="form-label" for="propertyName">Property</label>
-                        <input type="text" id="propertyName" class="form-input" readonly placeholder="Auto-filled property name">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="landlordName">Landlord</label>
-                        <input type="text" id="landlordName" class="form-input" readonly placeholder="Auto-filled landlord name">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="unitNumber">Unit / Room Number</label>
-                        <input type="text" id="unitNumber" class="form-input" readonly placeholder="Auto-filled unit / room">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="issueTitle">Problem Summary</label>
-                        <input type="text" id="issueTitle" name="issue_title" class="form-input" placeholder="e.g. Water leak from kitchen sink" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="issueCategory">Category</label>
-                        <select id="issueCategory" name="issue_category" class="form-input" required>
-                            <option value="">-- Select Category --</option>
-                            <option value="plumbing">Plumbing</option>
-                            <option value="electrical">Electrical</option>
-                            <option value="aircon">Air Conditioning</option>
-                            <option value="door">Door/Window</option>
-                            <option value="roof">Roofing</option>
-                            <option value="internet">Internet</option>
-                            <option value="appliance">Appliance</option>
-                            <option value="others">Others</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="priorityLevel">Priority Level</label>
-                        <select id="priorityLevel" name="priority_level" class="form-input" required>
-                            <option value="">-- Select Urgency --</option>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="emergency">Emergency</option>
-                        </select>
-                    </div>
-
-                    <!-- Calendar preferred date and time picker fields -->
-                    <div class="form-group">
-                        <label class="form-label" for="preferredDate">Preferred Date</label>
-                        <input type="date" id="preferredDate" class="form-input" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="preferredTime">Preferred Time / Hour</label>
-                        <input type="time" id="preferredTime" class="form-input" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="issueDescription">Detailed Description</label>
-                        <textarea id="issueDescription" name="issue_description" class="form-input" placeholder="Give detailed remarks, instructions, or specific indicators of the problem..." style="height: 100px;" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="issueImage">Upload Photos / Videos (Optional)</label>
-                        <input type="file" id="issueImage" accept="image/*,video/*" class="form-input" style="padding:0.4rem;">
-                    </div>
-
-                    <button type="submit" id="submitBtn" class="btn-primary" style="background-color: var(--tenant); border-color: var(--tenant); width: 100%;">
-                        Submit Request
-                    </button>
-                </form>
+        <!-- Page hero -->
+        <div class="page-hero">
+            <div class="page-hero-text">
+                <h2>🔧 Maintenance Requests</h2>
+                <p>Track repair progress and coordinate with your landlord in real time.</p>
             </div>
+            <button class="btn-new-request" id="openFormBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Maintenance Request
+            </button>
+        </div>
 
-            <!-- History log -->
-            <div class="history-card">
-                <h3 style="margin-bottom: 1.5rem;">My Maintenance Ledger</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Task Issue</th>
-                            <th>Category</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="requestTableBody">
-                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading filed reports...</td></tr>
-                    </tbody>
-                </table>
+        <!-- Stats row -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(245,158,11,.12);">⏳</div>
+                <div>
+                    <div class="stat-value" id="statPending">—</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(249,115,22,.12);">🔨</div>
+                <div>
+                    <div class="stat-value" id="statInProgress">—</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(16,185,129,.12);">✅</div>
+                <div>
+                    <div class="stat-value" id="statCompleted">—</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(139,92,246,.12);">📋</div>
+                <div>
+                    <div class="stat-value" id="statTotal">—</div>
+                    <div class="stat-label">Total Requests</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Panel -->
+        <div class="history-panel">
+            <div class="history-panel-header">
+                <h3>My Maintenance Ledger</h3>
+                <span class="badge badge-assigned" id="countBadge" style="font-size:0.72rem;">Loading...</span>
+            </div>
+            <div class="filter-tabs" id="filterTabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="pending">Pending</button>
+                <button class="filter-tab" data-filter="approved">Approved</button>
+                <button class="filter-tab" data-filter="in_progress">In Progress</button>
+                <button class="filter-tab" data-filter="completed">Completed</button>
+                <button class="filter-tab" data-filter="closed">Closed</button>
+                <button class="filter-tab" data-filter="rejected">Rejected</button>
+            </div>
+            <div class="requests-list" id="requestsList">
+                <div class="empty-state"><div class="ei">⏳</div><p>Loading your maintenance history...</p></div>
             </div>
         </div>
     </main>
 
-    <!-- Request specifications modal -->
-    <div id="requestDetailsModal" class="modal-overlay hidden">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3 style="margin:0;color:var(--text-primary);" id="modalRequestTitle">Maintenance Report</h3>
-                <button id="closeDetailsModalBtn" class="modal-close-x" title="Close">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+    <!-- ════════════════════════════════════════════
+         FORM MODAL
+    ════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="formModal" style="display:none;">
+        <div class="form-modal">
+            <!-- Head -->
+            <div class="form-modal-head">
+                <div class="form-modal-head-bg"></div>
+                <div class="form-modal-head-content">
+                    <div>
+                        <h3>File a Maintenance Request</h3>
+                        <p>Describe the problem — your landlord will be notified immediately.</p>
+                    </div>
+                    <button class="form-modal-close" id="closeFormBtn" title="Close">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="form-modal-body">
+                <!-- Alerts -->
+                <div id="formError"   class="form-alert err" style="display:none;"></div>
+                <div id="formSuccess" class="form-alert ok"  style="display:none;"></div>
+
+                <!-- No lease warning -->
+                <div id="noLeaseWarning" style="display:none; background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.25); border-radius:var(--radius-md); padding:1.1rem; text-align:center; color:#ef4444; font-size:0.875rem; font-weight:600; margin-bottom:1rem;">
+                    ⚠️ No active lease found. You need an active lease to file maintenance requests.
+                </div>
+
+                <form id="requestForm" style="display:none;">
+                    <!-- Hidden fields -->
+                    <input type="hidden" id="hiddenLeaseId">
+                    <input type="hidden" id="hiddenPropertyId">
+                    <input type="hidden" id="categoryHidden">
+                    <input type="hidden" id="priorityHidden">
+
+                    <!-- Lease selector (multi-lease only) -->
+                    <div id="leaseSelectorWrap" style="display:none; margin-bottom:1.25rem;">
+                        <label class="form-label" for="leaseSelector" style="font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; display:block;">Select Lease / Unit</label>
+                        <select id="leaseSelector" class="form-input" style="font-size:0.875rem;">
+                            <option value="">-- Choose your unit --</option>
+                        </select>
+                    </div>
+
+                    <!-- Auto-filled lease info -->
+                    <div id="leaseInfoBar" class="lease-info-bar" style="display:none;">
+                        <div class="lease-info-bar-icon">🏠</div>
+                        <div>
+                            <div class="lib-name" id="libName">—</div>
+                            <div class="lib-sub"  id="libSub">—</div>
+                        </div>
+                        <span class="lib-badge">Active Lease</span>
+                    </div>
+
+                    <!-- Auto-filled chips -->
+                    <div id="infoChips" class="info-rows" style="display:none;">
+                        <div class="info-chip">
+                            <span>🚪</span>
+                            <span class="info-chip-label">Unit:</span>
+                            <span class="info-chip-val" id="chipUnit">—</span>
+                        </div>
+                        <div class="info-chip">
+                            <span>👤</span>
+                            <span class="info-chip-label">Landlord:</span>
+                            <span class="info-chip-val" id="chipLandlord">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Problem details -->
+                    <div class="form-section">Problem Details</div>
+                    <div class="form-cols">
+                        <div class="form-group form-col-full">
+                            <label class="form-label" for="issueTitle">Problem Summary <span style="color:var(--error)">*</span></label>
+                            <input type="text" id="issueTitle" class="form-input" placeholder="e.g. Water leak from kitchen sink faucet" maxlength="120" required>
+                        </div>
+                        <div class="form-group form-col-full">
+                            <label class="form-label" for="issueDescription">Detailed Description <span style="color:var(--error)">*</span></label>
+                            <textarea id="issueDescription" class="form-input" rows="3" placeholder="Describe when it started, what you observed, and any relevant details..." style="resize:vertical; min-height:75px;" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="form-section">Issue Category</div>
+                    <div class="cat-grid" id="catGrid">
+                        <div class="cat-card" data-cat="plumbing">   <span class="ci">🚿</span>Plumbing</div>
+                        <div class="cat-card" data-cat="electrical"> <span class="ci">⚡</span>Electrical</div>
+                        <div class="cat-card" data-cat="aircon">     <span class="ci">❄️</span>Aircon</div>
+                        <div class="cat-card" data-cat="door">       <span class="ci">🚪</span>Door/Window</div>
+                        <div class="cat-card" data-cat="roof">       <span class="ci">🏚️</span>Roofing</div>
+                        <div class="cat-card" data-cat="internet">   <span class="ci">📶</span>Internet</div>
+                        <div class="cat-card" data-cat="appliance">  <span class="ci">🔌</span>Appliance</div>
+                        <div class="cat-card" data-cat="others">     <span class="ci">🔧</span>Others</div>
+                    </div>
+                    <div class="val-hint" id="catErr">Please select a category.</div>
+
+                    <!-- Priority -->
+                    <div class="form-section">Urgency Level</div>
+                    <div class="prio-row" id="prioRow">
+                        <div class="prio-card" data-prio="low">      <span class="prio-dot"></span>Low</div>
+                        <div class="prio-card" data-prio="medium">   <span class="prio-dot"></span>Medium</div>
+                        <div class="prio-card" data-prio="high">     <span class="prio-dot"></span>High</div>
+                        <div class="prio-card" data-prio="emergency"><span class="prio-dot"></span>Emergency</div>
+                    </div>
+                    <div class="val-hint" id="prioErr">Please select a priority level.</div>
+
+                    <!-- Preferred schedule -->
+                    <div class="form-section">Preferred Schedule</div>
+                    <div class="form-cols">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label" for="preferredDate">Date <span style="color:var(--error)">*</span></label>
+                            <input type="date" id="preferredDate" class="form-input" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label" for="preferredTime">Time <span style="color:var(--error)">*</span></label>
+                            <input type="time" id="preferredTime" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <!-- Photo upload -->
+                    <div class="form-section">Proof Photo (Optional)</div>
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" id="issueImage" accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf">
+                        <div style="font-size:1.6rem; margin-bottom:0.3rem;">📷</div>
+                        <div style="font-size:0.8rem; font-weight:600; color:var(--text-secondary);">Click or drag a photo here</div>
+                        <div style="font-size:0.73rem; color:var(--text-muted); margin-top:0.1rem;">JPG, PNG, WEBP, PDF — max 10 MB</div>
+                    </div>
+                    <div id="uploadPreview" class="upload-preview" style="display:none;">
+                        <img id="previewImg" src="" alt="Preview">
+                        <span class="upload-preview-name" id="previewName"></span>
+                        <button type="button" class="upload-remove" id="removeFileBtn" title="Remove">✕</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="form-modal-footer">
+                <button class="btn-cancel" id="cancelFormBtn">Cancel</button>
+                <button class="btn-submit" id="submitBtn" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+                    Submit Request
                 </button>
             </div>
-            <div class="modal-body" id="modalDetailsContent">
-                <!-- Loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         DETAILS MODAL
+    ════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="detailsModal" style="display:none;">
+        <div class="details-modal">
+            <div class="details-head">
+                <div class="details-head-title" id="detailsTitle">Maintenance Details</div>
+                <button class="details-head-close" id="closeDetailsBtn" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
-            <div class="modal-footer" id="modalDetailsFooter">
-                <!-- Accept/Rework actions dynamically -->
+            <div class="details-body" id="detailsBody">
+                <div class="empty-state"><div class="ei">⏳</div><p>Loading...</p></div>
             </div>
+            <div class="details-foot" id="detailsFoot"></div>
         </div>
     </div>
 
@@ -357,405 +738,557 @@
     <script src="../../js/dashboard.js"></script>
     <script>
         const token = localStorage.getItem('domiknow_token');
-        let selectedPropertyId = null;
-        let myRequests = [];
         let activeLeaseList = [];
+        let allRequests     = [];
+        let selectedPropertyId = null;
+        let activeFilter = 'all';
 
+        const CAT_ICONS = {
+            plumbing:'🚿', electrical:'⚡', aircon:'❄️',
+            door:'🚪', roof:'🏚️', internet:'📶', appliance:'🔌', others:'🔧'
+        };
+
+        // ── Init ──────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
             if (!token) return;
             fetchActiveLeases();
             fetchMyRequests();
+            initPickers();
+            initUpload();
+            initEventDelegation();
+        });
 
-            document.getElementById('leaseSelector').addEventListener('change', (e) => {
-                const leaseId = e.target.value;
-                if (!leaseId) {
-                    selectedPropertyId = null;
-                    document.getElementById('propertyName').value = '';
-                    document.getElementById('landlordName').value = '';
-                    document.getElementById('unitNumber').value = '';
-                    document.getElementById('hiddenLeaseId').value = '';
-                    return;
-                }
-                const selectedLease = activeLeaseList.find(l => l.id === leaseId);
-                if (selectedLease) {
-                    selectedPropertyId = selectedLease.properties?.id;
-                    document.getElementById('propertyName').value = selectedLease.properties?.property_name || 'N/A';
-                    document.getElementById('landlordName').value = selectedLease.landlord?.full_name || 'N/A';
-                    document.getElementById('unitNumber').value = selectedLease.properties?.unit_number || 'N/A';
-                    document.getElementById('hiddenLeaseId').value = selectedLease.id;
-                }
+        // ── Open / close form modal ───────────────────────────
+        function openFormModal() {
+            document.getElementById('formModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            clearAlerts();
+        }
+        function closeFormModal() {
+            document.getElementById('formModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // ── Open / close details modal ────────────────────────
+        function openDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+            // Only restore overflow if form modal is also closed
+            if (document.getElementById('formModal').style.display === 'none') {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // ── Event Delegation ──────────────────────────────────
+        function initEventDelegation() {
+            // Open form modal
+            document.getElementById('openFormBtn').addEventListener('click', openFormModal);
+            document.getElementById('closeFormBtn').addEventListener('click', closeFormModal);
+            document.getElementById('cancelFormBtn').addEventListener('click', closeFormModal);
+            document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+
+            // Close modals on overlay click
+            document.getElementById('formModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('formModal')) closeFormModal();
+            });
+            document.getElementById('detailsModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('detailsModal')) closeDetailsModal();
             });
 
-            document.getElementById('closeDetailsModalBtn').addEventListener('click', closeDetailsModal);
-            
-            // Event delegation
-            document.getElementById('requestTableBody').addEventListener('click', (e) => {
-                const btn = e.target.closest('[data-request-id]');
-                if (btn) openDetailsModal(btn.dataset.requestId);
-            });
+            // Close details
+            document.getElementById('closeDetailsBtn').addEventListener('click', closeDetailsModal);
 
-            document.getElementById('modalDetailsFooter').addEventListener('click', (e) => {
+            // Details footer actions
+            document.getElementById('detailsFoot').addEventListener('click', async (e) => {
                 const btn = e.target.closest('[data-action]');
                 if (!btn) return;
                 const action = btn.dataset.action;
-                const reqId = btn.dataset.requestId;
-
-                if (action === 'close') closeDetailsModal();
-                if (action === 'confirm') handleConfirmDecision(reqId, 'confirm');
-                if (action === 'rework') handleConfirmDecision(reqId, 'rework');
+                const id     = btn.dataset.id;
+                if (action === 'close')   closeDetailsModal();
+                if (action === 'confirm') await handleConfirm(id, 'confirm');
+                if (action === 'rework')  await handleConfirm(id, 'rework');
             });
 
-            document.getElementById('requestForm').addEventListener('submit', handleFormSubmit);
-        });
+            // Filter tabs
+            document.getElementById('filterTabs').addEventListener('click', (e) => {
+                const tab = e.target.closest('.filter-tab');
+                if (!tab) return;
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeFilter = tab.dataset.filter;
+                renderRequests();
+            });
 
-        async function fetchActiveLeases() {
-            const selectEl = document.getElementById('leaseSelector');
-            const containerEl = document.getElementById('leaseSelectorContainer');
-            try {
-                const res = await fetch('/api/leases/my', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) return;
+            // Request card clicks
+            document.getElementById('requestsList').addEventListener('click', (e) => {
+                const card = e.target.closest('[data-request-id]');
+                if (card) loadDetails(card.dataset.requestId);
+            });
 
-                const { data: leases } = await res.json();
-                const activeLeases = (leases || []).filter(l => l.lease_status === 'active');
-                activeLeaseList = activeLeases;
+            // Lease selector
+            document.getElementById('leaseSelector').addEventListener('change', (e) => {
+                const lease = activeLeaseList.find(l => l.id === e.target.value);
+                lease ? fillLeaseInfo(lease) : clearLeaseInfo();
+            });
 
-                if (activeLeases.length === 0) {
-                    document.getElementById('errorMessage').textContent = 'No active leases found. You cannot file maintenance requests.';
-                    document.getElementById('errorMessage').classList.remove('hidden');
-                    document.getElementById('submitBtn').disabled = true;
-                    return;
+            // ESC key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeDetailsModal();
+                    closeFormModal();
                 }
+            });
+        }
 
-                if (activeLeases.length === 1) {
-                    // Single lease: Auto-fill and hide lease selection option
-                    containerEl.classList.add('hidden');
-                    const singleLease = activeLeases[0];
-                    selectedPropertyId = singleLease.properties?.id;
-                    
-                    document.getElementById('hiddenLeaseId').value = singleLease.id;
-                    document.getElementById('propertyName').value = singleLease.properties?.property_name || 'N/A';
-                    document.getElementById('landlordName').value = singleLease.landlord?.full_name || 'N/A';
-                    document.getElementById('unitNumber').value = singleLease.properties?.unit_number || 'N/A';
+        // ── Pickers ───────────────────────────────────────────
+        function initPickers() {
+            // Category
+            document.getElementById('catGrid').addEventListener('click', (e) => {
+                const card = e.target.closest('.cat-card');
+                if (!card) return;
+                document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                document.getElementById('categoryHidden').value = card.dataset.cat;
+                document.getElementById('catErr').style.display = 'none';
+            });
+            // Priority
+            document.getElementById('prioRow').addEventListener('click', (e) => {
+                const card = e.target.closest('.prio-card');
+                if (!card) return;
+                document.querySelectorAll('.prio-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                document.getElementById('priorityHidden').value = card.dataset.prio;
+                document.getElementById('prioErr').style.display = 'none';
+            });
+            // Default date/time
+            const tom = new Date(); tom.setDate(tom.getDate() + 1);
+            document.getElementById('preferredDate').value = tom.toISOString().split('T')[0];
+            document.getElementById('preferredDate').min   = new Date().toISOString().split('T')[0];
+            document.getElementById('preferredTime').value = '09:00';
+        }
+
+        // ── Upload zone ───────────────────────────────────────
+        function initUpload() {
+            const zone    = document.getElementById('uploadZone');
+            const input   = document.getElementById('issueImage');
+            const preview = document.getElementById('uploadPreview');
+            const img     = document.getElementById('previewImg');
+            const name    = document.getElementById('previewName');
+
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault(); zone.classList.remove('dragover');
+                if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; showPreview(e.dataTransfer.files[0]); }
+            });
+            input.addEventListener('change', () => {
+                if (input.files[0]) showPreview(input.files[0]); else hidePreview();
+            });
+            document.getElementById('removeFileBtn').addEventListener('click', () => {
+                input.value = ''; hidePreview();
+            });
+
+            function showPreview(file) {
+                name.textContent = file.name;
+                if (file.type.startsWith('image/')) {
+                    const r = new FileReader();
+                    r.onload = (e) => img.src = e.target.result;
+                    r.readAsDataURL(file);
+                    img.style.display = 'block';
                 } else {
-                    // Multiple leases: Show selector dropdown and populate options
-                    containerEl.classList.remove('hidden');
-                    selectEl.innerHTML = '<option value="">-- Choose Unit --</option>';
-                    activeLeases.forEach(lease => {
-                        const opt = document.createElement('option');
-                        opt.value = lease.id;
-                        opt.textContent = `${lease.properties?.property_name || 'Unit'} - Room ${lease.properties?.unit_number || 'N/A'}`;
-                        selectEl.appendChild(opt);
-                    });
+                    img.style.display = 'none';
                 }
-            } catch (err) {
-                console.error(err);
+                preview.style.display = 'flex';
+                zone.style.display = 'none';
+            }
+            function hidePreview() {
+                preview.style.display = 'none';
+                zone.style.display = 'block';
+                img.src = '';
             }
         }
 
-        async function fetchMyRequests() {
-            const tbody = document.getElementById('requestTableBody');
+        // ── Fetch leases ──────────────────────────────────────
+        async function fetchActiveLeases() {
             try {
-                const res = await fetch('/api/maintenance/requests/tenant', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--error);">Failed to load history.</td></tr>`;
-                    return;
-                }
-
-                const result = await res.json();
-                myRequests = result.data || [];
-
-                if (myRequests.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">No maintenance requests registered.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = '';
-                myRequests.forEach(req => {
-                    let prioClass = 'status-pending';
-                    if (req.priority_level === 'high' || req.priority_level === 'emergency') prioClass = 'status-rejected';
-                    else if (req.priority_level === 'low') prioClass = 'status-active';
-
-                    let statusClass = 'status-pending';
-                    if (['completed', 'verified', 'closed'].includes(req.status)) statusClass = 'status-active';
-                    else if (req.status === 'rejected') statusClass = 'status-rejected';
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>
-                            <div style="font-weight:700; color:var(--text-primary);">${req.issue_title}</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted);">${req.properties?.property_name || 'Property'} (Unit: ${req.unit_number || 'N/A'})</div>
-                        </td>
-                        <td style="text-transform: capitalize;">${req.issue_category}</td>
-                        <td><span class="status-badge ${prioClass}" style="text-transform:capitalize;">${req.priority_level}</span></td>
-                        <td><span class="status-badge ${statusClass}" style="text-transform:capitalize;">${req.status.replace('_', ' ')}</span></td>
-                        <td>
-                            <button class="action-btn btn-view" data-request-id="${req.id}">Details</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error(err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--error);">Network communication error.</td></tr>`;
-            }
-        }
-
-        async function openDetailsModal(requestId) {
-            const modal = document.getElementById('requestDetailsModal');
-            const content = document.getElementById('modalDetailsContent');
-            const footer = document.getElementById('modalDetailsFooter');
-
-            content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading task specifications...</div>';
-            footer.innerHTML = '';
-            modal.classList.remove('hidden');
-
-            try {
-                const res = await fetch(`/api/maintenance/requests/${requestId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch('/api/leases/my', { headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) return;
                 const { data } = await res.json();
-                const req = data.request;
-                const assignment = data.assignment || {};
-                const report = data.report || {};
+                const active = (data || []).filter(l => l.lease_status === 'active');
+                activeLeaseList = active;
+
+                if (active.length === 0) {
+                    document.getElementById('noLeaseWarning').style.display = 'block';
+                    document.getElementById('requestForm').style.display = 'none';
+                    return;
+                }
+                document.getElementById('requestForm').style.display = 'block';
+
+                if (active.length === 1) {
+                    fillLeaseInfo(active[0]);
+                } else {
+                    const sel = document.getElementById('leaseSelector');
+                    sel.innerHTML = '<option value="">-- Choose your unit --</option>';
+                    active.forEach(l => {
+                        const opt = document.createElement('option');
+                        opt.value = l.id;
+                        opt.textContent = `${l.properties?.property_name || 'Property'} — Unit ${l.property_units?.unit_number || 'N/A'}`;
+                        sel.appendChild(opt);
+                    });
+                    document.getElementById('leaseSelectorWrap').style.display = 'block';
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function fillLeaseInfo(lease) {
+            selectedPropertyId = lease.property_id || lease.properties?.id;
+            document.getElementById('hiddenLeaseId').value   = lease.id;
+            document.getElementById('hiddenPropertyId').value = selectedPropertyId || '';
+
+            const propName = lease.properties?.property_name || 'N/A';
+            const unitNum  = lease.property_units?.unit_number || lease.properties?.unit_number || 'N/A';
+            const landName = lease.landlord?.full_name || 'N/A';
+            const addr     = lease.properties?.address || '';
+
+            document.getElementById('libName').textContent  = propName;
+            document.getElementById('libSub').textContent   = `Unit ${unitNum}${addr ? ' · ' + addr : ''}`;
+            document.getElementById('leaseInfoBar').style.display = 'flex';
+
+            document.getElementById('chipUnit').textContent     = `Unit ${unitNum}`;
+            document.getElementById('chipLandlord').textContent = landName;
+            document.getElementById('infoChips').style.display  = 'flex';
+        }
+
+        function clearLeaseInfo() {
+            selectedPropertyId = null;
+            document.getElementById('hiddenLeaseId').value = '';
+            document.getElementById('hiddenPropertyId').value = '';
+            document.getElementById('leaseInfoBar').style.display = 'none';
+            document.getElementById('infoChips').style.display = 'none';
+        }
+
+        // ── Fetch requests ────────────────────────────────────
+        async function fetchMyRequests() {
+            try {
+                const res = await fetch('/api/maintenance/requests/tenant', { headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) { showListError('Failed to load maintenance history.'); return; }
+                const { data } = await res.json();
+                allRequests = data || [];
+                updateStats();
+                renderRequests();
+            } catch (err) { showListError('Network error.'); }
+        }
+
+        function updateStats() {
+            const pending     = allRequests.filter(r => r.status === 'pending').length;
+            const inProgress  = allRequests.filter(r => ['travelling','arrived','repairing','accepted','assigned','approved'].includes(r.status)).length;
+            const completed   = allRequests.filter(r => ['completed','verified','closed'].includes(r.status)).length;
+            document.getElementById('statPending').textContent    = pending;
+            document.getElementById('statInProgress').textContent = inProgress;
+            document.getElementById('statCompleted').textContent  = completed;
+            document.getElementById('statTotal').textContent      = allRequests.length;
+            document.getElementById('countBadge').textContent     = `${allRequests.length} Request${allRequests.length !== 1 ? 's' : ''}`;
+        }
+
+        function renderRequests() {
+            const list = document.getElementById('requestsList');
+            const filtered = allRequests.filter(r => {
+                if (activeFilter === 'all') return true;
+                if (activeFilter === 'in_progress') return ['travelling','arrived','repairing','accepted','assigned'].includes(r.status);
+                if (activeFilter === 'closed') return ['verified','closed'].includes(r.status);
+                return r.status === activeFilter;
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="empty-state"><div class="ei">📋</div><p>No requests match this filter.</p></div>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            filtered.forEach(req => {
+                const icon    = CAT_ICONS[req.issue_category] || '🔧';
+                const dateStr = new Date(req.created_at).toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' });
+                const propName = req.properties?.property_name || 'Property';
+                const unitNum  = req.unit_number || 'N/A';
+
+                const card = document.createElement('div');
+                card.className = 'request-card';
+                card.dataset.requestId = req.id;
+                card.innerHTML = `
+                    <div class="request-card-icon">${icon}</div>
+                    <div class="request-card-body">
+                        <div class="request-card-title">${req.issue_title}</div>
+                        <div class="request-card-meta">${propName} · Unit ${unitNum} · ${dateStr}</div>
+                    </div>
+                    <div class="request-card-right">
+                        ${statusBadge(req.status)}
+                        ${prioBadge(req.priority_level)}
+                        <span class="request-card-arrow">›</span>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function showListError(msg) {
+            document.getElementById('requestsList').innerHTML = `<div class="empty-state"><div class="ei">❌</div><p>${msg}</p></div>`;
+        }
+
+        // ── Badges ────────────────────────────────────────────
+        function statusBadge(status) {
+            const map = { travelling:'repairing', arrived:'repairing' };
+            const cls = map[status] || status;
+            return `<span class="badge badge-${cls}">${status.replace(/_/g,' ')}</span>`;
+        }
+        function prioBadge(prio) {
+            return `<span class="badge badge-prio-${prio}" style="font-size:0.64rem;">${prio}</span>`;
+        }
+
+        // ── Load request details ──────────────────────────────
+        async function loadDetails(requestId) {
+            document.getElementById('detailsBody').innerHTML = `<div class="empty-state"><div class="ei">⏳</div><p>Loading...</p></div>`;
+            document.getElementById('detailsFoot').innerHTML = '';
+            openDetailsModal();
+
+            try {
+                const res = await fetch(`/api/maintenance/requests/${requestId}`, { headers: { Authorization: `Bearer ${token}` } });
+                const { data } = await res.json();
+                const req    = data.request;
+                const report = data.report || null;
                 const updates = data.updates || [];
 
-                document.getElementById('modalRequestTitle').textContent = req.issue_title;
+                document.getElementById('detailsTitle').textContent = req.issue_title;
+                const icon = CAT_ICONS[req.issue_category] || '🔧';
+                const tech = req.assigned_maintenance?.full_name || 'Unassigned';
 
-                let imgHtml = '';
-                if (req.image_url) {
-                    imgHtml = `
-                        <div style="margin-top:1rem;">
-                            <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Tenant Photo Attachment</span>
-                            <div><a href="${req.image_url}" target="_blank"><img src="${req.image_url}" style="max-width:100%; max-height:200px; border:1px solid var(--border-color); border-radius:4px; margin-top:0.25rem;"></a></div>
+                let html = `
+                    <div class="detail-grid">
+                        <div>
+                            <div class="dc-label">Property</div>
+                            <div class="dc-val">${req.properties?.property_name || '—'}</div>
                         </div>
-                    `;
-                }
-
-                let technicianName = 'Unassigned';
-                if (req.assigned_maintenance?.full_name) {
-                    technicianName = req.assigned_maintenance.full_name;
-                }
-
-                let flowHtml = `
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
-                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">UNIT NUMBER</span><div style="font-weight:600;">${req.unit_number || 'N/A'}</div></div>
-                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">CATEGORY</span><div style="text-transform:capitalize; font-weight:600;">${req.issue_category}</div></div>
-                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">URGENCY PRIORITY</span><div style="text-transform:capitalize; font-weight:600;">${req.priority_level}</div></div>
-                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">PREFERRED SCHEDULE</span><div style="font-weight:600;">${req.preferred_schedule || '—'}</div></div>
-                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">ASSIGNED TECHNICIAN</span><div style="font-weight:600; color:var(--primary);">${technicianName}</div></div>
-                        <div><span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">STATUS</span><div style="text-transform:capitalize; font-weight:800; color:var(--tenant);">${req.status.replace('_', ' ')}</div></div>
+                        <div>
+                            <div class="dc-label">Unit</div>
+                            <div class="dc-val">${req.unit_number || '—'}</div>
+                        </div>
+                        <div>
+                            <div class="dc-label">Category</div>
+                            <div class="dc-val">${icon} ${req.issue_category}</div>
+                        </div>
+                        <div>
+                            <div class="dc-label">Priority</div>
+                            <div class="dc-val">${prioBadge(req.priority_level)}</div>
+                        </div>
+                        <div>
+                            <div class="dc-label">Status</div>
+                            <div class="dc-val">${statusBadge(req.status)}</div>
+                        </div>
+                        <div>
+                            <div class="dc-label">Preferred Schedule</div>
+                            <div class="dc-val" style="font-size:0.8rem;">${req.preferred_schedule || '—'}</div>
+                        </div>
+                        <div style="grid-column:span 2;">
+                            <div class="dc-label">Assigned Technician</div>
+                            <div class="dc-val" style="color:var(--tenant);">${tech}</div>
+                        </div>
                     </div>
 
-                    <div style="margin-bottom:1.5rem;">
-                        <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Description</span>
-                        <div style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); border:1px solid var(--border-color); padding:0.75rem; border-radius:4px; margin-top:0.25rem; white-space:pre-wrap;">${req.issue_description}</div>
+                    <div style="margin-bottom:1.25rem;">
+                        <div class="dc-label" style="margin-bottom:0.4rem;">Description</div>
+                        <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:0.85rem;font-size:0.875rem;color:var(--text-secondary);white-space:pre-wrap;line-height:1.6;">${req.issue_description}</div>
                     </div>
                 `;
 
                 if (req.rejection_reason) {
-                    flowHtml += `
-                        <div style="margin-bottom:1.5rem; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:4px; padding:0.75rem;">
-                            <span style="font-size:0.72rem; color:#ef4444; font-weight:700; text-transform:uppercase;">Landlord Rejection Reason</span>
-                            <div style="font-size:0.875rem; color:#ef4444; font-weight:600; margin-top:0.25rem;">${req.rejection_reason}</div>
-                        </div>
-                    `;
+                    html += `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:var(--radius-sm);padding:0.85rem;margin-bottom:1.25rem;"><div style="font-size:0.68rem;font-weight:800;text-transform:uppercase;color:#ef4444;margin-bottom:0.3rem;">Rejection Reason</div><div style="font-size:0.875rem;color:#ef4444;">${req.rejection_reason}</div></div>`;
                 }
-
-                if (report.problem_found) {
-                    flowHtml += `
-                        <div style="margin-bottom:1.5rem; border-top:1px solid var(--border-color); padding-top:1rem;">
-                            <h4 style="margin:0 0 0.5rem 0;">Technician Completion Report</h4>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; font-size:0.85rem; margin-bottom:0.75rem; background:var(--bg-primary); padding:0.75rem; border-radius:4px; border:1px solid var(--border-color);">
-                                <div><strong>Problem Found:</strong> ${report.problem_found}</div>
-                                <div><strong>Repair Action:</strong> ${report.repair_performed}</div>
-                                <div style="grid-column: span 2;"><strong>Materials Used:</strong> ${report.materials_used || 'None'}</div>
-                                <div style="grid-column: span 2;"><strong>Recommendations:</strong> ${report.recommendations || 'None'}</div>
+                if (req.landlord_remarks) {
+                    html += `<div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:var(--radius-sm);padding:0.85rem;margin-bottom:1.25rem;"><div style="font-size:0.68rem;font-weight:800;text-transform:uppercase;color:#3b82f6;margin-bottom:0.3rem;">Landlord Instructions</div><div style="font-size:0.875rem;color:var(--text-secondary);">${req.landlord_remarks}</div></div>`;
+                }
+                if (req.image_url) {
+                    html += `<div style="margin-bottom:1.25rem;"><div class="dc-label" style="margin-bottom:0.4rem;">Tenant Photo</div><a href="${req.image_url}" target="_blank"><img src="${req.image_url}" style="max-width:100%;max-height:220px;border-radius:var(--radius-sm);border:1px solid var(--border-color);object-fit:cover;display:block;"></a></div>`;
+                }
+                if (report && report.problem_found) {
+                    html += `
+                        <div style="border-top:1px solid var(--border-color);padding-top:1.25rem;margin-bottom:1.25rem;">
+                            <div style="font-weight:800;font-size:0.9rem;color:var(--text-primary);margin-bottom:0.75rem;">🗒️ Technician Completion Report</div>
+                            <div class="detail-grid">
+                                <div style="grid-column:span 2;"><div class="dc-label">Problem Found</div><div class="dc-val" style="font-weight:500;">${report.problem_found}</div></div>
+                                <div style="grid-column:span 2;"><div class="dc-label">Repair Performed</div><div class="dc-val" style="font-weight:500;">${report.repair_performed}</div></div>
+                                <div><div class="dc-label">Labor Cost</div><div class="dc-val">₱${parseFloat(report.labor_cost||0).toLocaleString(undefined,{minimumFractionDigits:2})}</div></div>
+                                <div><div class="dc-label">Material Cost</div><div class="dc-val">₱${parseFloat(report.material_cost||0).toLocaleString(undefined,{minimumFractionDigits:2})}</div></div>
+                                ${report.materials_used?`<div style="grid-column:span 2;"><div class="dc-label">Materials Used</div><div class="dc-val" style="font-weight:500;">${report.materials_used}</div></div>`:''}
+                                ${report.recommendations?`<div style="grid-column:span 2;"><div class="dc-label">Recommendations</div><div class="dc-val" style="font-weight:500;">${report.recommendations}</div></div>`:''}
                             </div>
                         </div>
                     `;
                 }
 
-                flowHtml += imgHtml;
-
-                // Timeline updates
-                let timelineHtml = '<h4 style="margin:1.5rem 0 0.5rem 0; border-top:1px solid var(--border-color); padding-top:1rem;">Coordination Log Timeline</h4><div class="timeline">';
+                // Timeline
+                html += `<div style="border-top:1px solid var(--border-color);padding-top:1.25rem;"><div style="font-weight:800;font-size:0.875rem;color:var(--text-primary);margin-bottom:0.75rem;">📋 Coordination Timeline</div><div class="timeline">`;
                 if (updates.length > 0) {
                     updates.forEach(u => {
-                        const dt = new Date(u.created_at).toLocaleString();
-                        timelineHtml += `
-                            <div class="timeline-item active">
-                                <span class="timeline-meta">${dt} - ${u.status_update.replace('_', ' ').toUpperCase()}</span>
-                                <div class="timeline-notes">${u.notes}</div>
-                            </div>
-                        `;
+                        const dt = new Date(u.created_at).toLocaleString('en-PH', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                        html += `<div class="tl-item tla"><div class="tl-meta">${dt} · ${u.status_update.replace(/_/g,' ')}</div><div class="tl-notes">${u.notes}</div></div>`;
                     });
                 } else {
-                    timelineHtml += '<p style="font-size:0.85rem; color:var(--text-muted);">No logs documented yet.</p>';
+                    html += `<div class="tl-item"><div class="tl-notes" style="color:var(--text-muted);">No updates logged yet.</div></div>`;
                 }
-                timelineHtml += '</div>';
+                html += `</div></div>`;
 
-                content.innerHTML = flowHtml + timelineHtml;
+                document.getElementById('detailsBody').innerHTML = html;
 
-                // Footer actions
-                const canEvaluate = ['completed', 'verified'].includes(req.status);
-                if (canEvaluate) {
-                    footer.innerHTML = `
-                        <button class="action-btn btn-rework" data-action="rework" data-request-id="${req.id}">Request Rework</button>
-                        <button class="action-btn btn-confirm" data-action="confirm" data-request-id="${req.id}">Confirm Completion</button>
-                    `;
-                } else {
-                    footer.innerHTML = `
-                        <div></div>
-                        <button class="action-btn btn-close" data-action="close">Close</button>
-                    `;
-                }
+                // Footer
+                const canEvaluate = ['completed','verified'].includes(req.status);
+                document.getElementById('detailsFoot').innerHTML = canEvaluate
+                    ? `<button class="btn-m btn-m-gray" data-action="close">Cancel</button>
+                       <button class="btn-m btn-m-red"  data-action="rework"  data-id="${req.id}">Request Rework</button>
+                       <button class="btn-m btn-m-green" data-action="confirm" data-id="${req.id}">✓ Confirm Completion</button>`
+                    : `<button class="btn-m btn-m-gray" data-action="close">Close</button>`;
 
             } catch (err) {
                 console.error(err);
-                content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--error);">Failed to load specifications.</div>';
+                document.getElementById('detailsBody').innerHTML = `<div class="empty-state"><div class="ei">❌</div><p>Failed to load details.</p></div>`;
+                document.getElementById('detailsFoot').innerHTML = `<button class="btn-m btn-m-gray" data-action="close">Close</button>`;
             }
         }
 
-        function closeDetailsModal() {
-            document.getElementById('requestDetailsModal').classList.add('hidden');
-        }
-
-        async function handleConfirmDecision(reqId, decision) {
+        // ── Tenant confirm/rework ─────────────────────────────
+        async function handleConfirm(reqId, decision) {
             let remarks = '';
             if (decision === 'rework') {
-                remarks = prompt('Please describe what remains broken or requires rework:');
+                remarks = prompt('Describe what still needs to be fixed:');
                 if (remarks === null) return;
-                if (!remarks.trim()) {
-                    alert('Rework notes are required.');
-                    return;
-                }
+                if (!remarks.trim()) { alert('Rework description is required.'); return; }
             } else {
-                if (!confirm('Are you sure you want to confirm repair completion? This will close the ticket.')) return;
+                if (!confirm('Confirm that the repair was successfully completed? This will close the ticket.')) return;
             }
-
             try {
-                const response = await fetch(`/api/maintenance/requests/${reqId}/tenant-confirm`, {
+                const res = await fetch(`/api/maintenance/requests/${reqId}/tenant-confirm`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({ decision, remarks })
                 });
-
-                const result = await response.json();
-                if (response.ok) {
-                    alert(`Maintenance request status updated: ${decision === 'confirm' ? 'Closed' : 'Rework requested'}.`);
+                const result = await res.json();
+                if (res.ok) {
                     closeDetailsModal();
                     fetchMyRequests();
                 } else {
-                    alert(result.message || 'Status update failed.');
+                    alert(result.message || 'Failed to submit evaluation.');
                 }
-            } catch (err) {
-                console.error(err);
-                alert('Communication error submitting evaluation decision.');
-            }
+            } catch { alert('Network error. Please try again.'); }
         }
 
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
+        // ── Form submit ───────────────────────────────────────
+        async function handleSubmit() {
+            clearAlerts();
 
-        async function handleFormSubmit(e) {
-            e.preventDefault();
+            const leaseId    = document.getElementById('hiddenLeaseId').value;
+            const propertyId = document.getElementById('hiddenPropertyId').value || selectedPropertyId;
+            const category   = document.getElementById('categoryHidden').value;
+            const priority   = document.getElementById('priorityHidden').value;
+            const title      = document.getElementById('issueTitle').value.trim();
+            const desc       = document.getElementById('issueDescription').value.trim();
+
+            let valid = true;
+            if (!category) { document.getElementById('catErr').style.display  = 'block'; valid = false; }
+            if (!priority) { document.getElementById('prioErr').style.display = 'block'; valid = false; }
+            if (!leaseId)  { showError('No active lease selected.'); valid = false; }
+            if (!title)    { showError('Problem summary is required.'); valid = false; }
+            if (!desc)     { showError('Detailed description is required.'); valid = false; }
+            if (!valid) return;
+
             const submitBtn = document.getElementById('submitBtn');
-            const errorDiv = document.getElementById('errorMessage');
-            const successDiv = document.getElementById('successMessage');
-
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting request...';
-            errorDiv.classList.add('hidden');
-            successDiv.classList.add('hidden');
+            submitBtn.innerHTML = `<span class="spin-icon"></span> Submitting...`;
 
-            const leaseId = document.getElementById('hiddenLeaseId').value;
-            const fileInput = document.getElementById('issueImage');
-            const file = fileInput.files[0];
+            const leaseObj = activeLeaseList.find(l => l.id === leaseId);
+            const unitNum  = leaseObj?.property_units?.unit_number || leaseObj?.properties?.unit_number || '';
+            const dateVal  = document.getElementById('preferredDate').value;
+            const timeVal  = document.getElementById('preferredTime').value;
 
-            if (!leaseId) {
-                errorDiv.textContent = 'No active lease contract selected.';
-                errorDiv.classList.remove('hidden');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Request';
-                return;
-            }
-
-            // Join preferredDate and preferredTime into preferred_schedule
-            const preferredDateVal = document.getElementById('preferredDate').value;
-            const preferredTimeVal = document.getElementById('preferredTime').value;
-            const preferredScheduleVal = `${preferredDateVal} ${preferredTimeVal}`;
-
-            const bodyData = {
-                lease_id: leaseId,
-                property_id: selectedPropertyId,
-                unit_number: document.getElementById('unitNumber').value,
-                issue_title: document.getElementById('issueTitle').value,
-                issue_category: document.getElementById('issueCategory').value,
-                priority_level: document.getElementById('priorityLevel').value,
-                preferred_schedule: preferredScheduleVal,
-                issue_description: document.getElementById('issueDescription').value
+            const body = {
+                lease_id: leaseId, property_id: propertyId,
+                unit_number: unitNum,
+                issue_title: title, issue_description: desc,
+                issue_category: category, priority_level: priority,
+                preferred_schedule: `${dateVal} ${timeVal}`
             };
 
-            const submitPayload = async (base64, name, mime, size) => {
-                if (base64) {
-                    bodyData.base64_content = base64;
-                    bodyData.file_name = name;
-                    bodyData.mime_type = mime;
-                    bodyData.file_size = size;
-                }
-
-                try {
-                    const res = await fetch('/api/maintenance/requests', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(bodyData)
-                    });
-
-                    const result = await res.json();
-                    if (res.ok) {
-                        successDiv.textContent = 'Maintenance request filed and logged for landlord approval.';
-                        successDiv.classList.remove('hidden');
-                        document.getElementById('requestForm').reset();
-                        fetchActiveLeases(); // reset pre-filled forms
-                        fetchMyRequests();
-                    } else {
-                        errorDiv.textContent = result.message || 'Filing request failed.';
-                        errorDiv.classList.remove('hidden');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    errorDiv.textContent = 'Network error communicating with server.';
-                    errorDiv.classList.remove('hidden');
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Submit Request';
-                }
-            };
-
+            const file = document.getElementById('issueImage').files[0];
             if (file) {
                 try {
                     const b64 = await fileToBase64(file);
-                    await submitPayload(b64, file.name, file.type, file.size);
-                } catch (err) {
-                    errorDiv.textContent = 'Error loading proof photo.';
-                    errorDiv.classList.remove('hidden');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Submit Request';
-                }
-            } else {
-                await submitPayload(null);
+                    body.base64_content = b64; body.file_name = file.name;
+                    body.mime_type = file.type; body.file_size = file.size;
+                } catch { showError('Failed to read uploaded file.'); resetBtn(); return; }
             }
+
+            try {
+                const res = await fetch('/api/maintenance/requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    showSuccess('Request filed successfully. Your landlord has been notified!');
+                    resetForm();
+                    await fetchMyRequests();
+                    // Auto-close after 2s
+                    setTimeout(() => {
+                        closeFormModal();
+                        clearAlerts();
+                    }, 2000);
+                } else {
+                    showError(result.message || 'Failed to file request.');
+                }
+            } catch { showError('Network error. Please try again.'); }
+            finally { resetBtn(); }
         }
+
+        function resetForm() {
+            document.getElementById('requestForm').reset();
+            document.querySelectorAll('.cat-card, .prio-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('categoryHidden').value = '';
+            document.getElementById('priorityHidden').value = '';
+            document.getElementById('uploadPreview').style.display = 'none';
+            document.getElementById('uploadZone').style.display = 'block';
+            const tom = new Date(); tom.setDate(tom.getDate() + 1);
+            document.getElementById('preferredDate').value = tom.toISOString().split('T')[0];
+            document.getElementById('preferredTime').value = '09:00';
+            fetchActiveLeases();
+        }
+
+        function resetBtn() {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg> Submit Request`;
+        }
+
+        function showError(msg)   { const el = document.getElementById('formError');   el.textContent = '⚠️ ' + msg; el.style.display = 'flex'; }
+        function showSuccess(msg) { const el = document.getElementById('formSuccess'); el.textContent = '✓ ' + msg;  el.style.display = 'flex'; }
+        function clearAlerts()    { document.getElementById('formError').style.display = 'none'; document.getElementById('formSuccess').style.display = 'none'; }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.readAsDataURL(file);
+                r.onload  = () => resolve(r.result);
+                r.onerror = reject;
+            });
+        }
+
+        // Spinner CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin { to { transform: rotate(360deg); } }
+            .spin-icon { display:inline-block; width:14px; height:14px; border:2px solid white; border-top-color:transparent; border-radius:50%; animation:spin 0.65s linear infinite; }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>

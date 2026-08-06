@@ -3,118 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Task - DomiKnow</title>
+    <title>Maintenance Request Details - DomiKnow</title>
+    <meta name="description" content="Review, approve, assign, and verify tenant maintenance requests.">
     <link href="../../css/input.css" rel="stylesheet">
     <style>
-        .details-grid {
-            display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 2rem;
-            margin-top: 1.5rem;
+        /* ── Back link ─────────────────────────────────────── */
+        .back-link {
+            display: inline-flex; align-items: center; gap: 0.45rem;
+            font-size: 0.825rem; font-weight: 700; color: var(--text-muted);
+            text-decoration: none; margin-bottom: 1.5rem;
+            transition: color 0.15s;
         }
-        @media (max-width: 1024px) {
-            .details-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        .details-card, .timeline-card {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
+        .back-link:hover { color: var(--landlord); }
+
+        /* ── Status Hero Banner ────────────────────────────── */
+        .status-hero {
             border-radius: var(--radius-lg);
-            padding: 2rem;
-            box-shadow: var(--shadow-lg);
-            height: fit-content;
+            padding: 1.75rem 2rem;
+            margin-bottom: 1.75rem;
+            display: flex; align-items: center; gap: 1.5rem;
+            flex-wrap: wrap;
+            position: relative; overflow: hidden;
         }
-        
-        .action-panel-box {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 1.5rem;
-            margin-top: 2rem;
+        .status-hero::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Ccircle cx='40' cy='40' r='40' fill='%23ffffff' fill-opacity='0.03'/%3E%3C/g%3E%3C/svg%3E") repeat;
         }
-        
-        .action-row-btn {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1rem;
+        .hero-icon {
+            width: 60px; height: 60px; border-radius: var(--radius-md);
+            background: rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.75rem; flex-shrink: 0; position: relative;
         }
-        
-        .btn-action {
-            padding: 0.55rem 1.25rem;
-            font-size: 0.85rem;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-weight: 700;
-            border: 1px solid transparent;
-            text-decoration: none;
-            transition: all 0.2s ease;
+        .hero-text { flex: 1; min-width: 0; position: relative; }
+        .hero-title {
+            font-size: 1.35rem; font-weight: 800;
+            color: white; margin-bottom: 0.35rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .btn-approve {
-            background-color: var(--success);
-            color: white;
+        .hero-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+        .hero-chip {
+            font-size: 0.72rem; font-weight: 700;
+            padding: 0.22rem 0.7rem; border-radius: 999px;
+            background: rgba(255,255,255,0.18); color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+            text-transform: uppercase; letter-spacing: 0.04em;
         }
-        .btn-reject {
-            background-color: var(--error);
-            color: white;
+        .hero-status-label {
+            font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+            color: rgba(255,255,255,0.65); letter-spacing: 0.07em;
+            margin-bottom: 0.2rem;
         }
-        .btn-assign {
-            background-color: var(--landlord);
-            color: white;
+        .hero-status-val {
+            font-size: 1rem; font-weight: 800; color: white;
+            text-transform: capitalize;
         }
 
-        /* Timeline logs visual styling */
-        .timeline {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            margin-top: 1rem;
-            border-left: 2px solid var(--border-color);
-            padding-left: 1.25rem;
-            margin-left: 0.5rem;
+        /* Hero gradient by status */
+        .hero-pending    { background: linear-gradient(135deg, #d97706, #b45309); }
+        .hero-approved   { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .hero-assigned   { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+        .hero-accepted   { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+        .hero-travelling { background: linear-gradient(135deg, #ea580c, #c2410c); }
+        .hero-arrived    { background: linear-gradient(135deg, #ea580c, #c2410c); }
+        .hero-repairing  { background: linear-gradient(135deg, #ea580c, #c2410c); }
+        .hero-completed  { background: linear-gradient(135deg, #059669, #047857); }
+        .hero-verified   { background: linear-gradient(135deg, #059669, #047857); }
+        .hero-closed     { background: linear-gradient(135deg, #4b5563, #374151); }
+        .hero-rejected   { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+
+        /* ── Main Grid ─────────────────────────────────────── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 1.75rem;
+            align-items: start;
         }
-        .timeline-item {
-            position: relative;
+        @media (max-width: 1060px) { .main-grid { grid-template-columns: 1fr; } }
+
+        /* ── Cards ─────────────────────────────────────────── */
+        .detail-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
         }
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -27px;
-            top: 4px;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: var(--border-color);
-            border: 2px solid var(--bg-secondary);
+        .detail-card:last-child { margin-bottom: 0; }
+        .card-head {
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            display: flex; align-items: center; gap: 0.6rem;
         }
-        .timeline-item.active::before {
-            background-color: var(--landlord);
-        }
-        .timeline-meta {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .timeline-notes {
-            font-size: 0.85rem;
-            color: var(--text-primary);
-            margin-top: 0.15rem;
-        }
-        
-        .cost-group {
+        .card-head-icon { font-size: 1.1rem; }
+        .card-head-title { font-weight: 800; font-size: 0.95rem; color: var(--text-primary); }
+        .card-body { padding: 1.5rem; }
+
+        /* ── Info grid ─────────────────────────────────────── */
+        .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
+        }
+        @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+        .info-cell-label {
+            font-size: 0.67rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.25rem;
+        }
+        .info-cell-value {
+            font-weight: 700; font-size: 0.9rem; color: var(--text-primary);
+        }
+        .info-full { grid-column: span 2; }
+        @media (max-width: 600px) { .info-full { grid-column: span 1; } }
+
+        /* ── Description box ───────────────────────────────── */
+        .desc-box {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        /* ── Badges ────────────────────────────────────────── */
+        .badge {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            font-size: 0.7rem; font-weight: 800; padding: 0.24rem 0.7rem;
+            border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .badge::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+        .badge-pending    { background:rgba(245,158,11,.14); color:#f59e0b; }
+        .badge-approved   { background:rgba(59,130,246,.14); color:#3b82f6; }
+        .badge-assigned   { background:rgba(139,92,246,.14); color:#8b5cf6; }
+        .badge-accepted   { background:rgba(139,92,246,.14); color:#8b5cf6; }
+        .badge-repairing  { background:rgba(249,115,22,.14); color:#f97316; }
+        .badge-travelling { background:rgba(249,115,22,.14); color:#f97316; }
+        .badge-arrived    { background:rgba(249,115,22,.14); color:#f97316; }
+        .badge-completed  { background:rgba(16,185,129,.12); color:#10b981; }
+        .badge-verified   { background:rgba(16,185,129,.12); color:#10b981; }
+        .badge-closed     { background:rgba(107,114,128,.12);color:#6b7280; }
+        .badge-rejected   { background:rgba(239,68,68,.12);  color:#ef4444; }
+        .badge-prio-low       { background:rgba(16,185,129,.12); color:#10b981; }
+        .badge-prio-medium    { background:rgba(245,158,11,.12); color:#f59e0b; }
+        .badge-prio-high      { background:rgba(249,115,22,.12); color:#f97316; }
+        .badge-prio-emergency { background:rgba(239,68,68,.12);  color:#ef4444; }
+
+        /* ── Worker chip ───────────────────────────────────── */
+        .worker-chip {
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            background: var(--bg-primary); border: 1px solid var(--border-color);
+            border-radius: var(--radius-md); padding: 0.65rem 0.9rem;
+        }
+        .worker-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--landlord), #0369a1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 800; color: white; flex-shrink: 0;
+        }
+        .worker-name  { font-weight: 700; font-size: 0.875rem; color: var(--text-primary); }
+        .worker-trade { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+
+        /* ── Photo grid ────────────────────────────────────── */
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .photo-grid a img {
+            width: 100%; max-height: 160px; object-fit: cover;
+            border-radius: var(--radius-sm); border: 1px solid var(--border-color);
+            display: block; transition: opacity 0.15s;
+        }
+        .photo-grid a img:hover { opacity: 0.85; }
+        .photo-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem; }
+
+        /* ── Cost row ──────────────────────────────────────── */
+        .cost-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+            background: var(--bg-primary); border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.75rem;
+        }
+        .cost-val { font-size: 1.25rem; font-weight: 800; color: var(--landlord); margin-top: 0.15rem; }
+
+        /* ── Timeline ──────────────────────────────────────── */
+        .timeline {
+            border-left: 2px solid var(--border-color);
+            padding-left: 1.25rem; margin-left: 0.5rem;
+            display: flex; flex-direction: column; gap: 1.1rem;
+        }
+        .tl-item { position: relative; }
+        .tl-item::before {
+            content: ''; position: absolute; left: -26px; top: 4px;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--border-color); border: 2px solid var(--bg-secondary);
+        }
+        .tl-item.tla::before { background: var(--landlord); }
+        .tl-meta  { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+        .tl-notes { font-size: 0.85rem; color: var(--text-primary); margin-top: 0.2rem; line-height: 1.5; }
+
+        /* ── Right Sidebar Column ──────────────────────────── */
+        .right-sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+        .side-card {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            padding: 1rem;
-            border-radius: 4px;
-            margin-top: 0.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        .side-head {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .side-head-title { font-weight: 800; font-size: 0.875rem; color: var(--text-primary); }
+        .side-body { padding: 1.25rem; }
+
+        /* ── Action Panel ──────────────────────────────────── */
+        .action-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        .action-panel-head {
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .action-panel-head-title { font-weight: 800; font-size: 0.9rem; color: var(--text-primary); margin: 0; }
+        .action-panel-head-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; }
+        .action-panel-body { padding: 1.25rem; }
+
+        /* ── Buttons ───────────────────────────────────────── */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+            padding: 0.65rem 1.25rem; font-size: 0.85rem; font-weight: 700;
+            border-radius: var(--radius-sm); border: 1px solid transparent;
+            cursor: pointer; transition: all 0.18s; text-decoration: none;
+            width: 100%; margin-top: 0.5rem;
+        }
+        .btn-approve {
+            background: linear-gradient(135deg, #10b981, #059669); color: white;
+        }
+        .btn-approve:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(16,185,129,.35); }
+        .btn-reject {
+            background: var(--bg-primary); color: #ef4444;
+            border-color: rgba(239,68,68,.3);
+        }
+        .btn-reject:hover { background: rgba(239,68,68,.08); }
+        .btn-assign {
+            background: linear-gradient(135deg, var(--landlord), #0369a1); color: white;
+        }
+        .btn-assign:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(14,165,233,.35); }
+        .btn-verify {
+            background: linear-gradient(135deg, #10b981, #059669); color: white;
+        }
+        .btn-verify:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(16,185,129,.3); }
+        .btn-rework {
+            background: var(--bg-primary); color: #f97316;
+            border-color: rgba(249,115,22,.3);
+        }
+        .btn-rework:hover { background: rgba(249,115,22,.08); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+        /* ── Alert inline ──────────────────────────────────── */
+        .inline-alert {
+            border-radius: var(--radius-sm); padding: 0.65rem 0.9rem;
+            font-size: 0.825rem; font-weight: 600;
+            display: flex; align-items: center; gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .alert-ok  { background:rgba(16,185,129,.09); color:#10b981; border:1px solid rgba(16,185,129,.22); }
+        .alert-err { background:rgba(239,68,68,.09);  color:#ef4444; border:1px solid rgba(239,68,68,.22);  }
+
+        /* ── Req info pill row ─────────────────────────────── */
+        .pill-row { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.6rem; }
+        .pill {
+            display:inline-flex; align-items:center; gap:0.35rem;
+            background:var(--bg-primary); border:1px solid var(--border-color);
+            border-radius:var(--radius-sm); padding:0.35rem 0.65rem;
+            font-size:0.75rem; font-weight:700; color:var(--text-secondary);
+        }
+
+        /* Sticky sidebar */
+        @media (min-width: 1060px) {
+            .right-sidebar { position: sticky; top: 1.5rem; }
         }
     </style>
 </head>
-<body class="app-loading" data-role="landlord" data-page-title="Manage Maintenance Task">
+<body class="app-loading" data-role="landlord" data-page-title="Maintenance Request Details">
     <!-- Navbar -->
     <nav class="navbar navbar-landlord">
         <div class="navbar-container">
@@ -138,75 +318,220 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
+    <!-- Main -->
     <main class="dashboard-container">
-        <h2>Manage Maintenance Task</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Process tenant requests, dispatch qualified technicians, and verify completed maintenance reports.</p>
 
-        <div class="details-grid">
-            <!-- Details Column -->
-            <div class="details-card">
-                <h3 id="requestTitle" style="color: var(--primary); margin-bottom: 1.25rem;">Maintenance request</h3>
-                
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; background:var(--bg-primary); border:1px solid var(--border-color); padding:1.25rem; border-radius:var(--radius-md); margin-bottom:1.5rem;">
-                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PROPERTY NAME</span><div style="font-weight:600;" id="propertyName">Loading...</div></div>
-                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">UNIT / ROOM NO.</span><div style="font-weight:600;" id="unitNumber">Loading...</div></div>
-                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">TENANT REPORTER</span><div style="font-weight:600;" id="tenantName">Loading...</div></div>
-                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">PREFERRED ENTRY SCHEDULE</span><div style="font-weight:600;" id="preferredSchedule">Loading...</div></div>
-                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CATEGORY</span><div style="font-weight:600; text-transform:capitalize;" id="issueCategory">Loading...</div></div>
-                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">URGENCY PRIORITY</span><div style="font-weight:600; text-transform:capitalize;" id="priorityLevel">Loading...</div></div>
-                    <div><span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">CURRENT STATUS</span><div style="font-weight:800; text-transform:capitalize; color:var(--landlord);" id="requestStatus">Loading...</div></div>
-                </div>
+        <a href="maintenance.html" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Maintenance List
+        </a>
 
-                <div style="margin-bottom:1.5rem;">
-                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Tenant Description Details</span>
-                    <div id="issueDescription" style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); border:1px solid var(--border-color); padding:0.75rem; border-radius:4px; margin-top:0.25rem; white-space:pre-wrap;"></div>
-                </div>
+        <!-- Status Hero Banner -->
+        <div class="status-hero hero-pending" id="statusHero">
+            <div class="hero-icon" id="heroIcon">⏳</div>
+            <div class="hero-text">
+                <div class="hero-title" id="heroTitle">Loading request...</div>
+                <div class="hero-meta" id="heroMeta"></div>
+            </div>
+            <div style="text-align:right; flex-shrink:0; position:relative;">
+                <div class="hero-status-label">Current Status</div>
+                <div class="hero-status-val" id="heroStatus">—</div>
+            </div>
+        </div>
 
-                <div id="imageContainer" class="hidden" style="margin-bottom:1.5rem;">
-                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Tenant Uploaded Photo</span>
-                    <div><a id="issueImgLink" target="_blank"><img id="issueImg" style="max-width:100%; max-height:220px; border:1px solid var(--border-color); border-radius:4px; margin-top:0.25rem;"></a></div>
-                </div>
+        <!-- Grid -->
+        <div class="main-grid">
 
-                <!-- Report view (loads only if report exists) -->
-                <div id="reportSection" class="hidden" style="border-top:1px solid var(--border-color); padding-top:1.5rem; margin-top:1.5rem;">
-                    <h3 style="margin-bottom:1rem; color:var(--primary);">Technician Completion Report</h3>
-                    <div style="background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem;">
-                        <p><strong>Problem Diagnosed:</strong> <span id="reportProblem">Loading...</span></p>
-                        <p><strong>Action Performed:</strong> <span id="reportAction">Loading...</span></p>
-                        <p><strong>Materials Recorded:</strong> <span id="reportMaterials">Loading...</span></p>
-                        <p><strong>Recommendations / Safety Notes:</strong> <span id="reportNotes">Loading...</span></p>
-                        
-                        <div class="cost-group">
-                            <div><strong>Materials Cost:</strong> <div id="lblMaterialCost" style="font-size:1.15rem; font-weight:800; color:var(--landlord);">₱0.00</div></div>
-                            <div><strong>Labor Services Cost:</strong> <div id="lblLaborCost" style="font-size:1.15rem; font-weight:800; color:var(--landlord);">₱0.00</div></div>
+            <!-- ── Left column ── -->
+            <div>
+                <!-- Request Info -->
+                <div class="detail-card">
+                    <div class="card-head">
+                        <span class="card-head-icon">📋</span>
+                        <span class="card-head-title">Request Information</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid" id="infoGrid">
+                            <div>
+                                <div class="info-cell-label">Property</div>
+                                <div class="info-cell-value" id="propertyName">Loading…</div>
+                            </div>
+                            <div>
+                                <div class="info-cell-label">Unit / Room</div>
+                                <div class="info-cell-value" id="unitNumber">Loading…</div>
+                            </div>
+                            <div>
+                                <div class="info-cell-label">Tenant</div>
+                                <div class="info-cell-value" id="tenantName">Loading…</div>
+                            </div>
+                            <div>
+                                <div class="info-cell-label">Preferred Entry Schedule</div>
+                                <div class="info-cell-value" id="preferredSchedule">Loading…</div>
+                            </div>
+                            <div>
+                                <div class="info-cell-label">Issue Category</div>
+                                <div class="info-cell-value" id="issueCategory">Loading…</div>
+                            </div>
+                            <div>
+                                <div class="info-cell-label">Urgency Priority</div>
+                                <div class="info-cell-value" id="priorityLevel">Loading…</div>
+                            </div>
+                            <div id="workerInfoCell" class="hidden">
+                                <div class="info-cell-label" id="workerLabel">Assigned Worker</div>
+                                <div class="info-cell-value" id="workerName">—</div>
+                            </div>
+                            <div id="dueDateCell" class="hidden">
+                                <div class="info-cell-label">Target Completion Date</div>
+                                <div class="info-cell-value" id="dueDate">—</div>
+                            </div>
                         </div>
 
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;">
+                        <!-- Issue Description -->
+                        <div style="margin-top: 1.25rem;">
+                            <div class="info-cell-label" style="margin-bottom: 0.4rem;">Issue Description</div>
+                            <div class="desc-box" id="issueDescription"></div>
+                        </div>
+
+                        <!-- Tenant photo -->
+                        <div id="imageContainer" class="hidden" style="margin-top: 1.25rem;">
+                            <div class="info-cell-label" style="margin-bottom: 0.4rem;">Tenant Uploaded Photo</div>
+                            <a id="issueImgLink" target="_blank">
+                                <img id="issueImg" style="max-width: 100%; max-height: 220px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: block;">
+                            </a>
+                        </div>
+
+                        <!-- Rejection reason -->
+                        <div id="rejectionBanner" class="hidden" style="margin-top: 1.25rem; background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); border-radius: var(--radius-sm); padding: 0.9rem 1rem;">
+                            <div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: #ef4444; margin-bottom: 0.3rem; letter-spacing: 0.07em;">Rejection Reason</div>
+                            <div style="font-size: 0.875rem; color: #ef4444;" id="rejectionText"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completion Report (shown only when available) -->
+                <div class="detail-card hidden" id="reportCard">
+                    <div class="card-head">
+                        <span class="card-head-icon">🗒️</span>
+                        <span class="card-head-title" id="reportCardTitle">Worker Completion Report</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid">
+                            <div class="info-full">
+                                <div class="info-cell-label">Problem Found</div>
+                                <div class="desc-box" id="reportProblem" style="margin-top: 0.3rem;"></div>
+                            </div>
+                            <div class="info-full">
+                                <div class="info-cell-label">Repair / Action Performed</div>
+                                <div class="desc-box" id="reportAction" style="margin-top: 0.3rem;"></div>
+                            </div>
+                            <div>
+                                <div class="info-cell-label">Materials Used</div>
+                                <div class="info-cell-value" id="reportMaterials">—</div>
+                            </div>
+                            <div>
+                                <div class="info-cell-label">Safety / Follow-up Recommendations</div>
+                                <div class="info-cell-value" id="reportNotes">—</div>
+                            </div>
+                        </div>
+
+                        <!-- Costs -->
+                        <div class="cost-row">
+                            <div>
+                                <div class="info-cell-label">Materials Cost</div>
+                                <div class="cost-val" id="lblMaterialCost">₱0.00</div>
+                            </div>
+                            <div>
+                                <div class="info-cell-label">Labor / Service Cost</div>
+                                <div class="cost-val" id="lblLaborCost">₱0.00</div>
+                            </div>
+                        </div>
+
+                        <!-- Before / After photos -->
+                        <div class="photo-grid" style="margin-top: 1.25rem;" id="photoGrid">
                             <div id="beforePhotoBlock" class="hidden">
-                                <strong>Before Photo</strong>
-                                <div><a id="beforeLink" target="_blank"><img id="beforeImg" style="max-width:100%; max-height:150px; border:1px solid var(--border-color); border-radius:4px;"></a></div>
+                                <div class="photo-label">Before Photo</div>
+                                <a id="beforeLink" target="_blank"><img id="beforeImg" alt="Before"></a>
                             </div>
                             <div id="afterPhotoBlock" class="hidden">
-                                <strong>After Photo</strong>
-                                <div><a id="afterLink" target="_blank"><img id="afterImg" style="max-width:100%; max-height:150px; border:1px solid var(--border-color); border-radius:4px;"></a></div>
+                                <div class="photo-label">After Photo</div>
+                                <a id="afterLink" target="_blank"><img id="afterImg" alt="After"></a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Decision Panel (Approve/Reject or Assign or Verify) -->
-                <div id="landlordActionPanel" class="action-panel-box hidden">
-                    <h4 style="margin:0;" id="actionPanelTitle">Action Verification Panel</h4>
-                    <div id="panelFormContainer"></div>
+                <!-- Timeline -->
+                <div class="detail-card">
+                    <div class="card-head">
+                        <span class="card-head-icon">📅</span>
+                        <span class="card-head-title">Coordination Timeline</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline" id="timelineLogs">
+                            <div class="tl-item"><div class="tl-notes" style="color:var(--text-muted);">Loading logs...</div></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Timeline logs -->
-            <div class="timeline-card">
-                <h3>Coordination Log Timeline</h3>
-                <div class="timeline" id="timelineLogs">
-                    <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No logs documented yet.</p>
+            <!-- ── Right sidebar ── -->
+            <div class="right-sidebar">
+
+                <!-- Action Panel (dynamic) -->
+                <div class="action-panel" id="actionPanel" style="display:none;">
+                    <div class="action-panel-head">
+                        <div class="action-panel-head-title" id="actionTitle">Action Required</div>
+                        <div class="action-panel-head-sub"  id="actionSubtitle"></div>
+                    </div>
+                    <div class="action-panel-body" id="actionBody"></div>
+                </div>
+
+                <!-- Assigned worker card (shown when assigned+) -->
+                <div class="side-card hidden" id="workerCard">
+                    <div class="side-head">
+                        <span>👷</span>
+                        <span class="side-head-title" id="workerCardLabel">Assigned Worker</span>
+                    </div>
+                    <div class="side-body">
+                        <div class="worker-chip">
+                            <div class="worker-avatar" id="workerAvatar">?</div>
+                            <div>
+                                <div class="worker-name" id="workerCardName">—</div>
+                                <div class="worker-trade" id="workerCardTrade">—</div>
+                            </div>
+                        </div>
+                        <div class="pill-row" id="workerPills"></div>
+                    </div>
+                </div>
+
+                <!-- Request summary card (always visible) -->
+                <div class="side-card">
+                    <div class="side-head">
+                        <span>📌</span>
+                        <span class="side-head-title">Request Summary</span>
+                    </div>
+                    <div class="side-body" style="display:flex; flex-direction:column; gap:0.75rem;">
+                        <div>
+                            <div class="info-cell-label">Date Filed</div>
+                            <div class="info-cell-value" id="sideDateFiled">—</div>
+                        </div>
+                        <div>
+                            <div class="info-cell-label">Category</div>
+                            <div class="info-cell-value" id="sideCat">—</div>
+                        </div>
+                        <div>
+                            <div class="info-cell-label">Priority</div>
+                            <div id="sidePrio">—</div>
+                        </div>
+                        <div>
+                            <div class="info-cell-label">Status</div>
+                            <div id="sideStatus">—</div>
+                        </div>
+                        <div id="sideDueDateRow" class="hidden">
+                            <div class="info-cell-label">Due Date</div>
+                            <div class="info-cell-value" id="sideDueDate">—</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -216,293 +541,397 @@
     <script src="../../js/dashboard.js"></script>
     <script>
         const token = localStorage.getItem('domiknow_token');
-        const urlParams = new URLSearchParams(window.location.search);
-        const requestId = urlParams.get('id');
-        let requestDetails = null;
+        const requestId = new URLSearchParams(window.location.search).get('id');
+        let _req = null; // cached request object
 
+        // ── Category → trade name + icon map ─────────────────
+        const TRADE_MAP = {
+            plumbing:   { trade: 'Plumber',               icon: '🚿' },
+            electrical: { trade: 'Electrician',            icon: '⚡' },
+            aircon:     { trade: 'Aircon Technician',      icon: '❄️' },
+            door:       { trade: 'Carpenter / Locksmith',  icon: '🚪' },
+            roof:       { trade: 'Roofer',                 icon: '🏚️' },
+            internet:   { trade: 'Network Technician',     icon: '📶' },
+            appliance:  { trade: 'Appliance Technician',   icon: '🔌' },
+            others:     { trade: 'Maintenance Worker',     icon: '🔧' },
+        };
+
+        const STATUS_HERO_CLASS = {
+            pending:'hero-pending', approved:'hero-approved', assigned:'hero-assigned',
+            accepted:'hero-accepted', travelling:'hero-travelling', arrived:'hero-arrived',
+            repairing:'hero-repairing', completed:'hero-completed', verified:'hero-verified',
+            closed:'hero-closed', rejected:'hero-rejected'
+        };
+
+        function tradeFor(cat) {
+            return TRADE_MAP[cat] || { trade: 'Maintenance Worker', icon: '🔧' };
+        }
+
+        // ── Status badge helper ───────────────────────────────
+        function statusBadge(status) {
+            const map = { travelling:'repairing', arrived:'repairing' };
+            const cls = map[status] || status;
+            const label = status.replace(/_/g,' ');
+            return `<span class="badge badge-${cls}">${label}</span>`;
+        }
+        function prioBadge(prio) {
+            return `<span class="badge badge-prio-${prio}">${prio}</span>`;
+        }
+
+        // ── Init ──────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
             if (!token || !requestId) return;
-            fetchRequestDetails();
+            loadRequest();
 
-            // Set container level event listeners for form and actions to avoid CSP issues
-            const actionPanel = document.getElementById('landlordActionPanel');
-            
-            // Delegate clicks on actions
-            actionPanel.addEventListener('click', (e) => {
+            // Action panel delegation
+            document.getElementById('actionBody').addEventListener('click', (e) => {
                 const btn = e.target.closest('[data-action]');
                 if (!btn) return;
-                
-                const action = btn.dataset.action;
-                const decision = btn.dataset.decision;
-
-                if (action === 'respond') handleRespond(decision);
-                if (action === 'verify') handleVerify(decision);
+                const a = btn.dataset.action;
+                const d = btn.dataset.decision;
+                if (a === 'respond') handleRespond(d);
+                if (a === 'verify')  handleVerify(d);
             });
-
-            // Delegate submit
-            actionPanel.addEventListener('submit', (e) => {
-                if (e.target.id === 'landlordAssignForm') {
-                    e.preventDefault();
-                    handleAssign();
-                }
+            document.getElementById('actionBody').addEventListener('submit', (e) => {
+                if (e.target.id === 'assignForm') { e.preventDefault(); handleAssign(); }
             });
         });
 
-        async function fetchRequestDetails() {
+        // ── Load request ──────────────────────────────────────
+        async function loadRequest() {
             try {
-                const response = await fetch(`/api/maintenance/requests/${requestId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!response.ok) return;
+                const res  = await fetch(`/api/maintenance/requests/${requestId}`, { headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) return;
+                const { data } = await res.json();
+                _req = data.request;
+                renderHero(_req);
+                renderInfo(_req, data.assignment);
+                renderTimeline(data.updates || []);
+                renderReport(data.report, _req);
+                renderActionPanel(_req);
+            } catch (err) { console.error(err); }
+        }
 
-                const result = await response.json();
-                const data = result.data;
-                const req = data.request;
-                requestDetails = req;
+        // ── Hero banner ───────────────────────────────────────
+        function renderHero(req) {
+            const { trade, icon } = tradeFor(req.issue_category);
+            const heroEl = document.getElementById('statusHero');
 
-                document.getElementById('propertyName').textContent = req.properties?.property_name;
-                document.getElementById('unitNumber').textContent = req.unit_number || 'N/A';
-                document.getElementById('tenantName').textContent = `${req.tenant?.full_name || 'N/A'} (${req.tenant?.contact_number || 'No phone'})`;
-                document.getElementById('preferredSchedule').textContent = req.preferred_schedule || '—';
-                document.getElementById('issueCategory').textContent = req.issue_category;
-                document.getElementById('priorityLevel').textContent = req.priority_level;
-                document.getElementById('requestStatus').textContent = req.status.replace('_', ' ');
-                document.getElementById('issueDescription').textContent = req.issue_description;
+            // Remove all hero classes
+            heroEl.className = 'status-hero';
+            heroEl.classList.add(STATUS_HERO_CLASS[req.status] || 'hero-pending');
 
-                if (req.image_url) {
-                    document.getElementById('imageContainer').classList.remove('hidden');
-                    document.getElementById('issueImg').src = req.image_url;
-                    document.getElementById('issueImgLink').href = req.image_url;
-                } else {
-                    document.getElementById('imageContainer').classList.add('hidden');
+            document.getElementById('heroIcon').textContent  = icon;
+            document.getElementById('heroTitle').textContent = req.issue_title;
+            document.getElementById('heroStatus').textContent = req.status.replace(/_/g, ' ');
+
+            const meta = document.getElementById('heroMeta');
+            meta.innerHTML = `
+                <span class="hero-chip">${icon} ${req.issue_category}</span>
+                <span class="hero-chip">${req.priority_level} priority</span>
+                <span class="hero-chip">${req.properties?.property_name || 'Property'} · Unit ${req.unit_number || 'N/A'}</span>
+            `;
+
+            document.title = `${req.issue_title} – DomiKnow`;
+        }
+
+        // ── Request info ──────────────────────────────────────
+        function renderInfo(req, assignment) {
+            const { trade, icon } = tradeFor(req.issue_category);
+
+            document.getElementById('propertyName').textContent     = req.properties?.property_name || '—';
+            document.getElementById('unitNumber').textContent       = req.unit_number || '—';
+            document.getElementById('tenantName').textContent       = `${req.tenant?.full_name || '—'} · ${req.tenant?.contact_number || 'No phone'}`;
+            document.getElementById('preferredSchedule').textContent= req.preferred_schedule || '—';
+            document.getElementById('issueCategory').innerHTML      = `${icon} ${req.issue_category}`;
+            document.getElementById('priorityLevel').innerHTML      = prioBadge(req.priority_level);
+            document.getElementById('issueDescription').textContent = req.issue_description;
+
+            // Tenant photo
+            if (req.image_url) {
+                document.getElementById('imageContainer').classList.remove('hidden');
+                document.getElementById('issueImg').src  = req.image_url;
+                document.getElementById('issueImgLink').href = req.image_url;
+            }
+
+            // Rejection reason
+            if (req.rejection_reason) {
+                document.getElementById('rejectionBanner').classList.remove('hidden');
+                document.getElementById('rejectionText').textContent = req.rejection_reason;
+            }
+
+            // Assigned worker
+            const hasWorker = req.assigned_maintenance?.full_name;
+            if (hasWorker) {
+                const workerName = req.assigned_maintenance.full_name;
+                const initials   = workerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+                // Show worker info cell in main grid
+                document.getElementById('workerLabel').textContent  = `Assigned ${trade}`;
+                document.getElementById('workerName').textContent   = workerName;
+                document.getElementById('workerInfoCell').classList.remove('hidden');
+
+                // Due date
+                if (req.due_date || assignment?.due_date) {
+                    const dd = new Date(req.due_date || assignment?.due_date).toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' });
+                    document.getElementById('dueDate').textContent = dd;
+                    document.getElementById('dueDateCell').classList.remove('hidden');
+
+                    // Sidebar due date row
+                    document.getElementById('sideDueDate').textContent = dd;
+                    document.getElementById('sideDueDateRow').classList.remove('hidden');
                 }
 
-                // Render Timeline logs
-                const timeline = document.getElementById('timelineLogs');
-                if (data.updates && data.updates.length > 0) {
-                    timeline.innerHTML = '';
-                    data.updates.forEach(u => {
-                        const dt = new Date(u.created_at).toLocaleString();
-                        const div = document.createElement('div');
-                        div.className = 'timeline-item active';
-                        div.innerHTML = `
-                            <span class="timeline-meta">${dt} - ${u.status_update.replace('_', ' ').toUpperCase()}</span>
-                            <div class="timeline-notes">${u.notes}</div>
-                        `;
-                        timeline.appendChild(div);
-                    });
-                } else {
-                    timeline.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 1rem;">No updates logged.</p>';
-                }
+                // Sidebar worker card
+                document.getElementById('workerCard').classList.remove('hidden');
+                document.getElementById('workerCardLabel').textContent = `Assigned ${trade}`;
+                document.getElementById('workerAvatar').textContent = initials;
+                document.getElementById('workerCardName').textContent  = workerName;
+                document.getElementById('workerCardTrade').textContent = trade;
+                document.getElementById('workerPills').innerHTML = `
+                    <span class="pill">📧 ${req.assigned_maintenance.email || '—'}</span>
+                `;
+            }
 
-                // Render Report Section if completed
-                const report = data.report;
-                if (report && report.problem_found) {
-                    document.getElementById('reportSection').classList.remove('hidden');
-                    document.getElementById('reportProblem').textContent = report.problem_found;
-                    document.getElementById('reportAction').textContent = report.repair_performed;
-                    document.getElementById('reportMaterials').textContent = report.materials_used || 'None';
-                    document.getElementById('reportNotes').textContent = report.recommendations || 'None';
-                    
-                    document.getElementById('lblMaterialCost').textContent = `₱${parseFloat(report.material_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2})}`;
-                    document.getElementById('lblLaborCost').textContent = `₱${parseFloat(report.labor_cost || 0).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            // Sidebar summary
+            document.getElementById('sideDateFiled').textContent = new Date(req.created_at).toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' });
+            document.getElementById('sideCat').innerHTML  = `${icon} ${req.issue_category}`;
+            document.getElementById('sidePrio').innerHTML = prioBadge(req.priority_level);
+            document.getElementById('sideStatus').innerHTML = statusBadge(req.status);
+        }
 
-                    if (req.before_photo_url) {
-                        document.getElementById('beforePhotoBlock').classList.remove('hidden');
-                        document.getElementById('beforeImg').src = req.before_photo_url;
-                        document.getElementById('beforeLink').href = req.before_photo_url;
-                    }
-                    if (req.after_photo_url) {
-                        document.getElementById('afterPhotoBlock').classList.remove('hidden');
-                        document.getElementById('afterImg').src = req.after_photo_url;
-                        document.getElementById('afterLink').href = req.after_photo_url;
-                    }
-                } else {
-                    document.getElementById('reportSection').classList.add('hidden');
-                }
+        // ── Timeline ──────────────────────────────────────────
+        function renderTimeline(updates) {
+            const tl = document.getElementById('timelineLogs');
+            if (updates.length === 0) {
+                tl.innerHTML = `<div class="tl-item"><div class="tl-notes" style="color:var(--text-muted);">No activity logged yet.</div></div>`;
+                return;
+            }
+            tl.innerHTML = '';
+            updates.forEach(u => {
+                const dt = new Date(u.created_at).toLocaleString('en-PH', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                const div = document.createElement('div');
+                div.className = 'tl-item tla';
+                div.innerHTML = `
+                    <div class="tl-meta">${dt} · ${u.status_update.replace(/_/g,' ')}</div>
+                    <div class="tl-notes">${u.notes}</div>
+                `;
+                tl.appendChild(div);
+            });
+        }
 
-                // Render Action Panels
-                renderActionPanel(req);
+        // ── Completion report ─────────────────────────────────
+        function renderReport(report, req) {
+            if (!report?.problem_found) return;
+            const { trade } = tradeFor(req.issue_category);
+            document.getElementById('reportCardTitle').textContent = `${trade} Completion Report`;
+            document.getElementById('reportCard').classList.remove('hidden');
 
-            } catch (err) {
-                console.error(err);
+            document.getElementById('reportProblem').textContent   = report.problem_found;
+            document.getElementById('reportAction').textContent    = report.repair_performed;
+            document.getElementById('reportMaterials').textContent = report.materials_used || 'None reported';
+            document.getElementById('reportNotes').textContent     = report.recommendations || 'None';
+
+            document.getElementById('lblMaterialCost').textContent = `₱${parseFloat(report.material_cost||0).toLocaleString(undefined,{minimumFractionDigits:2})}`;
+            document.getElementById('lblLaborCost').textContent    = `₱${parseFloat(report.labor_cost||0).toLocaleString(undefined,{minimumFractionDigits:2})}`;
+
+            if (req.before_photo_url) {
+                document.getElementById('beforePhotoBlock').classList.remove('hidden');
+                document.getElementById('beforeImg').src   = req.before_photo_url;
+                document.getElementById('beforeLink').href = req.before_photo_url;
+            }
+            if (req.after_photo_url) {
+                document.getElementById('afterPhotoBlock').classList.remove('hidden');
+                document.getElementById('afterImg').src    = req.after_photo_url;
+                document.getElementById('afterLink').href  = req.after_photo_url;
             }
         }
 
+        // ── Action panel ──────────────────────────────────────
         async function renderActionPanel(req) {
-            const panel = document.getElementById('landlordActionPanel');
-            const title = document.getElementById('actionPanelTitle');
-            const container = document.getElementById('panelFormContainer');
+            const panel    = document.getElementById('actionPanel');
+            const title    = document.getElementById('actionTitle');
+            const subtitle = document.getElementById('actionSubtitle');
+            const body     = document.getElementById('actionBody');
+            const { trade, icon } = tradeFor(req.issue_category);
 
-            panel.classList.add('hidden');
-            container.innerHTML = '';
+            body.innerHTML = '';
+            panel.style.display = 'none';
 
-            // Status: pending -> approve/reject options
+            // ── PENDING → Approve / Reject ────────────────────
             if (req.status === 'pending') {
-                title.textContent = 'Approve or Reject Tenant Request';
-                container.innerHTML = `
-                    <div style="margin-top:1rem;">
-                        <label class="form-label" for="rejectionReason">Rejection Reason (Required on Rejection)</label>
-                        <textarea id="rejectionReason" class="form-input" placeholder="e.g. Incomplete information, outside of contract coverage..." style="height:70px;"></textarea>
+                title.textContent    = 'Review Tenant Request';
+                subtitle.textContent = 'Approve to proceed with dispatch, or reject with a reason.';
+                body.innerHTML = `
+                    <div id="actionAlert" style="display:none;"></div>
+                    <div class="form-group" style="margin-top:0.25rem;">
+                        <label class="form-label" for="rejectionReason">Rejection Reason <span style="color:var(--text-muted); font-weight:500;">(required on rejection)</span></label>
+                        <textarea id="rejectionReason" class="form-input" rows="3" placeholder="e.g. Issue falls outside lease coverage, insufficient detail provided..."></textarea>
                     </div>
-                    <div class="action-row-btn">
-                        <button class="btn-action btn-reject" data-action="respond" data-decision="reject">Reject Request</button>
-                        <button class="btn-action btn-approve" data-action="respond" data-decision="approve">Approve Request</button>
-                    </div>
+                    <button class="btn btn-approve" data-action="respond" data-decision="approve">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Approve Request
+                    </button>
+                    <button class="btn btn-reject" data-action="respond" data-decision="reject">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        Reject Request
+                    </button>
                 `;
-                panel.classList.remove('hidden');
+                panel.style.display = 'block';
             }
-            // Status: approved -> assign technician options
+
+            // ── APPROVED → Assign worker ───────────────────────
             else if (req.status === 'approved') {
-                title.textContent = 'Dispatch Maintenance technician';
-                container.innerHTML = `
-                    <form id="landlordAssignForm">
-                        <div class="form-group" style="margin-top:0.75rem;">
-                            <label class="form-label" for="workerSelect">Select Maintenance Worker</label>
+                title.textContent    = `Dispatch a ${trade}`;
+                subtitle.textContent = `Assign a qualified ${trade.toLowerCase()} to handle this ${req.issue_category} job.`;
+                body.innerHTML = `
+                    <div id="actionAlert" style="display:none;"></div>
+                    <form id="assignForm">
+                        <div class="form-group" style="margin-top:0.25rem;">
+                            <label class="form-label" for="workerSelect">${icon} Select ${trade}</label>
                             <select id="workerSelect" class="form-input" required>
-                                <option value="">-- Select Worker --</option>
+                                <option value="">— Loading available workers… —</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="dueDate">Completion Target Due Date</label>
+                            <label class="form-label" for="dueDate">Target Completion Date</label>
                             <input type="date" id="dueDate" class="form-input" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="assignInstructions">Job Directives / Instructions</label>
-                            <textarea id="assignInstructions" class="form-input" placeholder="e.g. Replace faucet, clean aircon filter..." style="height:70px;"></textarea>
+                            <label class="form-label" for="assignInstructions">Job Instructions / Directives</label>
+                            <textarea id="assignInstructions" class="form-input" rows="3" placeholder="e.g. Replace faucet cartridge, check supply line for leaks…"></textarea>
                         </div>
-                        <button type="submit" class="btn-action btn-assign" style="width:100%; margin-top:0.5rem;">Assign technician</button>
+                        <button type="submit" class="btn btn-assign">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+                            Assign ${trade}
+                        </button>
                     </form>
                 `;
-                panel.classList.remove('hidden');
-                
-                // Fetch active workers
+                panel.style.display = 'block';
+
+                // Set min due date to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('dueDate').min = today;
+
+                // Populate workers
                 try {
-                    const res = await fetch('/api/maintenance/personnel', { headers: { 'Authorization': `Bearer ${token}` } });
+                    const res = await fetch('/api/maintenance/personnel', { headers: { Authorization: `Bearer ${token}` } });
                     const { data } = await res.json();
-                    const select = document.getElementById('workerSelect');
-                    data.forEach(w => {
-                        const opt = document.createElement('option');
-                        opt.value = w.id;
-                        opt.textContent = `${w.full_name} (${w.email})`;
-                        select.appendChild(opt);
-                    });
-                } catch(e) {
-                    console.error(e);
-                }
+                    const sel = document.getElementById('workerSelect');
+                    if (!data || data.length === 0) {
+                        sel.innerHTML = '<option value="">No maintenance personnel registered</option>';
+                    } else {
+                        sel.innerHTML = `<option value="">— Select ${trade} —</option>`;
+                        data.forEach(w => {
+                            const opt = document.createElement('option');
+                            opt.value = w.id;
+                            opt.textContent = `${w.full_name}`;
+                            sel.appendChild(opt);
+                        });
+                    }
+                } catch (e) { console.error(e); }
             }
-            // Status: completed -> verify repair options
+
+            // ── COMPLETED → Verify / Rework ───────────────────
             else if (req.status === 'completed') {
-                title.textContent = 'Assess Technician Work Evidence';
-                container.innerHTML = `
-                    <div style="margin-top:1rem;">
-                        <label class="form-label" for="verifyRemarks">Rework notes / remarks (Required on Rework request)</label>
-                        <textarea id="verifyRemarks" class="form-input" placeholder="Feedback notes for the technician..." style="height:70px;"></textarea>
+                title.textContent    = 'Assess Work Completion';
+                subtitle.textContent = `Review the ${trade.toLowerCase()}'s report and either verify or request rework.`;
+                body.innerHTML = `
+                    <div id="actionAlert" style="display:none;"></div>
+                    <div class="form-group" style="margin-top:0.25rem;">
+                        <label class="form-label" for="verifyRemarks">Rework Instructions <span style="color:var(--text-muted); font-weight:500;">(required on rework)</span></label>
+                        <textarea id="verifyRemarks" class="form-input" rows="3" placeholder="Describe what still needs to be fixed or redone…"></textarea>
                     </div>
-                    <div class="action-row-btn">
-                        <button class="btn-action btn-reject" data-action="verify" data-decision="rework">Request Rework</button>
-                        <button class="btn-action btn-approve" data-action="verify" data-decision="accept">Accept Work Completion</button>
-                    </div>
+                    <button class="btn btn-verify" data-action="verify" data-decision="accept">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Verify Completion
+                    </button>
+                    <button class="btn btn-rework" data-action="verify" data-decision="rework">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.14"/></svg>
+                        Request Rework
+                    </button>
                 `;
-                panel.classList.remove('hidden');
+                panel.style.display = 'block';
             }
+        }
+
+        // ── Action helpers ────────────────────────────────────
+        function showActionAlert(msg, type = 'err') {
+            const el = document.getElementById('actionAlert');
+            if (!el) return;
+            el.className = `inline-alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = 'flex';
         }
 
         async function handleRespond(decision) {
-            const reason = document.getElementById('rejectionReason').value.trim();
+            const reason = document.getElementById('rejectionReason')?.value.trim() || '';
             if (decision === 'reject' && !reason) {
-                alert('Please state a reason for rejecting the request.');
-                return;
+                showActionAlert('A rejection reason is required.'); return;
             }
-
             try {
-                const response = await fetch(`/api/maintenance/requests/${requestId}/landlord-respond`, {
+                const res = await fetch(`/api/maintenance/requests/${requestId}/landlord-respond`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({ decision, rejection_reason: reason })
                 });
-
-                if (response.ok) {
-                    alert(`Request has been evaluated and marked as ${decision === 'approve' ? 'Approved' : 'Rejected'}.`);
-                    fetchRequestDetails();
+                if (res.ok) {
+                    showActionAlert(`Request ${decision === 'approve' ? 'approved' : 'rejected'} successfully.`, 'ok');
+                    setTimeout(loadRequest, 800);
                 } else {
-                    const result = await response.json();
-                    alert(result.message || 'Operation failed.');
+                    const r = await res.json();
+                    showActionAlert(r.message || 'Operation failed.');
                 }
-            } catch(e) {
-                console.error(e);
-                alert('Connection failure updating request.');
-            }
+            } catch { showActionAlert('Network error. Please try again.'); }
         }
 
         async function handleAssign() {
-            const submitBtn = document.querySelector('#landlordAssignForm button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Dispatching worker...';
+            const workerId = document.getElementById('workerSelect')?.value;
+            const dueDate  = document.getElementById('dueDate')?.value;
+            const instruct = document.getElementById('assignInstructions')?.value || '';
 
-            const payload = {
-                assigned_maintenance_id: document.getElementById('workerSelect').value,
-                due_date: document.getElementById('dueDate').value,
-                instructions: document.getElementById('assignInstructions').value
-            };
+            if (!workerId) { showActionAlert('Please select a maintenance worker.'); return; }
+            if (!dueDate)  { showActionAlert('Please set a target completion date.'); return; }
+
+            const submitBtn = document.querySelector('#assignForm button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Dispatching…'; }
 
             try {
-                const response = await fetch(`/api/maintenance/requests/${requestId}/landlord-assign`, {
+                const res = await fetch(`/api/maintenance/requests/${requestId}/landlord-assign`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ assigned_maintenance_id: workerId, due_date: dueDate, instructions: instruct })
                 });
-
-                if (response.ok) {
-                    alert('Job assigned successfully to the technician.');
-                    fetchRequestDetails();
+                if (res.ok) {
+                    showActionAlert('Worker assigned and notified successfully.', 'ok');
+                    setTimeout(loadRequest, 800);
                 } else {
-                    const result = await response.json();
-                    alert(result.message || 'Dispatching worker failed.');
+                    const r = await res.json();
+                    showActionAlert(r.message || 'Assignment failed.');
                 }
-            } catch(err) {
-                console.error(err);
-                alert('Network issue dispatching technician.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Assign technician';
-            }
+            } catch { showActionAlert('Network error. Please try again.'); }
+            finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Assign Worker'; } }
         }
 
         async function handleVerify(decision) {
-            const remarks = document.getElementById('verifyRemarks').value.trim();
+            const remarks = document.getElementById('verifyRemarks')?.value.trim() || '';
             if (decision === 'rework' && !remarks) {
-                alert('Please write comments indicating why rework is requested.');
-                return;
+                showActionAlert('Rework instructions are required.'); return;
             }
-
             try {
-                const response = await fetch(`/api/maintenance/requests/${requestId}/landlord-verify`, {
+                const res = await fetch(`/api/maintenance/requests/${requestId}/landlord-verify`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({ decision, remarks })
                 });
-
-                if (response.ok) {
-                    alert(`Work completion verified: ${decision === 'accept' ? 'Verified' : 'Rework requested'}.`);
-                    fetchRequestDetails();
+                if (res.ok) {
+                    showActionAlert(decision === 'accept' ? 'Work verified successfully.' : 'Rework request sent.', 'ok');
+                    setTimeout(loadRequest, 800);
                 } else {
-                    const result = await response.json();
-                    alert(result.message || 'Verification update failed.');
+                    const r = await res.json();
+                    showActionAlert(r.message || 'Verification failed.');
                 }
-            } catch(e) {
-                console.error(e);
-                alert('Network error verifying completion.');
-            }
+            } catch { showActionAlert('Network error. Please try again.'); }
         }
     </script>
 </body>
