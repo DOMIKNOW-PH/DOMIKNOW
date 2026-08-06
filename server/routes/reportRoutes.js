@@ -60,4 +60,8 @@ router.get('/admin/landlord-reports',                         requireRole('admin
 router.get('/admin/landlord-reports/:id',                     requireRole('admin'),    landlordReportController.getLandlordReportDetailForAdmin);
 router.put('/admin/landlord-reports/:id/decision',            requireRole('admin'),    landlordReportController.processAdminDecision);
 
+// ─── Investigation Discussion Thread Routes ────────────────────────────────────
+router.get('/reports/messages/:type/:id',  requireRole('admin', 'landlord', 'tenant'), reportController.getInvestigationMessages);
+router.post('/reports/messages/:type/:id', requireRole('admin', 'landlord', 'tenant'), reportController.postInvestigationMessage);
+
 module.exports = router;

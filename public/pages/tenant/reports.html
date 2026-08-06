@@ -324,6 +324,21 @@
                     </div>
                     <div id="fAdminRemarks" style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;font-size:.875rem;color:var(--text-secondary);line-height:1.6;"></div>
                 </div>
+
+                <!-- Investigation Discussion Thread -->
+                <div class="detail-section">
+                    <div class="detail-title" style="color:var(--primary);">
+                        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        Admin Inquiry & Discussion Thread
+                    </div>
+                    <div id="filedMessagesFeed" style="display:flex; flex-direction:column; gap:0.6rem; max-height:180px; overflow-y:auto; padding:0.65rem; background:var(--bg-primary); border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:0.75rem;">
+                        <div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages in this case thread yet.</div>
+                    </div>
+                    <form id="filedPostMsgForm" style="display:flex; gap:0.5rem;">
+                        <input type="text" id="filedMsgTextInput" class="form-input" placeholder="Reply to admin or submit additional details..." style="flex:1;">
+                        <button type="submit" class="action-btn" style="background:var(--primary); color:white; padding:0.45rem 1rem; font-weight:700;">Reply</button>
+                    </form>
+                </div>
             </div>
 
             <div class="modal-footer" style="display:flex;justify-content:flex-end;">
@@ -416,6 +431,21 @@
                         The window to submit an explanation has passed (report is no longer pending review).
                     </div>
                 </div>
+
+                <!-- Investigation Discussion Thread -->
+                <div class="detail-section">
+                    <div class="detail-title" style="color:var(--primary);">
+                        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        Admin Inquiry & Discussion Thread
+                    </div>
+                    <div id="againstMessagesFeed" style="display:flex; flex-direction:column; gap:0.6rem; max-height:180px; overflow-y:auto; padding:0.65rem; background:var(--bg-primary); border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:0.75rem;">
+                        <div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages in this case thread yet.</div>
+                    </div>
+                    <form id="againstPostMsgForm" style="display:flex; gap:0.5rem;">
+                        <input type="text" id="againstMsgTextInput" class="form-input" placeholder="Reply to admin or submit additional details..." style="flex:1;">
+                        <button type="submit" class="action-btn" style="background:var(--primary); color:white; padding:0.45rem 1rem; font-weight:700;">Reply</button>
+                    </form>
+                </div>
             </div>
 
             <div class="modal-footer" style="display:flex;justify-content:flex-end;">
@@ -483,6 +513,46 @@
             const params = new URLSearchParams(window.location.search);
             if (params.get('tab') === 'against') {
                 switchTab('against');
+            }
+
+            const filedForm = $('filedPostMsgForm');
+            if (filedForm) {
+                filedForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (!currentReportId) return;
+                    const input = $('filedMsgTextInput');
+                    const text = input.value.trim();
+                    if (!text) return;
+                    const res = await fetch(`/api/reports/messages/landlord_report/${currentReportId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ message_text: text, recipient_role: 'admin' })
+                    });
+                    if (res.ok) {
+                        input.value = '';
+                        loadInvestigationMessages('landlord_report', currentReportId, 'filedMessagesFeed');
+                    }
+                });
+            }
+
+            const againstForm = $('againstPostMsgForm');
+            if (againstForm) {
+                againstForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (!currentReportId) return;
+                    const input = $('againstMsgTextInput');
+                    const text = input.value.trim();
+                    if (!text) return;
+                    const res = await fetch(`/api/reports/messages/tenant_report/${currentReportId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ message_text: text, recipient_role: 'admin' })
+                    });
+                    if (res.ok) {
+                        input.value = '';
+                        loadInvestigationMessages('tenant_report', currentReportId, 'againstMessagesFeed');
+                    }
+                });
             }
         });
 
@@ -693,6 +763,9 @@
                     $('fAdminRemarks').textContent = r.admin_remarks;
                 }
 
+                // Load messages thread
+                loadInvestigationMessages('landlord_report', reportId, 'filedMessagesFeed');
+
             } catch (err) {
                 console.error(err);
                 alert('Error fetching report details.');
@@ -864,9 +937,52 @@
                     $('mExplanationClosed').style.display = 'block';
                 }
 
+                // Load messages thread
+                loadInvestigationMessages('tenant_report', reportId, 'againstMessagesFeed');
+
             } catch (err) {
                 console.error(err);
                 alert('Error fetching details.');
+            }
+        }
+
+        async function loadInvestigationMessages(type, id, feedElementId) {
+            const feed = $(feedElementId);
+            if (!feed) return;
+            feed.innerHTML = '<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">Loading inquiry thread...</div>';
+            try {
+                const res = await fetch(`/api/reports/messages/${type}/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) {
+                    feed.innerHTML = '<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages in this case thread yet.</div>';
+                    return;
+                }
+                const { data } = await res.json();
+                if (!data || data.length === 0) {
+                    feed.innerHTML = '<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages in this case thread yet.</div>';
+                    return;
+                }
+
+                feed.innerHTML = '';
+                data.forEach(m => {
+                    const isMe = m.sender_role === 'tenant';
+                    const senderName = m.sender?.full_name || (m.sender_role === 'admin' ? 'System Admin' : m.sender_role);
+                    const dateStr = new Date(m.created_at).toLocaleString();
+
+                    const item = document.createElement('div');
+                    item.style.cssText = `background:${isMe ? 'rgba(59,130,246,0.1)' : 'var(--bg-secondary)'}; border:1px solid var(--border-color); padding:0.5rem 0.75rem; border-radius:6px; font-size:0.8rem;`;
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.15rem; font-size:0.7rem;">
+                            <span style="font-weight:800; color:${isMe ? 'var(--primary)' : 'var(--text-primary)'};">${senderName} (${m.sender_role.toUpperCase()})</span>
+                            <span style="color:var(--text-muted);">${dateStr}</span>
+                        </div>
+                        <div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>
+                    `;
+                    feed.appendChild(item);
+                });
+                feed.scrollTop = feed.scrollHeight;
+            } catch (e) {
+                console.error(e);
+                feed.innerHTML = '<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages in this case thread yet.</div>';
             }
         }
 

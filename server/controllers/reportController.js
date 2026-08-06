@@ -1,4 +1,5 @@
 const reportModel = require('../models/reportModel');
+const reportMessageModel = require('../models/reportMessageModel');
 const auditLogModel = require('../models/auditLogModel');
 const responseHelper = require('../utils/responseHelper');
 const supabase = require('../config/supabaseClient');
@@ -387,6 +388,71 @@ const reportController = {
         } catch (error) {
             console.error('Update policy violation error:', error);
             return responseHelper.error(res, 'Failed to update policy violation status.', error, 500);
+        }
+    },
+
+    // ----------------- Report Investigation Messages -----------------
+    async getInvestigationMessages(req, res) {
+        try {
+            const { type, id } = req.params;
+            const messages = await reportMessageModel.getMessagesByReportId(type, id);
+
+            for (const m of messages) {
+                if (m.attachment_path) {
+                    try {
+                        m.attachment_url = await getSignedUrl('report-attachments', m.attachment_path);
+                    } catch (err) {
+                        console.error('Error generating signed URL for message attachment:', err);
+                    }
+                }
+            }
+
+            return responseHelper.success(res, 'Investigation messages retrieved.', messages);
+        } catch (error) {
+            console.error('getInvestigationMessages error:', error);
+            return responseHelper.error(res, 'Failed to fetch investigation messages.', error, 500);
+        }
+    },
+
+    async postInvestigationMessage(req, res) {
+        try {
+            const { type, id } = req.params;
+            const { message_text, recipient_role, base64_content, file_name, mime_type, file_size } = req.body;
+            const userId = req.user.id;
+            const userRole = req.user.role;
+
+            if (!message_text || message_text.trim().length === 0) {
+                return responseHelper.error(res, 'Message text cannot be empty.');
+            }
+
+            let attachmentUrl = null;
+            let attachmentPath = null;
+
+            if (base64_content && file_name && mime_type) {
+                const uniqueName = `${Date.now()}-${file_name}`;
+                const storagePath = `report-inquiries/${userId}/${uniqueName}`;
+                const uploadResult = await uploadFile('report-attachments', storagePath, base64_content, mime_type);
+                attachmentUrl = uploadResult.url;
+                attachmentPath = uploadResult.path;
+            }
+
+            const message = await reportMessageModel.addMessage({
+                report_type: type,
+                report_id: id,
+                sender_id: userId,
+                sender_role: userRole,
+                recipient_role: recipient_role || 'all',
+                message_text: message_text.trim(),
+                attachment_url: attachmentUrl,
+                attachment_path: attachmentPath
+            });
+
+            await auditLogModel.log(userId, 'POST_REPORT_INVESTIGATION_MESSAGE', `User ${userId} (${userRole}) sent message on ${type} #${id}`);
+
+            return responseHelper.success(res, 'Investigation message posted successfully.', message, 201);
+        } catch (error) {
+            console.error('postInvestigationMessage error:', error);
+            return responseHelper.error(res, 'Failed to post investigation message.', error, 500);
         }
     }
 };

@@ -657,6 +657,35 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 5. Case Discussion & Inquiry Messaging Thread -->
+                <div class="case-section" style="background: rgba(168, 85, 247, 0.04); border-color: rgba(168, 85, 247, 0.2);">
+                    <div class="case-section-title" style="color: #9333ea;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Admin Case Inquiry & Discussion Thread
+                    </div>
+                    
+                    <!-- Messages Feed -->
+                    <div id="modalMessagesFeed" style="display:flex; flex-direction:column; gap:0.65rem; max-height:200px; overflow-y:auto; padding:0.65rem; background:var(--bg-secondary); border-radius:var(--radius-sm); border:1px solid var(--border-color); margin-bottom:0.75rem;">
+                        <div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>
+                    </div>
+
+                    <!-- Admin Post Inquiry Form -->
+                    <form id="postInquiryForm" style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                            <label class="form-label" style="margin-bottom:0; font-size:0.72rem;">Target Recipient:</label>
+                            <select id="msgRecipientRole" class="form-input" style="max-width:180px; padding:0.3rem 0.5rem; font-size:0.78rem;">
+                                <option value="reporter">Complainant (Reporter)</option>
+                                <option value="target">Reported User (Target)</option>
+                                <option value="all">All Case Parties</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <input type="text" id="msgTextInput" class="form-input" placeholder="Type official inquiry or request for evidence..." style="flex:1;">
+                            <button type="submit" class="btn-investigate" style="background:#9333ea; padding:0.5rem 1rem;">Send Inquiry</button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <div class="modal-footer">
@@ -695,6 +724,7 @@
 
             document.getElementById('saveTriageBtn').addEventListener('click', handleSaveTriage);
             document.getElementById('executeDecisionBtn').addEventListener('click', handleExecuteDecision);
+            document.getElementById('postInquiryForm').addEventListener('submit', handlePostInquiry);
         });
 
         async function fetchAllReports() {
@@ -887,6 +917,9 @@
                     });
                 }
 
+                // Load case discussion thread
+                loadInvestigationMessages(currentTicket._type, currentTicket.id);
+
                 // Select default action
                 const targetAction = ['dismiss', 'warning', 'suspend', 'ban'].includes(defaultAction) ? defaultAction : 'dismiss';
                 selectActionType(targetAction);
@@ -897,6 +930,74 @@
             } catch (err) {
                 console.error(err);
                 alert('Error loading ticket details.');
+            }
+        }
+
+        async function loadInvestigationMessages(type, id) {
+            const feed = document.getElementById('modalMessagesFeed');
+            feed.innerHTML = '<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">Loading inquiry thread...</div>';
+            try {
+                const res = await fetch(`/api/reports/messages/${type}/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) {
+                    feed.innerHTML = '<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
+                    return;
+                }
+                const { data } = await res.json();
+                if (!data || data.length === 0) {
+                    feed.innerHTML = '<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
+                    return;
+                }
+
+                feed.innerHTML = '';
+                data.forEach(m => {
+                    const isMe = m.sender_role === 'admin';
+                    const senderName = m.sender?.full_name || (m.sender_role === 'admin' ? 'System Admin' : m.sender_role);
+                    const dateStr = new Date(m.created_at).toLocaleString();
+
+                    const item = document.createElement('div');
+                    item.style.cssText = `background:${isMe ? 'rgba(59,130,246,0.1)' : 'var(--bg-primary)'}; border:1px solid var(--border-color); padding:0.6rem 0.85rem; border-radius:6px; font-size:0.82rem;`;
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.2rem; font-size:0.72rem;">
+                            <span style="font-weight:800; color:${isMe ? 'var(--landlord)' : 'var(--text-primary)'};">${senderName} (${m.sender_role.toUpperCase()}) ➔ ${m.recipient_role.toUpperCase()}</span>
+                            <span style="color:var(--text-muted);">${dateStr}</span>
+                        </div>
+                        <div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>
+                        ${m.attachment_url ? `<div style="margin-top:0.35rem;"><a href="${m.attachment_url}" target="_blank" style="color:var(--landlord); font-weight:700; font-size:0.75rem;">📎 View Attached Media ↗</a></div>` : ''}
+                    `;
+                    feed.appendChild(item);
+                });
+                feed.scrollTop = feed.scrollHeight;
+            } catch (e) {
+                console.error(e);
+                feed.innerHTML = '<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
+            }
+        }
+
+        async function handlePostInquiry(e) {
+            e.preventDefault();
+            if (!currentTicket) return;
+
+            const msgInput = document.getElementById('msgTextInput');
+            const recipSelect = document.getElementById('msgRecipientRole');
+            const text = msgInput.value.trim();
+            if (!text) return;
+
+            try {
+                const res = await fetch(`/api/reports/messages/${currentTicket._type}/${currentTicket.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ message_text: text, recipient_role: recipSelect.value })
+                });
+                if (res.ok) {
+                    msgInput.value = '';
+                    loadInvestigationMessages(currentTicket._type, currentTicket.id);
+                } else {
+                    const r = await res.json();
+                    alert(r.message || 'Failed to post message.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Network error posting message.');
             }
         }
 
