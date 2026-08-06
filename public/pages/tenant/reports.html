@@ -668,7 +668,8 @@
 
                 $('fLeaseNumber').textContent = r.lease_records?.lease_number || 'N/A';
                 $('fProperty').textContent    = r.properties?.property_name   || '—';
-                $('fUnit').textContent        = r.properties?.unit_number     || '—';
+                const unitVal = r.properties?.unit_number || r.lease_records?.property_units?.unit_number || '—';
+                $('fUnit').textContent        = (unitVal && unitVal !== '—' && !unitVal.toLowerCase().startsWith('unit')) ? `Unit ${unitVal}` : unitVal;
                 $('fAddress').textContent     = r.properties?.address         || '—';
 
                 $('fCategory').textContent     = capWords(r.report_category);
@@ -710,7 +711,11 @@
                 a.target = '_blank';
                 a.className = 'ev-thumb';
 
-                if ((f.file_type || '').startsWith('image/')) {
+                const isImage = (f.file_type || '').startsWith('image/') || 
+                                /\.(jpg|jpeg|png|webp|gif)$/i.test(f.file_url || '') || 
+                                /\.(jpg|jpeg|png|webp|gif)$/i.test(f.file_name || '');
+
+                if (isImage) {
                     a.innerHTML = `<img src="${f.file_url}" alt="${f.file_name}"><div class="ev-label">${f.file_name}</div>`;
                 } else {
                     a.innerHTML = `<div class="ev-icon-box"><svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div><div class="ev-label">${f.file_name}</div>`;
