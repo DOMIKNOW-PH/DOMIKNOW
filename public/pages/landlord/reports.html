@@ -182,6 +182,142 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
+        /* Floating Chat Head FAB & Drawer Modal */
+        .chat-head-fab {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 999;
+            background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            padding: 0.75rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.5);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .chat-head-fab:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 14px 30px -5px rgba(147, 51, 234, 0.65);
+        }
+        .chat-head-fab.hidden {
+            display: none !important;
+        }
+        .chat-head-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-head-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .chat-head-modal {
+            position: fixed;
+            bottom: 5.2rem;
+            right: 1.5rem;
+            width: 380px;
+            max-width: calc(100vw - 2rem);
+            height: 480px;
+            max-height: calc(100vh - 7rem);
+            background: var(--bg-card, #ffffff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: var(--radius-lg, 16px);
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .chat-head-modal.hidden {
+            display: none !important;
+        }
+        .chat-head-modal-header {
+            background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+            color: #ffffff;
+            padding: 0.85rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chat-head-close-btn {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 1.4rem;
+            line-height: 1;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+        .chat-head-close-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        .chat-head-modal-body {
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            background: var(--bg-secondary, #f8fafc);
+        }
+        .chat-head-feed {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            padding: 0.75rem;
+            background: var(--bg-primary, #ffffff);
+            border-radius: var(--radius-md, 10px);
+            border: 1px solid var(--border-color, #e2e8f0);
+        }
+        .chat-head-form {
+            margin-top: 0.5rem;
+        }
+        .typing-indicator-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.2);
+            border-radius: 16px;
+            font-size: 0.76rem;
+            color: #7e22ce;
+            font-weight: 600;
+        }
+        .messenger-dots {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .messenger-dots span {
+            width: 5px;
+            height: 5px;
+            background-color: #9333ea;
+            border-radius: 50%;
+            display: inline-block;
+            animation: messengerWave 1.2s infinite ease-in-out;
+        }
+        .messenger-dots span:nth-child(1) { animation-delay: 0s; }
+        .messenger-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .messenger-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes messengerWave {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
     </style>
 </head>
 <body class="app-loading" data-role="landlord" data-page-title="Reports Center">
@@ -458,20 +594,6 @@
                     </div>
                 </div>
 
-                <!-- Investigation Discussion Thread -->
-                <div class="detail-section">
-                    <div class="detail-title" style="color:var(--landlord);">
-                        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        Admin Inquiry & Discussion Thread
-                    </div>
-                    <div id="againstMessagesFeed" style="display:flex; flex-direction:column; gap:0.6rem; max-height:180px; overflow-y:auto; padding:0.65rem; background:var(--bg-primary); border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:0.75rem;">
-                        <div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No inquiry messages in this case thread yet.</div>
-                    </div>
-                    <form id="againstPostMsgForm" style="display:flex; gap:0.5rem;">
-                        <input type="text" id="againstMsgTextInput" class="form-input" placeholder="Reply to admin or submit additional details..." style="flex:1;">
-                        <button type="submit" class="action-btn" style="background:var(--landlord); color:white; padding:0.45rem 1rem; font-weight:700;">Reply</button>
-                    </form>
-                </div>
             </div>
 
             <div class="modal-footer" style="display:flex;justify-content:flex-end;">
@@ -498,6 +620,37 @@
             <div class="modal-footer" style="display:flex;justify-content:flex-end;">
                 <button type="button" id="leaseModalFooterCloseBtn" onclick="closeLeaseModal()" class="navbar-btn" style="width:auto;">Cancel</button>
             </div>
+        </div>
+    <!-- Floating Chat Head FAB Button (Enabled ONLY when status === 'needs_more_evidence') -->
+    <button id="chatHeadFab" class="chat-head-fab hidden" title="Open Admin Inquiry Thread">
+        <div class="chat-head-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <span class="chat-head-label">Admin Inquiry Thread</span>
+    </button>
+
+    <!-- Floating Chat Head Drawer Modal -->
+    <div id="chatHeadModal" class="chat-head-modal hidden">
+        <div class="chat-head-modal-header">
+            <div style="display:flex; align-items:center; gap:0.4rem; flex:1;">
+                <span style="font-weight:750; font-size:0.88rem; white-space:nowrap;">💬 Admin Case Inquiry Thread</span>
+            </div>
+            <button type="button" id="closeChatHeadModalBtn" class="chat-head-close-btn">&times;</button>
+        </div>
+        <div class="chat-head-modal-body">
+            <!-- Messages Feed -->
+            <div id="chatHeadMessagesFeed" class="chat-head-feed">
+                <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this thread.</div>
+            </div>
+            <!-- Typing Indicator Container -->
+            <div id="chatHeadTypingContainer" style="margin-bottom:0.4rem;"></div>
+            <!-- Inquiry Form -->
+            <form id="chatHeadPostForm" class="chat-head-form">
+                <div style="display:flex; gap:0.5rem;">
+                    <input type="text" id="chatHeadTextInput" class="form-input" placeholder="Type inquiry message to Admin..." style="flex:1; font-size:0.82rem; padding:0.45rem 0.75rem;">
+                    <button type="submit" class="btn-action-primary" style="background:#9333ea; padding:0.45rem 0.85rem; font-size:0.82rem;">Send</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -548,69 +701,187 @@
                 switchTab('against');
             }
 
-            const filedForm = $('filedPostMsgForm');
-            if (filedForm) {
-                filedForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    if (!currentReportId) return;
-                    const input = $('filedMsgTextInput');
-                    const text = input.value.trim();
-                    if (!text) return;
-                    const res = await fetch(`/api/reports/messages/tenant_report/${currentReportId}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({ message_text: text, recipient_role: 'admin' })
-                    });
-                    if (res.ok) {
-                        input.value = '';
-                        loadInvestigationMessages('tenant_report', currentReportId, 'filedMessagesFeed');
+            const fab = $('chatHeadFab');
+            const chatModal = $('chatHeadModal');
+            const closeBtn = $('closeChatHeadModalBtn');
+
+            if (fab && chatModal && closeBtn) {
+                fab.addEventListener('click', () => {
+                    chatModal.classList.toggle('hidden');
+                    if (!chatModal.classList.contains('hidden')) {
+                        const feed = $('chatHeadMessagesFeed');
+                        if (feed) feed.scrollTop = feed.scrollHeight;
                     }
+                });
+                closeBtn.addEventListener('click', () => {
+                    chatModal.classList.add('hidden');
                 });
             }
 
-            const againstForm = $('againstPostMsgForm');
-            if (againstForm) {
-                againstForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    if (!currentReportId) return;
-                    const input = $('againstMsgTextInput');
-                    const text = input.value.trim();
-                    if (!text) return;
-                    sendLandlordTypingPulse('landlord_report', currentReportId, 'target', false);
-                    const res = await fetch(`/api/reports/messages/landlord_report/${currentReportId}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({ message_text: text, recipient_role: 'admin' })
-                    });
-                    if (res.ok) {
-                        input.value = '';
-                        loadInvestigationMessages('landlord_report', currentReportId, 'againstMessagesFeed');
-                    }
+            const chatInput = $('chatHeadTextInput');
+            if (chatInput) {
+                chatInput.addEventListener('input', () => {
+                    sendChatHeadTypingPulse(true);
+                    clearTimeout(chatTypingTimer);
+                    chatTypingTimer = setTimeout(() => sendChatHeadTypingPulse(false), 3000);
                 });
             }
 
-            let landlordTypingTimer = null;
-            ['filedMsgTextInput', 'againstMsgTextInput'].forEach(id => {
-                const input = $(id);
-                if (input) {
-                    input.addEventListener('input', () => {
-                        const type = id === 'filedMsgTextInput' ? 'tenant_report' : 'landlord_report';
-                        const thread = id === 'filedMsgTextInput' ? 'reporter' : 'target';
-                        sendLandlordTypingPulse(type, currentReportId, thread, true);
-                        clearTimeout(landlordTypingTimer);
-                        landlordTypingTimer = setTimeout(() => sendLandlordTypingPulse(type, currentReportId, thread, false), 3000);
-                    });
-                }
-            });
+            const chatForm = $('chatHeadPostForm');
+            if (chatForm) {
+                chatForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (!activeChatReportId || !activeChatReportType) return;
+                    const text = chatInput.value.trim();
+                    if (!text) return;
+
+                    try {
+                        sendChatHeadTypingPulse(false);
+                        const res = await fetch(`/api/reports/messages/${activeChatReportType}/${activeChatReportId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ message_text: text, recipient_role: activeChatThread })
+                        });
+                        if (res.ok) {
+                            chatInput.value = '';
+                            chatLastMessageCount = -1;
+                            await pollChatHeadThread();
+                            const feed = $('chatHeadMessagesFeed');
+                            if (feed) feed.scrollTop = feed.scrollHeight;
+                        } else {
+                            const r = await res.json();
+                            alert(r.message || 'Failed to post message.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Network error posting message.');
+                    }
+                });
+            }
         });
 
-        async function sendLandlordTypingPulse(type, id, thread, isTyping) {
-            if (!type || !id) return;
+        let activeChatReportId = null;
+        let activeChatReportType = null;
+        let activeChatThread = null; // 'reporter' or 'target'
+        let chatLastMessageCount = -1;
+        let chatPollInterval = null;
+        let chatTypingTimer = null;
+
+        function enableChatHead(reportType, reportId, thread, status) {
+            const fab = $('chatHeadFab');
+            if (status === 'needs_more_evidence') {
+                activeChatReportType = reportType;
+                activeChatReportId = reportId;
+                activeChatThread = thread;
+                chatLastMessageCount = -1;
+                if (fab) fab.classList.remove('hidden');
+                pollChatHeadThread();
+                if (!chatPollInterval) {
+                    chatPollInterval = setInterval(pollChatHeadThread, 800);
+                }
+            } else {
+                disableChatHead();
+            }
+        }
+
+        function disableChatHead() {
+            activeChatReportType = null;
+            activeChatReportId = null;
+            activeChatThread = null;
+            chatLastMessageCount = -1;
+            if (chatPollInterval) {
+                clearInterval(chatPollInterval);
+                chatPollInterval = null;
+            }
+            const fab = $('chatHeadFab');
+            const modal = $('chatHeadModal');
+            if (fab) fab.classList.add('hidden');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function pollChatHeadThread() {
+            if (!activeChatReportId || !activeChatReportType) return;
             try {
-                await fetch(`/api/reports/messages/${type}/${id}/typing`, {
+                // 1. Fetch messages
+                const res = await fetch(`/api/reports/messages/${activeChatReportType}/${activeChatReportId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const { data } = await res.json();
+                    const messages = data || [];
+                    if (messages.length !== chatLastMessageCount) {
+                        const shouldScroll = chatLastMessageCount > 0 || chatLastMessageCount === -1;
+                        chatLastMessageCount = messages.length;
+                        renderChatHeadMessagesFeed(messages);
+                        if (shouldScroll) {
+                            const feed = $('chatHeadMessagesFeed');
+                            if (feed) feed.scrollTop = feed.scrollHeight;
+                        }
+                    }
+                }
+
+                // 2. Fetch active typers
+                const typingRes = await fetch(`/api/reports/messages/${activeChatReportType}/${activeChatReportId}/typing?thread=${activeChatThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (typingRes.ok) {
+                    const { data: typers } = await typingRes.json();
+                    renderChatHeadTypingState(typers);
+                }
+            } catch (e) {}
+        }
+
+        function renderChatHeadMessagesFeed(data) {
+            const feed = $('chatHeadMessagesFeed');
+            if (!feed) return;
+            if (!data || data.length === 0) {
+                feed.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this thread.</div>';
+                return;
+            }
+            feed.innerHTML = '';
+            data.forEach(m => {
+                const isMe = m.sender_role === 'landlord';
+                const senderName = isMe ? 'You (Landlord)' : (m.sender?.full_name || (m.sender_role === 'admin' ? 'System Admin' : m.sender_role));
+                const dateStr = new Date(m.created_at).toLocaleString();
+
+                const item = document.createElement('div');
+                item.style.cssText = `background:${isMe ? 'rgba(147,51,234,0.1)' : 'var(--bg-secondary)'}; border:1px solid var(--border-color); padding:0.6rem 0.85rem; border-radius:8px; font-size:0.84rem; align-self:${isMe ? 'flex-end' : 'flex-start'}; max-width:90%;`;
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.2rem; font-size:0.72rem; gap:0.5rem;">
+                        <span style="font-weight:800; color:${isMe ? '#9333ea' : 'var(--text-primary)'};">${senderName}</span>
+                        <span style="color:var(--text-muted);">${dateStr}</span>
+                    </div>
+                    <div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>
+                    ${m.attachment_url ? `<div style="margin-top:0.3rem;"><a href="${m.attachment_url}" target="_blank" style="color:#9333ea; font-weight:700; font-size:0.78rem;">📎 View Attachment ↗</a></div>` : ''}
+                `;
+                feed.appendChild(item);
+            });
+        }
+
+        function renderChatHeadTypingState(typers) {
+            const container = $('chatHeadTypingContainer');
+            if (!container) return;
+            if (!typers || typers.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            const roleLabels = typers.map(t => t.userRole === 'admin' ? 'System Admin' : t.userRole).join(', ');
+            const verb = typers.length > 1 ? 'are' : 'is';
+            container.innerHTML = `
+                <div class="typing-indicator-box">
+                    <span><strong>${roleLabels}</strong> ${verb} typing</span>
+                    <div class="messenger-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function sendChatHeadTypingPulse(isTyping) {
+            if (!activeChatReportId || !activeChatReportType) return;
+            try {
+                await fetch(`/api/reports/messages/${activeChatReportType}/${activeChatReportId}/typing`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ is_typing: isTyping, thread: thread || 'reporter' })
+                    body: JSON.stringify({ is_typing: isTyping, thread: activeChatThread })
                 });
             } catch (e) {}
         }
@@ -822,8 +1093,8 @@
                     $('fAdminRemarks').textContent = r.admin_remarks;
                 }
 
-                // Load messages thread
-                loadInvestigationMessages('tenant_report', reportId, 'filedMessagesFeed');
+                // Enable Chat Head if status is needs_more_evidence
+                enableChatHead('tenant_report', reportId, 'reporter', r.status);
 
             } catch (err) {
                 console.error(err);
@@ -871,6 +1142,7 @@
             }
             document.body.style.overflow = '';
             currentReportId = null;
+            disableChatHead();
         }
 
         // ── Tab 2: Load Reports Against Me (Reports Filed by Tenant) ──────────
@@ -1005,8 +1277,8 @@
                     $('mExplanationClosed').style.display = 'block';
                 }
 
-                // Load messages thread
-                loadInvestigationMessages('landlord_report', reportId, 'againstMessagesFeed');
+                // Enable Chat Head if status is needs_more_evidence
+                enableChatHead('landlord_report', reportId, 'target', r.status);
 
             } catch (err) {
                 console.error(err);
@@ -1084,6 +1356,7 @@
             }
             document.body.style.overflow = '';
             currentReportId = null;
+            disableChatHead();
         }
 
         async function submitExplanation() {
