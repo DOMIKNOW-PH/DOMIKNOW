@@ -304,6 +304,31 @@
             display: flex;
             flex-direction: column;
         }
+
+        /* ── Realtime Typing Indicator Styling ── */
+        .typing-indicator-box {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: #9333ea;
+            font-weight: 700;
+            padding: 0.4rem 0.75rem;
+            background: rgba(147, 51, 234, 0.08);
+            border-radius: 6px;
+        }
+        .typing-dots span {
+            animation: typingBounce 1.4s infinite ease-in-out both;
+            display: inline-block;
+            font-weight: 900;
+        }
+        .typing-dots span:nth-child(1) { animation-delay: 0s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.3; }
+            40% { transform: translateY(-4px); opacity: 1; }
+        }
     </style>
 </head>
 <body class="app-loading" data-role="admin" data-page-title="Case Investigation Console">
@@ -524,6 +549,8 @@
             <div id="messagesFeed" class="chat-head-feed">
                 <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>
             </div>
+            <!-- Typing Indicator Container -->
+            <div id="typingIndicatorContainer" style="margin-bottom:0.5rem;"></div>
             <!-- Inquiry Form -->
             <form id="postInquiryForm" class="chat-head-form">
                 <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem;">
@@ -583,6 +610,18 @@
                     chatModal.classList.add('hidden');
                 });
             }
+
+            const msgInput = document.getElementById('msgTextInput');
+            if (msgInput) {
+                msgInput.addEventListener('input', () => {
+                    sendTypingState(true);
+                    clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(() => sendTypingState(false), 3000);
+                });
+            }
+
+            // Real-time polling interval (every 2 seconds)
+            setInterval(pollRealtimeThread, 2000);
         });
 
         async function fetchTicketDetail() {
@@ -799,44 +838,95 @@
             }
         }
 
-        async function loadInvestigationMessages(type, id) {
-            const feed = document.getElementById('messagesFeed');
-            feed.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">Loading inquiry thread...</div>';
+        let lastMessageCount = 0;
+        let typingTimeout = null;
+
+        async function pollRealtimeThread() {
+            if (!reportType || !reportId) return;
+
             try {
-                const res = await fetch(`/api/reports/messages/${type}/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) {
-                    feed.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
-                    return;
-                }
-                const { data } = await res.json();
-                if (!data || data.length === 0) {
-                    feed.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
-                    return;
+                // 1. Fetch messages
+                const res = await fetch(`/api/reports/messages/${reportType}/${reportId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const { data } = await res.json();
+                    const messages = data || [];
+                    if (messages.length !== lastMessageCount) {
+                        const shouldScroll = lastMessageCount > 0;
+                        lastMessageCount = messages.length;
+                        renderMessagesFeed(messages);
+                        if (shouldScroll) {
+                            const feed = document.getElementById('messagesFeed');
+                            if (feed) feed.scrollTop = feed.scrollHeight;
+                        }
+                    }
                 }
 
-                feed.innerHTML = '';
-                data.forEach(m => {
-                    const isMe = m.sender_role === 'admin';
-                    const senderName = m.sender?.full_name || (m.sender_role === 'admin' ? 'System Admin' : m.sender_role);
-                    const dateStr = new Date(m.created_at).toLocaleString();
+                // 2. Fetch active typers
+                const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (typingRes.ok) {
+                    const { data: typers } = await typingRes.json();
+                    renderTypingState(typers);
+                }
+            } catch (e) {}
+        }
 
-                    const item = document.createElement('div');
-                    item.style.cssText = `background:${isMe ? 'rgba(59,130,246,0.1)' : 'var(--bg-secondary)'}; border:1px solid var(--border-color); padding:0.75rem 1rem; border-radius:8px; font-size:0.88rem;`;
-                    item.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.75rem;">
-                            <span style="font-weight:800; color:${isMe ? 'var(--landlord)' : 'var(--text-primary)'};">${senderName} (${m.sender_role.toUpperCase()}) ➔ ${m.recipient_role.toUpperCase()}</span>
-                            <span style="color:var(--text-muted);">${dateStr}</span>
-                        </div>
-                        <div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>
-                        ${m.attachment_url ? `<div style="margin-top:0.4rem;"><a href="${m.attachment_url}" target="_blank" style="color:var(--landlord); font-weight:700; font-size:0.8rem;">📎 View Attached Media ↗</a></div>` : ''}
-                    `;
-                    feed.appendChild(item);
-                });
-                feed.scrollTop = feed.scrollHeight;
-            } catch (e) {
-                console.error(e);
+        function renderMessagesFeed(data) {
+            const feed = document.getElementById('messagesFeed');
+            if (!feed) return;
+            if (!data || data.length === 0) {
                 feed.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this case thread.</div>';
+                return;
             }
+
+            feed.innerHTML = '';
+            data.forEach(m => {
+                const isMe = m.sender_role === 'admin';
+                const senderName = m.sender?.full_name || (m.sender_role === 'admin' ? 'System Admin' : m.sender_role);
+                const dateStr = new Date(m.created_at).toLocaleString();
+
+                const item = document.createElement('div');
+                item.style.cssText = `background:${isMe ? 'rgba(59,130,246,0.1)' : 'var(--bg-secondary)'}; border:1px solid var(--border-color); padding:0.75rem 1rem; border-radius:8px; font-size:0.88rem;`;
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.75rem;">
+                        <span style="font-weight:800; color:${isMe ? 'var(--landlord)' : 'var(--text-primary)'};">${senderName} (${m.sender_role.toUpperCase()}) ➔ ${m.recipient_role.toUpperCase()}</span>
+                        <span style="color:var(--text-muted);">${dateStr}</span>
+                    </div>
+                    <div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>
+                    ${m.attachment_url ? `<div style="margin-top:0.4rem;"><a href="${m.attachment_url}" target="_blank" style="color:var(--landlord); font-weight:700; font-size:0.8rem;">📎 View Attached Media ↗</a></div>` : ''}
+                `;
+                feed.appendChild(item);
+            });
+        }
+
+        function renderTypingState(typers) {
+            const container = document.getElementById('typingIndicatorContainer');
+            if (!container) return;
+            if (!typers || typers.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            const names = typers.map(t => `${t.userName} (${t.userRole.toUpperCase()})`).join(', ');
+            container.innerHTML = `
+                <div class="typing-indicator-box">
+                    <span>✍️ <strong>${names}</strong> is typing</span>
+                    <span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>
+                </div>
+            `;
+        }
+
+        async function sendTypingState(isTyping) {
+            if (!reportType || !reportId) return;
+            try {
+                await fetch(`/api/reports/messages/${reportType}/${reportId}/typing`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ is_typing: isTyping })
+                });
+            } catch (e) {}
+        }
+
+        async function loadInvestigationMessages(type, id) {
+            await pollRealtimeThread();
         }
 
         async function handlePostInquiry(e) {
@@ -849,6 +939,7 @@
             if (!text) return;
 
             try {
+                sendTypingState(false);
                 const res = await fetch(`/api/reports/messages/${reportType}/${reportId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -856,7 +947,9 @@
                 });
                 if (res.ok) {
                     msgInput.value = '';
-                    loadInvestigationMessages(reportType, reportId);
+                    await pollRealtimeThread();
+                    const feed = document.getElementById('messagesFeed');
+                    if (feed) feed.scrollTop = feed.scrollHeight;
                 } else {
                     const r = await res.json();
                     alert(r.message || 'Failed to post message.');

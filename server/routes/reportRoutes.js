@@ -61,7 +61,9 @@ router.get('/admin/landlord-reports/:id',                     requireRole('admin
 router.put('/admin/landlord-reports/:id/decision',            requireRole('admin'),    landlordReportController.processAdminDecision);
 
 // ─── Investigation Discussion Thread Routes ────────────────────────────────────
-router.get('/reports/messages/:type/:id',  requireRole('admin', 'landlord', 'tenant'), reportController.getInvestigationMessages);
-router.post('/reports/messages/:type/:id', requireRole('admin', 'landlord', 'tenant'), reportController.postInvestigationMessage);
+router.get('/reports/messages/:type/:id',        requireRole('admin', 'landlord', 'tenant'), reportController.getInvestigationMessages);
+router.post('/reports/messages/:type/:id',       requireRole('admin', 'landlord', 'tenant'), reportController.postInvestigationMessage);
+router.post('/reports/messages/:type/:id/typing', requireRole('admin', 'landlord', 'tenant'), reportController.postTypingState);
+router.get('/reports/messages/:type/:id/typing',  requireRole('admin', 'landlord', 'tenant'), reportController.getTypingState);
 
 module.exports = router;

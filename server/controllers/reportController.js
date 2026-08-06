@@ -454,7 +454,50 @@ const reportController = {
             console.error('postInvestigationMessage error:', error);
             return responseHelper.error(res, 'Failed to post investigation message.', error, 500);
         }
+    },
+
+    // ----------------- Real-Time Typing Indicator -----------------
+    postTypingState(req, res) {
+        const { type, id } = req.params;
+        const { is_typing } = req.body;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+        const userName = req.user.full_name || (userRole === 'admin' ? 'System Admin' : userRole);
+
+        const key = `${type}_${id}_${userId}`;
+        if (is_typing) {
+            typingStateStore.set(key, {
+                type, id, userId, userRole, userName,
+                expiresAt: Date.now() + 3500
+            });
+        } else {
+            typingStateStore.delete(key);
+        }
+        return responseHelper.success(res, 'Typing state updated.');
+    },
+
+    getTypingState(req, res) {
+        const { type, id } = req.params;
+        const userId = req.user.id;
+        const typers = getActiveTypers(type, id, userId);
+        return responseHelper.success(res, 'Active typers retrieved.', typers);
     }
 };
+
+// In-memory store for typing states: key = `${type}_${id}_${userId}`
+const typingStateStore = new Map();
+
+function getActiveTypers(type, id, currentUserId) {
+    const now = Date.now();
+    const active = [];
+    for (const [key, info] of typingStateStore.entries()) {
+        if (info.expiresAt < now) {
+            typingStateStore.delete(key);
+        } else if (info.type === type && info.id === id && info.userId !== currentUserId) {
+            active.push(info);
+        }
+    }
+    return active;
+}
 
 module.exports = reportController;
