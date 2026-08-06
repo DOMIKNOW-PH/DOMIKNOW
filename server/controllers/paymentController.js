@@ -65,7 +65,14 @@ const paymentController = {
             const storagePath = `payments/${billing_id}/${uniqueName}`;
             const uploadResult = await uploadFile('payment-proofs', storagePath, base64_content, mime_type);
 
-            // 5. Save payment record
+            // 5. Sanitize payment method to adhere to DB check constraint ('gcash', 'bank_transfer', 'cash', 'other')
+            const validDbMethods = ['gcash', 'bank_transfer', 'cash', 'other'];
+            let sanitizedMethod = (payment_method || '').toLowerCase().trim();
+            if (!validDbMethods.includes(sanitizedMethod)) {
+                sanitizedMethod = 'other';
+            }
+
+            // Save payment record
             const paymentRecord = await paymentModel.createPaymentRecord({
                 billing_id,
                 lease_id: billing.lease_id,
@@ -73,7 +80,7 @@ const paymentController = {
                 landlord_id: billing.landlord_id,
                 property_id: billing.property_id,
                 payment_amount: parseFloat(payment_amount),
-                payment_method,
+                payment_method: sanitizedMethod,
                 payment_reference_number,
                 payment_proof_url: uploadResult.url,
                 payment_proof_path: uploadResult.path,

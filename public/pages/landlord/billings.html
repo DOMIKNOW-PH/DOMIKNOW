@@ -292,9 +292,7 @@
                 <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
                 <a href="properties.html" class="navbar-menu-link">My Properties</a>
                 <a href="applications.html" class="navbar-menu-link">Tenant Applications</a>
-                <a href="screening.html" class="navbar-menu-link">Tenant Screening</a>
                 <a href="leases.html" class="navbar-menu-link">Leases</a>
-                <a href="utilities.html" class="navbar-menu-link">Utilities</a>
                 <a href="billings.html" class="navbar-menu-link active">Billings</a>
                 <a href="payments.html" class="navbar-menu-link">Payments</a>
             </div>
@@ -841,7 +839,14 @@
             }
 
             const targetMonthStr = defaultMonthDate.toISOString().slice(0, 7);
-            document.getElementById('formBillingMonth').value = targetMonthStr;
+            const monthInput = document.getElementById('formBillingMonth');
+            if (monthInput) {
+                monthInput.disabled = false;
+                if (lease.lease_start_date) {
+                    monthInput.min = lease.lease_start_date.slice(0, 7);
+                }
+                monthInput.value = targetMonthStr;
+            }
 
             // Compute standard due date for target month
             const parts = targetMonthStr.split('-');
@@ -1030,6 +1035,16 @@
                 errorDiv.textContent = 'Please fill out all date parameters.';
                 errorDiv.classList.remove('hidden');
                 return;
+            }
+
+            if (!editBillId) {
+                const targetMonthPrefix = billingMonth.slice(0, 7);
+                const existing = allBillings.find(b => b.lease_id === leaseId && b.billing_month && b.billing_month.startsWith(targetMonthPrefix));
+                if (existing) {
+                    errorDiv.textContent = `May umiiral nang billing statement (Status: ${existing.billing_status.toUpperCase()}) para sa buwang ito (${targetMonthPrefix}). Hindi na pwedeng mag-generate ng panibagong bill.`;
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
             }
 
             const bodyData = {

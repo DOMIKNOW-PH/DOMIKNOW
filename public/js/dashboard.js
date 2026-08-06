@@ -146,14 +146,12 @@ function renderNewDashboardLayout(user) {
                 section: 'Tenant Management',
                 items: [
                     { label: 'Tenant Applications', href: 'applications.html' },
-                    { label: 'Tenant Screening', href: 'screening.html' },
                     { label: 'Leases', href: 'leases.html' }
                 ]
             },
             {
                 section: 'Rental Operations',
                 items: [
-                    { label: 'Utilities', href: 'utilities.html' },
                     { label: 'Billings', href: 'billings.html' },
                     { label: 'Payments', href: 'payments.html' }
                 ]
@@ -164,7 +162,6 @@ function renderNewDashboardLayout(user) {
                     { label: 'Maintenance Management', href: 'maintenance.html' },
                     { label: 'Reports', href: 'reports.html' },
                     { label: 'Disputes', href: 'disputes.html' },
-                    { label: 'Policy Violations', href: 'policy-violations.html' },
                     { label: 'Ratings and Feedback', href: 'feedback.html' }
                 ]
             }

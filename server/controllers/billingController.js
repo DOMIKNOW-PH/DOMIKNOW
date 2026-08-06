@@ -71,10 +71,10 @@ const billingController = {
                 return responseHelper.error(res, 'Lease, month, rent amount, and due date are required.');
             }
 
-            // 2. Verify lease ownership & fetch utilities configuration
+            // 2. Verify lease ownership & fetch utilities configuration & lease start date
             const { data: lease, error: leaseErr } = await supabase
                 .from('lease_records')
-                .select('id, tenant_id, property_id, landlord_id, lease_status, utilities_covered')
+                .select('id, tenant_id, property_id, landlord_id, lease_status, lease_start_date, lease_end_date, utilities_covered')
                 .eq('id', lease_id)
                 .maybeSingle();
 
@@ -88,18 +88,18 @@ const billingController = {
                 return responseHelper.error(res, 'Cannot generate billing for inactive or pending leases.');
             }
 
-            // Validation: Cannot bill for periods prior to lease start date
+            // Validation: Cannot bill for periods prior to or equal to lease start month (covered by Move-In bill) or after lease end date
             const targetMonthPrefix = billing_month.slice(0, 7); // e.g. "2026-08"
             const leaseStartMonthPrefix = lease.lease_start_date ? lease.lease_start_date.slice(0, 7) : '';
 
             if (leaseStartMonthPrefix && targetMonthPrefix < leaseStartMonthPrefix) {
-                return responseHelper.error(res, `Cannot generate billing for a period prior to the lease start date (${lease.lease_start_date}).`);
+                return responseHelper.error(res, `Hindi pwedeng gumawa ng bill para sa buwan na mas maaga kaysa sa Lease Start Date (${lease.lease_start_date}).`);
             }
 
-            // Uniqueness validation: Only one billing statement per lease/tenant for a given month (including Move-In bill)
+            // Uniqueness validation: Only one billing statement per lease/tenant for a given month (pending, paid, overdue, or move-in)
             const { data: existingBills, error: billCheckErr } = await supabase
                 .from('billing_records')
-                .select('id, billing_month')
+                .select('id, billing_month, billing_status')
                 .eq('lease_id', lease_id);
 
             if (billCheckErr) throw billCheckErr;
@@ -110,10 +110,11 @@ const billingController = {
             );
 
             if (duplicateBill) {
+                const statusStr = (duplicateBill.billing_status || 'existing').toUpperCase();
                 if (targetMonthPrefix === leaseStartMonthPrefix) {
-                    return responseHelper.error(res, `Ang unang buwan (${targetMonthPrefix}) ay nakapaloob na sa Move-In Bill ng tenant. Ang susunod na buwanang bill ay magsisimula sa susunod na buwan.`);
+                    return responseHelper.error(res, `Ang buwan ng ${targetMonthPrefix} ay nakapaloob na sa Move-In Bill ng tenant. Hindi na pwedeng mag-generate ng panibagong bill.`);
                 }
-                return responseHelper.error(res, `A billing statement has already been generated for this lease for month ${targetMonthPrefix}. Please edit the existing invoice instead.`);
+                return responseHelper.error(res, `May umiiral nang billing statement (Status: ${statusStr}) para sa buwan ng ${targetMonthPrefix}. Hindi na pwedeng mag-generate ng pangalawang bill para sa kaparehong buwan.`);
             }
 
             // Read utilities configuration from lease
