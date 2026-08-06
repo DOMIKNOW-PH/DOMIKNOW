@@ -1,5 +1,17 @@
 const supabase = require('../config/supabaseClient');
 
+function mapReportStatus(item) {
+    if (!item) return item;
+    if (Array.isArray(item)) return item.map(mapReportStatus);
+    let s = item.status;
+    if (s === 'pending_admin_review' && item.admin_id) {
+        s = 'in_review';
+    } else if (s === 'rejected') {
+        s = 'dismissed';
+    }
+    return { ...item, status: s };
+}
+
 const tenantReportModel = {
 
     // ─── Relationship Validation ──────────────────────────────────────────────
@@ -58,7 +70,7 @@ const tenantReportModel = {
             .single();
 
         if (error) throw error;
-        return data;
+        return mapReportStatus(data);
     },
 
     /**
@@ -91,7 +103,7 @@ const tenantReportModel = {
         const { data, error } = await supabase
             .from('tenant_reports')
             .select(`
-                id, report_category, incident_date, severity, status,
+                id, report_category, incident_date, severity, status, admin_id,
                 admin_remarks, created_at, updated_at,
                 tenant:users!tenant_reports_tenant_id_fkey ( id, full_name, email ),
                 properties ( property_name, unit_number, address ),
@@ -101,7 +113,7 @@ const tenantReportModel = {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return data || [];
+        return mapReportStatus(data || []);
     },
 
     // ─── Read – Tenant ────────────────────────────────────────────────────────
@@ -110,7 +122,7 @@ const tenantReportModel = {
         const { data, error } = await supabase
             .from('tenant_reports')
             .select(`
-                id, report_category, incident_date, severity, status,
+                id, report_category, incident_date, severity, status, admin_id,
                 incident_description, admin_remarks,
                 tenant_explanation, tenant_responded_at,
                 created_at, reviewed_at,
@@ -121,7 +133,7 @@ const tenantReportModel = {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return data || [];
+        return mapReportStatus(data || []);
     },
 
     // ─── Read – Admin ─────────────────────────────────────────────────────────
@@ -130,7 +142,7 @@ const tenantReportModel = {
         const { data, error } = await supabase
             .from('tenant_reports')
             .select(`
-                id, report_category, incident_date, severity, status,
+                id, report_category, incident_date, severity, status, admin_id,
                 admin_remarks, created_at, updated_at, reviewed_at,
                 landlord:users!tenant_reports_landlord_id_fkey ( id, full_name, email ),
                 tenant:users!tenant_reports_tenant_id_fkey ( id, full_name, email ),
@@ -139,7 +151,7 @@ const tenantReportModel = {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return data || [];
+        return mapReportStatus(data || []);
     },
 
     async findTenantReportById(id) {
@@ -156,7 +168,7 @@ const tenantReportModel = {
             .maybeSingle();
 
         if (error) throw error;
-        return data || null;
+        return mapReportStatus(data || null);
     },
 
     async findEvidenceByReportId(reportId) {
@@ -174,7 +186,7 @@ const tenantReportModel = {
         let query = supabase
             .from('tenant_reports')
             .select(`
-                id, report_category, severity, status, incident_date, created_at,
+                id, report_category, severity, status, admin_id, incident_date, created_at,
                 landlord:users!tenant_reports_landlord_id_fkey ( full_name )
             `)
             .eq('tenant_id', tenantId)
@@ -187,7 +199,7 @@ const tenantReportModel = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return data || [];
+        return mapReportStatus(data || []);
     },
 
     // ─── Update – Admin Decision ──────────────────────────────────────────────
@@ -212,7 +224,7 @@ const tenantReportModel = {
             .single();
 
         if (error) throw error;
-        return data;
+        return mapReportStatus(data);
     },
 
     // ─── Update – Tenant Explanation ──────────────────────────────────────────

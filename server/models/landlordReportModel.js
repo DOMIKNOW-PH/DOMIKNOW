@@ -1,5 +1,17 @@
 const supabase = require('../config/supabaseClient');
 
+function mapReportStatus(item) {
+    if (!item) return item;
+    if (Array.isArray(item)) return item.map(mapReportStatus);
+    let s = item.status;
+    if (s === 'pending_admin_review' && item.admin_id) {
+        s = 'in_review';
+    } else if (s === 'rejected') {
+        s = 'dismissed';
+    }
+    return { ...item, status: s };
+}
+
 const SEVERITY_TRUST_DEDUCTIONS = {
     minor: 2,
     moderate: 5,
@@ -48,7 +60,7 @@ const landlordReportModel = {
             .single();
 
         if (error) throw error;
-        return data;
+        return mapReportStatus(data);
     },
 
     async addEvidence(reportId, files) {
@@ -76,7 +88,7 @@ const landlordReportModel = {
         const { data, error } = await supabase
             .from('landlord_reports')
             .select(`
-                id, report_category, incident_date, severity, status,
+                id, report_category, incident_date, severity, status, admin_id,
                 admin_remarks, created_at, updated_at,
                 landlord:users!landlord_reports_landlord_id_fkey ( id, full_name, email ),
                 properties ( property_name, unit_number, address ),
@@ -86,7 +98,7 @@ const landlordReportModel = {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return data || [];
+        return mapReportStatus(data || []);
     },
 
     // ─── Read – Landlord ──────────────────────────────────────────────────────
@@ -95,7 +107,7 @@ const landlordReportModel = {
         const { data, error } = await supabase
             .from('landlord_reports')
             .select(`
-                id, report_category, incident_date, severity, status,
+                id, report_category, incident_date, severity, status, admin_id,
                 incident_description, admin_remarks,
                 landlord_explanation, landlord_responded_at,
                 created_at, reviewed_at,
@@ -106,7 +118,7 @@ const landlordReportModel = {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return data || [];
+        return mapReportStatus(data || []);
     },
 
     // ─── Read – Admin ─────────────────────────────────────────────────────────
@@ -115,7 +127,7 @@ const landlordReportModel = {
         const { data, error } = await supabase
             .from('landlord_reports')
             .select(`
-                id, report_category, incident_date, severity, status,
+                id, report_category, incident_date, severity, status, admin_id,
                 admin_remarks, created_at, updated_at, reviewed_at,
                 tenant:users!landlord_reports_tenant_id_fkey ( id, full_name, email ),
                 landlord:users!landlord_reports_landlord_id_fkey ( id, full_name, email, landlord_trust_score ),
@@ -124,7 +136,7 @@ const landlordReportModel = {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return data || [];
+        return mapReportStatus(data || []);
     },
 
     async findLandlordReportById(id) {
@@ -141,7 +153,7 @@ const landlordReportModel = {
             .maybeSingle();
 
         if (error) throw error;
-        return data || null;
+        return mapReportStatus(data || null);
     },
 
     async findEvidenceByReportId(reportId) {
@@ -159,7 +171,7 @@ const landlordReportModel = {
         let query = supabase
             .from('landlord_reports')
             .select(`
-                id, report_category, severity, status, incident_date, created_at,
+                id, report_category, severity, status, admin_id, incident_date, created_at,
                 tenant:users!landlord_reports_tenant_id_fkey ( full_name )
             `)
             .eq('landlord_id', landlordId)
@@ -172,7 +184,7 @@ const landlordReportModel = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return data || [];
+        return mapReportStatus(data || []);
     },
 
     // ─── Update – Admin Decision & Trust Score ─────────────────────────────────
@@ -228,7 +240,7 @@ const landlordReportModel = {
                 .eq('id', data.landlord_id);
         }
 
-        return data;
+        return mapReportStatus(data);
     },
 
     // ─── Update – Landlord Explanation ────────────────────────────────────────
