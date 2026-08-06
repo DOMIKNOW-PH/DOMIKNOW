@@ -72,9 +72,9 @@ app.use(cors({
 // Compression middleware
 app.use(compression());
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+// Body parsing middleware (Increased limit for Base64 evidence and image uploads)
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // Serve static files from the 'public' folder
 app.use(express.static(path.join(__dirname, '../public')));
