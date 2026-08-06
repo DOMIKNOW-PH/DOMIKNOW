@@ -248,8 +248,8 @@
             const cancelBtn = document.getElementById('cancelWorkerModalBtn');
             const form = document.getElementById('addWorkerForm');
 
-            const openModal = () => { modal.style.display = 'flex'; clearWorkerAlerts(); };
-            const closeModal = () => { modal.style.display = 'none'; form.reset(); clearWorkerAlerts(); };
+            const openModal = () => { modal.classList.remove('hidden'); modal.style.display = 'flex'; clearWorkerAlerts(); };
+            const closeModal = () => { modal.classList.add('hidden'); modal.style.display = 'none'; form.reset(); clearWorkerAlerts(); };
 
             if (openBtn) openBtn.addEventListener('click', openModal);
             if (closeBtn) closeBtn.addEventListener('click', closeModal);

@@ -967,11 +967,11 @@
 
         function openWorkerModalDetail() {
             const modal = document.getElementById('addWorkerModalDetail');
-            if (modal) { modal.style.display = 'flex'; clearWorkerAlertsDetail(); }
+            if (modal) { modal.classList.remove('hidden'); modal.style.display = 'flex'; clearWorkerAlertsDetail(); }
         }
         function closeWorkerModalDetail() {
             const modal = document.getElementById('addWorkerModalDetail');
-            if (modal) { modal.style.display = 'none'; document.getElementById('addWorkerFormDetail')?.reset(); clearWorkerAlertsDetail(); }
+            if (modal) { modal.classList.add('hidden'); modal.style.display = 'none'; document.getElementById('addWorkerFormDetail')?.reset(); clearWorkerAlertsDetail(); }
         }
 
         function showWorkerErrDetail(msg) { const el = document.getElementById('workerAlertErrDetail'); if (el) { el.textContent = msg; el.style.display = 'block'; } }
