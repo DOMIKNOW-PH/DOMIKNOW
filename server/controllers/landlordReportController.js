@@ -369,11 +369,17 @@ const landlordReportController = {
                 successMessage = 'Report approved and resolved.';
             }
 
+            let targetAdminId = adminId;
+            if (action === 'triage') {
+                if (status === 'in_review') targetAdminId = adminId;
+                else if (status === 'pending_admin_review') targetAdminId = null;
+            }
+
             const updatedReport = await landlordReportModel.updateLandlordReportStatus(reportId, {
                 status: finalStatus,
                 severity: finalSeverity,
                 admin_remarks: admin_remarks ? admin_remarks.trim() : null,
-                admin_id:      adminId
+                admin_id:      targetAdminId
             });
 
             await auditLogModel.log(

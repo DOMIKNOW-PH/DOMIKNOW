@@ -513,7 +513,7 @@
                 if (currentStage === 'pending_admin_review' && currentTicket.admin_id) {
                     currentStage = 'in_review';
                 }
-                document.getElementById('triagePrioritySelect').value = currentTicket.severity || 'normal';
+                document.getElementById('triagePrioritySelect').value = currentTicket.severity || 'moderate';
                 document.getElementById('triageStageSelect').value    = currentStage;
 
                 // Narrative

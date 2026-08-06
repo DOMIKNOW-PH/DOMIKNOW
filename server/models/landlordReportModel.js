@@ -205,9 +205,11 @@ const landlordReportModel = {
         if (status) updatePayload.status = status;
         if (severity) updatePayload.severity = severity;
         if (admin_remarks !== undefined) updatePayload.admin_remarks = admin_remarks;
-        if (admin_id) {
+        if (admin_id !== undefined) {
             updatePayload.admin_id = admin_id;
-            updatePayload.reviewed_at = new Date();
+            if (admin_id) {
+                updatePayload.reviewed_at = new Date();
+            }
         }
 
         // Update status & severity

@@ -427,12 +427,18 @@ const tenantReportController = {
                 successMessage = 'Report approved and resolved.';
             }
 
+            let targetAdminId = adminId;
+            if (action === 'triage') {
+                if (status === 'in_review') targetAdminId = adminId;
+                else if (status === 'pending_admin_review') targetAdminId = null;
+            }
+
             // Update status in database
             const updated = await tenantReportModel.updateTenantReportStatus(id, {
                 status: finalStatus,
                 severity: finalSeverity,
                 admin_remarks: admin_remarks?.trim() || null,
-                admin_id: adminId
+                admin_id: targetAdminId
             });
 
             await auditLogModel.log(
