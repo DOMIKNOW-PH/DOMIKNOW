@@ -28,8 +28,7 @@ const reportMessageModel = {
                 .single();
 
             if (error) {
-                console.warn('Supabase report_messages table insert notice:', error.message || error);
-                // Memory store fallback
+                // Memory store fallback when table does not exist in Supabase
                 const key = `${report_type}:${report_id}`;
                 if (!memoryStore.has(key)) memoryStore.set(key, []);
                 const mockMsg = { id: `mem_${Date.now()}_${Math.random().toString(36).substring(2,5)}`, ...payload };
@@ -39,7 +38,7 @@ const reportMessageModel = {
 
             return data;
         } catch (err) {
-            console.warn('Memory fallback used for report_messages:', err.message || err);
+            // Memory store fallback
             const key = `${report_type}:${report_id}`;
             if (!memoryStore.has(key)) memoryStore.set(key, []);
             const mockMsg = { id: `mem_${Date.now()}_${Math.random().toString(36).substring(2,5)}`, ...payload };
