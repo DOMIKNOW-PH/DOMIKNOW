@@ -799,8 +799,8 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="dueDate">Target Completion Date</label>
-                            <input type="date" id="dueDate" class="form-input" required>
+                            <label class="form-label" for="assignDueDate">Target Completion Date</label>
+                            <input type="date" id="assignDueDate" class="form-input" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="assignInstructions">Job Instructions / Directives</label>
@@ -817,7 +817,8 @@
                 // Set min due date to local today
                 const now = new Date();
                 const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-                document.getElementById('dueDate').min = localToday;
+                const dueInput = document.getElementById('assignDueDate');
+                if (dueInput) dueInput.min = localToday;
 
                 // Bind modal event for registering worker on-the-fly
                 const detailAddWorkerBtn = document.getElementById('openAddWorkerBtnDetail');
@@ -901,7 +902,7 @@
 
         async function handleAssign() {
             const workerId = document.getElementById('workerSelect')?.value;
-            const dueDate  = document.getElementById('dueDate')?.value;
+            const dueDate  = document.getElementById('assignDueDate')?.value;
             const instruct = document.getElementById('assignInstructions')?.value || '';
 
             if (!workerId) { showActionAlert('Please select a maintenance worker.'); return; }
