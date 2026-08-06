@@ -44,6 +44,7 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "blob:", "https:"],
+            mediaSrc: ["'self'", "data:", "blob:", "https:", "https://*.supabase.co"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             connectSrc: ["'self'", "https://nominatim.openstreetmap.org", "https://*.tile.openstreetmap.org", "https://unpkg.com", "https://*.supabase.co", "https://server.arcgisonline.com", "https://*.basemaps.cartocdn.com", "https://basemaps.cartocdn.com"]
         }

@@ -209,15 +209,15 @@ const landlordReportModel = {
         if (error) throw error;
 
         // If approved, deduct landlord trust score
-        if (status === 'approved') {
-            const deduction = SEVERITY_TRUST_DEDUCTIONS[report.severity] || 5;
+        if (status === 'approved' && data && data.landlord_id) {
+            const deduction = SEVERITY_TRUST_DEDUCTIONS[data.severity] || 5;
 
             // Fetch landlord current trust score
             const { data: landlordData } = await supabase
                 .from('users')
                 .select('landlord_trust_score')
-                .eq('id', report.landlord_id)
-                .single();
+                .eq('id', data.landlord_id)
+                .maybeSingle();
 
             const currentScore = (landlordData && landlordData.landlord_trust_score !== null) ? landlordData.landlord_trust_score : 100;
             const newScore = Math.max(0, currentScore - deduction);
@@ -225,7 +225,7 @@ const landlordReportModel = {
             await supabase
                 .from('users')
                 .update({ landlord_trust_score: newScore })
-                .eq('id', report.landlord_id);
+                .eq('id', data.landlord_id);
         }
 
         return data;
