@@ -3,360 +3,575 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complaints - DomiKnow</title>
-    <meta name="description" content="Submit and track formal complaints about your landlord, billing, or rental experience.">
+    <title>Disputes & Complaints - DomiKnow</title>
+    <meta name="description" content="File and track formal tenancy complaints and disputes with your landlord.">
     <link href="../../css/input.css" rel="stylesheet">
     <style>
-        /* ── Layout ───────────────────────────────────────────── */
-        .complaints-grid {
-            display: grid;
-            grid-template-columns: 1.1fr 1.9fr;
-            gap: 2rem;
-            margin-top: 1.5rem;
-            align-items: start;
-        }
-        @media (max-width: 1100px) { .complaints-grid { grid-template-columns: 1fr; } }
-
-        /* ── Panels ───────────────────────────────────────────── */
-        .panel {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            box-shadow: var(--shadow-lg);
-        }
-        .panel-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1.5rem;
+        /* ── Page Header & Action Bar ──────────────────────── */
+        .page-hero {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
-        .panel-title svg { color: var(--tenant); flex-shrink: 0; }
-
-        /* ── Alert Bars ───────────────────────────────────────── */
-        .alert-bar {
-            border-radius: var(--radius-sm);
-            padding: 0.75rem 1rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-            margin-bottom: 1rem;
-            display: none;
-        }
-        .alert-bar.visible { display: block; }
-        .alert-error { background: var(--error-bg); color: var(--error); border: 1px solid #fca5a5; }
-        .alert-success { background: var(--success-bg); color: var(--success); border: 1px solid #6ee7b7; }
-
-        /* ── Table ────────────────────────────────────────────── */
-        .history-scroll { overflow-x: auto; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.88rem;
-            text-align: left;
-        }
-        th {
-            font-weight: 700;
-            color: var(--text-secondary);
-            padding: 0.7rem 1rem;
-            border-bottom: 2px solid var(--border-color);
-            text-transform: uppercase;
-            font-size: 0.72rem;
-            letter-spacing: 0.05em;
-        }
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
+        .page-hero-text h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
             color: var(--text-primary);
-            vertical-align: top;
+            margin-bottom: 0.25rem;
         }
-        tr:hover td { background: var(--bg-primary); }
-
-        /* ── Status Chips ─────────────────────────────────────── */
-        .chip {
-            display: inline-block;
-            padding: 0.2rem 0.65rem;
-            border-radius: var(--radius-full);
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
+        .page-hero-text p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
         }
-        .chip-submitted   { background:#e0e7ff; color:#4f46e5; }
-        .chip-under_review{ background:#fffbeb; color:#d97706; }
-        .chip-in_progress { background:#fef3c7; color:#b45309; }
-        .chip-resolved    { background:#ecfdf5; color:#059669; }
-        .chip-closed      { background:#f1f5f9; color:#475569; }
-        .chip-rejected    { background:#fef2f2; color:#ef4444; }
 
-        /* ── Buttons ──────────────────────────────────────────── */
-        .action-btn {
-            font-size: 0.78rem;
-            padding: 0.35rem 0.85rem;
-            border-radius: var(--radius-sm);
+        .btn-new-complaint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 800;
             border: none;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--tenant) 0%, #7c3aed 100%);
+            color: white;
             cursor: pointer;
-            font-weight: 600;
-            transition: background var(--transition-fast), transform var(--transition-fast);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
         }
-        .action-btn:hover { transform: translateY(-1px); }
-        .btn-view { background: var(--primary-light); color: var(--primary); }
-        .btn-view:hover { background: var(--primary); color: #fff; }
+        .btn-new-complaint:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(139, 92, 246, 0.4);
+        }
 
-        /* ── Modal ────────────────────────────────────────────── */
-        .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(15,23,42,0.6);
-            backdrop-filter: blur(4px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000; padding: 1.5rem;
+        /* ── Stats Row ──────────────────────────────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.75rem;
         }
-        .modal-overlay.hidden { display: none; }
-        .modal-box {
+        @media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px) { .stats-row { grid-template-columns: 1fr; } }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .stat-icon {
+            width: 42px; height: 42px;
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--tenant);
+            flex-shrink: 0;
+        }
+        .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+        .stat-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* ── History Ledger Panel ───────────────────────────── */
+        .ledger-panel {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
-            padding: 2rem;
-            max-width: 580px; width: 100%;
-            box-shadow: var(--shadow-premium);
-            max-height: 88vh; overflow-y: auto;
-            animation: mIn 0.2s ease;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
         }
-        @keyframes mIn {
-            from { opacity:0; transform: translateY(10px) scale(0.97); }
-            to   { opacity:1; transform: translateY(0) scale(1); }
-        }
-        .modal-header {
-            display: flex; align-items: center;
+        .ledger-header {
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
         }
-        .modal-close-x {
-            background: none; border: none;
-            cursor: pointer; color: var(--text-muted);
-            padding: 0.25rem; border-radius: var(--radius-sm);
-            transition: color var(--transition-fast);
-        }
-        .modal-close-x:hover { color: var(--text-primary); }
-        .detail-row {
-            display: grid;
-            grid-template-columns: 140px 1fr;
-            gap: 0.5rem 1rem; margin-bottom: 0.9rem; align-items: start;
-        }
-        .detail-label {
-            font-size: 0.75rem; font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase; letter-spacing: 0.04em;
-            padding-top: 0.05rem;
-        }
-        .detail-value { font-size: 0.9rem; color: var(--text-primary); word-break: break-word; }
-        .detail-divider { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; }
+        .ledger-header h3 { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0; }
 
-        /* ── Timeline ─────────────────────────────────────────── */
-        .timeline { margin-top: 1rem; }
-        .timeline-item {
-            display: flex; gap: 0.85rem;
-            margin-bottom: 0.9rem; align-items: flex-start;
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 0.3rem;
+            padding: 0.85rem 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            scrollbar-width: none;
         }
-        .timeline-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%; background: var(--border-color);
-            margin-top: 0.35rem; flex-shrink: 0;
-            border: 2px solid var(--border-color);
-        }
-        .timeline-dot.done { background: var(--success); border-color: var(--success); }
-        .timeline-dot.active { background: var(--primary); border-color: var(--primary); }
-        .timeline-dot.rejected { background: var(--error); border-color: var(--error); }
-        .timeline-text { font-size: 0.82rem; color: var(--text-secondary); }
-        .timeline-text strong { color: var(--text-primary); }
-        .timeline-date { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.1rem; }
-
-        /* ── Char counter ─────────────────────────────────────── */
-        .char-hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; }
-
-        /* ── Empty State ──────────────────────────────────────── */
-        .empty-state {
-            text-align: center; padding: 3rem 1rem;
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab {
+            padding: 0.4rem 0.9rem;
+            font-size: 0.78rem;
+            font-weight: 700;
             color: var(--text-muted);
-            display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
         }
-        .empty-state svg { opacity: 0.25; }
+        .filter-tab:hover { color: var(--text-primary); border-color: var(--tenant); }
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--tenant), #7c3aed);
+            color: white; border-color: transparent;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
 
-        /* ── Lease Info Card (inline) ─────────────────────────── */
-        .lease-info-card {
+        /* Complaint Cards */
+        .complaints-list {
+            padding: 1.25rem 1.75rem 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .complaint-card {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
-            padding: 0.85rem 1rem;
-            margin-bottom: 1.25rem;
-            font-size: 0.82rem;
-            display: none;
+            padding: 1.1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.18s ease;
         }
-        .lease-info-card.visible { display: block; }
-        .lease-info-row { display: flex; gap: 2rem; flex-wrap: wrap; }
-        .lease-info-item { display: flex; flex-direction: column; gap: 0.15rem; }
-        .lease-info-item-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-        .lease-info-item-value { font-weight: 600; color: var(--text-primary); }
+        .complaint-card:hover {
+            border-color: var(--tenant);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transform: translateX(3px);
+        }
+        .complaint-card-icon {
+            width: 44px; height: 44px;
+            border-radius: var(--radius-md);
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--tenant);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .complaint-card-body { flex: 1; min-width: 0; }
+        .complaint-card-title { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .complaint-card-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+        .complaint-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; flex-shrink: 0; }
+
+        /* Status & Category Badges */
+        .badge {
+            font-size: 0.68rem; font-weight: 800;
+            padding: 0.22rem 0.65rem;
+            border-radius: 999px; text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: inline-flex; align-items: center; gap: 0.3rem;
+        }
+        .badge::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+        .badge-submitted    { background:rgba(99,102,241,.14); color:#6366f1; }
+        .badge-under_review { background:rgba(245,158,11,.14); color:#f59e0b; }
+        .badge-in_progress  { background:rgba(249,115,22,.14); color:#f97316; }
+        .badge-resolved     { background:rgba(16,185,129,.12); color:#10b981; }
+        .badge-closed       { background:rgba(107,114,128,.12);color:#6b7280; }
+        .badge-rejected     { background:rgba(239,68,68,.12);  color:#ef4444; }
+
+        /* Empty State */
+        .empty-state { text-align:center; padding:3.5rem 1rem; color:var(--text-muted); }
+        .empty-state svg { margin-bottom:0.75rem; opacity:0.4; }
+        .empty-state p { font-size:0.875rem; margin:0; }
+
+        /* ══════════════════════════════════════════════════════
+           MODAL OVERLAY & BOX
+        ══════════════════════════════════════════════════════ */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(8, 8, 20, 0.72);
+            backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; padding: 1.25rem;
+        }
+
+        /* — Form Modal — */
+        .form-modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%; max-width: 720px;
+            max-height: 92vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+            animation: modalIn 0.22s ease;
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform:translateY(12px) scale(0.98); }
+            to   { opacity:1; transform:none; }
+        }
+        .form-modal-head {
+            padding: 1.5rem 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--tenant) 0%, #7c3aed 100%);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .form-modal-head h3 { color:white; font-size:1.1rem; font-weight:800; margin:0 0 0.2rem 0; }
+        .form-modal-head p  { color:rgba(255,255,255,0.75); font-size:0.8125rem; margin:0; }
+        .form-modal-close {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px; padding: 0.4rem;
+            cursor: pointer; color: white;
+            transition: background 0.15s;
+            display:flex; align-items:center; flex-shrink: 0;
+        }
+        .form-modal-close:hover { background: rgba(255,255,255,0.25); }
+
+        .form-modal-body {
+            padding: 1.75rem;
+            overflow-y: auto; flex: 1;
+        }
+
+        /* Form Controls */
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 600px) { .form-grid-2 { grid-template-columns: 1fr; } }
+
+        .lease-info-bar {
+            display: flex; align-items: center; gap: 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1.1rem;
+            margin-bottom: 1.25rem;
+        }
+        .lease-info-bar-icon {
+            width: 38px; height: 38px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--tenant), #7c3aed);
+            display:flex; align-items:center; justify-content:center;
+            color: white; flex-shrink:0;
+        }
+        .lib-name { font-weight:700; font-size:0.9rem; color:var(--text-primary); }
+        .lib-sub  { font-size:0.75rem; color:var(--text-muted); margin-top:0.1rem; }
+
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem; text-align:center; cursor:pointer;
+            transition:all 0.18s; position:relative;
+            background: var(--bg-primary);
+        }
+        .upload-zone:hover, .upload-zone.dragover { border-color:var(--tenant); background:rgba(139,92,246,.03); }
+        .upload-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+        
+        .upload-preview {
+            display:flex; align-items:center; gap:0.75rem;
+            background:var(--bg-primary); border:1px solid var(--border-color);
+            border-radius:var(--radius-sm); padding:0.6rem 0.75rem; margin-top:0.6rem;
+        }
+        .upload-preview-name { font-size:0.8rem; font-weight:600; color:var(--text-primary); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .upload-remove { background:none; border:none; cursor:pointer; color:var(--error); font-size:1rem; padding:0 0.2rem; }
+
+        .form-modal-footer {
+            padding: 1.15rem 1.75rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            display: flex; justify-content: flex-end; gap: 0.75rem; flex-shrink: 0;
+        }
+
+        .btn-cancel {
+            padding: 0.65rem 1.35rem; font-size:0.875rem; font-weight:700;
+            background: var(--bg-secondary); border:1px solid var(--border-color);
+            border-radius: var(--radius-sm); color:var(--text-secondary);
+            cursor:pointer; transition:all 0.15s;
+        }
+        .btn-cancel:hover { border-color:var(--tenant); color:var(--tenant); }
+        .btn-submit {
+            display:inline-flex; align-items:center; gap:0.5rem;
+            padding: 0.65rem 1.5rem; font-size:0.9rem; font-weight:800;
+            background: linear-gradient(135deg, var(--tenant), #7c3aed);
+            border: none; border-radius: var(--radius-sm);
+            color: white; cursor:pointer; transition:all 0.2s;
+        }
+        .btn-submit:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 6px 20px rgba(139,92,246,.35); }
+        .btn-submit:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+        .form-alert {
+            border-radius: var(--radius-sm); padding:0.7rem 0.9rem;
+            font-size:0.825rem; font-weight:600; margin-bottom:1rem;
+            display:flex; align-items:center; gap:0.5rem;
+        }
+        .form-alert.err { background:rgba(239,68,68,.09); color:#ef4444; border:1px solid rgba(239,68,68,.22); }
+        .form-alert.ok  { background:rgba(16,185,129,.09); color:#10b981; border:1px solid rgba(16,185,129,.22); }
+
+        /* ── Details Modal ──────────────────────────────────── */
+        .details-modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%; max-width: 680px; max-height: 90vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+            animation: modalIn 0.2s ease;
+        }
+        .details-head {
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display:flex; justify-content:space-between; align-items:center;
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            flex-shrink: 0;
+        }
+        .details-head-title { font-weight:800; font-size:1rem; color:var(--text-primary); }
+        .details-head-close {
+            background:none; border:none; cursor:pointer; color:var(--text-muted);
+            padding:0.25rem; border-radius:6px; transition:color 0.15s; line-height:1;
+        }
+        .details-head-close:hover { color:var(--text-primary); }
+        .details-body { padding:1.75rem; overflow-y:auto; flex:1; }
+        .details-foot {
+            padding: 1.1rem 1.75rem;
+            border-top: 1px solid var(--border-color);
+            display:flex; justify-content:flex-end; gap:0.75rem;
+            background: var(--bg-primary);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            flex-shrink: 0;
+        }
+
+        .detail-grid {
+            display:grid; grid-template-columns:1fr 1fr;
+            gap:0.75rem; margin-bottom:1.25rem;
+            background:var(--bg-primary); border:1px solid var(--border-color);
+            border-radius:var(--radius-md); padding:1.1rem;
+        }
+        .dc-label { font-size:0.67rem; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); margin-bottom:0.2rem; }
+        .dc-val   { font-weight:700; font-size:0.875rem; color:var(--text-primary); }
+
+        /* Timeline */
+        .timeline { border-left:2px solid var(--border-color); padding-left:1.25rem; margin-left:0.5rem; display:flex; flex-direction:column; gap:1rem; }
+        .tl-item { position:relative; }
+        .tl-item::before { content:''; position:absolute; left:-26px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--border-color); border:2px solid var(--bg-secondary); }
+        .tl-item.tla::before { background:var(--tenant); }
+        .tl-item.tldone::before { background:#10b981; }
+        .tl-meta  { font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); }
+        .tl-notes { font-size:0.85rem; color:var(--text-primary); margin-top:0.15rem; }
+
+        /* Spinner animation */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin-icon { display:inline-block; width:14px; height:14px; border:2px solid white; border-top-color:transparent; border-radius:50%; animation:spin 0.65s linear infinite; }
     </style>
 </head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-tenant">
-        <div class="navbar-container">
-            <div class="navbar-brand-group">
-                <a href="dashboard.html" style="text-decoration: none;"><span class="navbar-logo">DomiKnow</span></a>
-                <span class="navbar-badge navbar-badge-tenant">Tenant</span>
+<body class="app-loading" data-role="tenant" data-page-title="Disputes & Complaints">
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+
+        <!-- Page Hero -->
+        <div class="page-hero">
+            <div class="page-hero-text">
+                <h2>Disputes & Complaints</h2>
+                <p>File and track formal tenancy complaints regarding billing, landlord concerns, safety, or rental operations.</p>
             </div>
-            <div class="navbar-menu" style="flex-wrap: wrap; gap: 0.5rem 1rem;">
-                <a href="dashboard.html" class="navbar-menu-link">Dashboard</a>
-                <a href="properties.html" class="navbar-menu-link">Discovery</a>
-                <a href="recommendations.html" class="navbar-menu-link">Recommendations</a>
-                <a href="compare.html" class="navbar-menu-link">Compare</a>
-                <a href="reservations.html" class="navbar-menu-link">My Reservations</a>
-                <a href="applications.html" class="navbar-menu-link">My Applications</a>
-                <a href="screening.html" class="navbar-menu-link">Screening</a>
-                <a href="leases.html" class="navbar-menu-link">My Lease</a>
-                <a href="billings.html" class="navbar-menu-link">My Billings</a>
-                <a href="payments.html" class="navbar-menu-link">My Payments</a>
-                <a href="maintenance.html" class="navbar-menu-link">Maintenance</a>
-                <a href="reports.html" class="navbar-menu-link">Reports</a>
-                <a href="tenant-reports.html" class="navbar-menu-link">Reports Against Me</a>
-                <a href="disputes.html" class="navbar-menu-link active">Disputes</a>
-                <a href="policy-violations.html" class="navbar-menu-link">Violations</a>
-                <a href="feedback.html" class="navbar-menu-link">Feedback</a>
+            <button class="btn-new-complaint" id="openFormBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                File a Complaint
+            </button>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(99,102,241,.12);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div>
+                    <div class="stat-value" id="statReview">—</div>
+                    <div class="stat-label">Under Review</div>
+                </div>
             </div>
-            <div class="navbar-right">
-                <span class="navbar-user-welcome">Welcome, <span class="user-name">User</span></span>
-                <button id="logoutBtn" class="navbar-btn">Logout</button>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(249,115,22,.12);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                </div>
+                <div>
+                    <div class="stat-value" id="statProgress">—</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(16,185,129,.12);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div>
+                    <div class="stat-value" id="statResolved">—</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(139,92,246,.12);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div>
+                    <div class="stat-value" id="statTotal">—</div>
+                    <div class="stat-label">Total Filed</div>
+                </div>
             </div>
         </div>
-    </nav>
 
-    <!-- Main -->
-    <main class="dashboard-container">
-        <h2>Complaint Submissions</h2>
-        <p style="color:var(--text-secondary); margin-bottom:0.5rem;">
-            File formal complaints against your landlord, billing issues, safety concerns, or other tenancy matters.
-            Complaints are officially reviewed by your landlord.
-        </p>
-
-        <div class="complaints-grid">
-            <!-- LEFT: Form -->
-            <div class="panel">
-                <div class="panel-title">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    File a Complaint
-                </div>
-
-                <div id="formAlertError" class="alert-bar alert-error"></div>
-                <div id="formAlertSuccess" class="alert-bar alert-success"></div>
-
-                <form id="complaintForm">
-                    <!-- Lease selector -->
-                    <div class="form-group">
-                        <label class="form-label" for="leaseSelector">Lease Contract</label>
-                        <select id="leaseSelector" class="form-input" required>
-                            <option value="">-- Select Active Lease --</option>
-                        </select>
-                    </div>
-
-                    <!-- Inline lease info -->
-                    <div class="lease-info-card" id="leaseInfoCard">
-                        <div class="lease-info-row" id="leaseInfoRow"></div>
-                    </div>
-
-                    <!-- Category -->
-                    <div class="form-group">
-                        <label class="form-label" for="complaintCategory">Complaint Category</label>
-                        <select id="complaintCategory" class="form-input" required>
-                            <option value="">-- Select Category --</option>
-                            <option value="billing_concern">Billing Concern</option>
-                            <option value="landlord_concern">Landlord Concern</option>
-                            <option value="safety_concern">Safety Concern</option>
-                            <option value="policy_violation">Policy Violation</option>
-                            <option value="utility_concern">Utility Concern</option>
-                            <option value="noise_complaint">Noise Complaint</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-
-                    <!-- Subject -->
-                    <div class="form-group">
-                        <label class="form-label" for="complaintSubject">Complaint Subject</label>
-                        <input type="text" id="complaintSubject" class="form-input" placeholder="e.g. Unresolved Water Interruption" minlength="5" required>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="form-group">
-                        <label class="form-label" for="complaintDescription">Complaint Details</label>
-                        <textarea id="complaintDescription" class="form-input" style="height:110px;"
-                            placeholder="Describe the issue in detail. Include dates, frequency, and any prior attempts to resolve it..."
-                            minlength="20" required></textarea>
-                        <div class="char-hint" id="descCharCount">Minimum 20 characters</div>
-                    </div>
-
-                    <!-- Attachment -->
-                    <div class="form-group">
-                        <label class="form-label" for="attachmentFile">Attachment (Optional)</label>
-                        <input type="file" id="attachmentFile" class="form-input" accept="image/*,video/mp4,video/quicktime,application/pdf" style="padding:0.4rem;">
-                        <div class="char-hint">Accepted: JPG, PNG, WEBP, PDF, MP4, MOV — Max 20MB</div>
-                    </div>
-
-                    <button type="submit" id="submitBtn" class="btn-primary" style="background:var(--tenant); border-color:var(--tenant); width:100%;">
-                        Submit Complaint
-                    </button>
-                </form>
+        <!-- Ledger Panel -->
+        <div class="ledger-panel">
+            <div class="ledger-header">
+                <h3>My Complaints Ledger</h3>
+                <span class="badge badge-submitted" id="countBadge">Loading...</span>
             </div>
-
-            <!-- RIGHT: History -->
-            <div class="panel">
-                <div class="panel-title" style="margin-bottom:1rem;">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                    </svg>
-                    My Complaint History
-                </div>
-                <div class="history-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Complaint</th>
-                                <th>Category</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="complaintsTableBody">
-                            <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Loading complaints...</td></tr>
-                        </tbody>
-                    </table>
+            <div class="filter-tabs" id="filterTabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="submitted">Submitted</button>
+                <button class="filter-tab" data-filter="under_review">Under Review</button>
+                <button class="filter-tab" data-filter="in_progress">In Progress</button>
+                <button class="filter-tab" data-filter="resolved">Resolved</button>
+                <button class="filter-tab" data-filter="rejected">Rejected</button>
+                <button class="filter-tab" data-filter="closed">Closed</button>
+            </div>
+            <div class="complaints-list" id="complaintsList">
+                <div class="empty-state">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <p>Loading complaints ledger...</p>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Details Modal -->
-    <div class="modal-overlay hidden" id="detailsModal">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3 style="margin:0; font-size:1rem; color:var(--text-primary);" id="modalTitle">Complaint Details</h3>
-                <button class="modal-close-x" id="closeModalBtn" title="Close">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
+    <!-- ════════════════════════════════════════════
+         NEW COMPLAINT FORM MODAL
+    ════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="formModal" style="display:none;">
+        <div class="form-modal">
+            <!-- Head -->
+            <div class="form-modal-head">
+                <div>
+                    <h3>File a Formal Complaint</h3>
+                    <p>Submit your concern — your landlord will receive and process your complaint.</p>
+                </div>
+                <button class="form-modal-close" id="closeFormBtn" title="Close">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
-            <div id="modalBody"></div>
-            <div style="display:flex; justify-content:flex-end; margin-top:1.5rem;">
-                <button class="btn-secondary action-btn" id="closeModalFooter" style="padding:0.5rem 1.2rem;">Close</button>
+
+            <!-- Body -->
+            <div class="form-modal-body">
+                <div id="formError"   class="form-alert err" style="display:none;"></div>
+                <div id="formSuccess" class="form-alert ok"  style="display:none;"></div>
+
+                <!-- No Lease Warning -->
+                <div id="noLeaseWarning" style="display:none; background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.25); border-radius:var(--radius-md); padding:1.1rem; text-align:center; color:#ef4444; font-size:0.875rem; font-weight:600; margin-bottom:1rem;">
+                    No active or past lease contracts found. You need a lease contract to submit complaints.
+                </div>
+
+                <form id="complaintForm" style="display:none;">
+                    <!-- Lease Selector -->
+                    <div class="form-group">
+                        <label class="form-label" for="leaseSelector">Select Lease Contract <span style="color:var(--error)">*</span></label>
+                        <select id="leaseSelector" class="form-input" required>
+                            <option value="">-- Choose your lease contract --</option>
+                        </select>
+                    </div>
+
+                    <!-- Lease Info Preview -->
+                    <div id="leaseInfoBar" class="lease-info-bar" style="display:none;">
+                        <div class="lease-info-bar-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        </div>
+                        <div>
+                            <div class="lib-name" id="libName">—</div>
+                            <div class="lib-sub"  id="libSub">—</div>
+                        </div>
+                    </div>
+
+                    <!-- Category & Subject -->
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="complaintCategory">Complaint Category <span style="color:var(--error)">*</span></label>
+                            <select id="complaintCategory" class="form-input" required>
+                                <option value="">-- Select Category --</option>
+                                <option value="billing_concern">Billing Concern</option>
+                                <option value="landlord_concern">Landlord Concern</option>
+                                <option value="safety_concern">Safety Concern</option>
+                                <option value="policy_violation">Policy Violation</option>
+                                <option value="utility_concern">Utility Concern</option>
+                                <option value="noise_complaint">Noise Complaint</option>
+                                <option value="other">Other Concern</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="complaintSubject">Complaint Subject <span style="color:var(--error)">*</span></label>
+                            <input type="text" id="complaintSubject" class="form-input" placeholder="e.g. Unresolved Water Meter Overcharge" minlength="5" required>
+                        </div>
+                    </div>
+
+                    <!-- Details Description -->
+                    <div class="form-group">
+                        <label class="form-label" for="complaintDescription">Detailed Complaint Description <span style="color:var(--error)">*</span></label>
+                        <textarea id="complaintDescription" class="form-input" rows="4" style="resize:vertical; min-height:100px;" placeholder="Describe what happened in detail, including dates, frequency, and prior communication with your landlord..." minlength="20" required></textarea>
+                        <div style="font-size:0.72rem; color:var(--text-muted); text-align:right; margin-top:0.35rem;" id="descCharCount">Minimum 20 characters</div>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="form-group">
+                        <label class="form-label">Supporting Attachment (Optional)</label>
+                        <div class="upload-zone" id="uploadZone">
+                            <input type="file" id="attachmentFile" accept="image/*,video/mp4,video/quicktime,application/pdf">
+                            <div style="color:var(--tenant); margin-bottom:0.3rem;">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            </div>
+                            <div style="font-size:0.825rem; font-weight:700; color:var(--text-primary);">Click or drag evidence attachment here</div>
+                            <div style="font-size:0.73rem; color:var(--text-muted); margin-top:0.1rem;">JPG, PNG, WEBP, PDF, MP4 — max 20 MB</div>
+                        </div>
+                        <div id="uploadPreview" class="upload-preview" style="display:none;">
+                            <span class="upload-preview-name" id="previewName"></span>
+                            <button type="button" class="upload-remove" id="removeFileBtn" title="Remove">✕</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="form-modal-footer">
+                <button class="btn-cancel" id="cancelFormBtn">Cancel</button>
+                <button class="btn-submit" id="submitBtn" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+                    Submit Complaint
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         DETAILS MODAL
+    ════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="detailsModal" style="display:none;">
+        <div class="details-modal">
+            <div class="details-head">
+                <div class="details-head-title" id="detailsTitle">Complaint Details</div>
+                <button class="details-head-close" id="closeDetailsBtn" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="details-body" id="detailsBody">
+                <div class="empty-state"><p>Loading details...</p></div>
+            </div>
+            <div class="details-foot">
+                <button class="btn-cancel" id="closeDetailsFootBtn">Close</button>
             </div>
         </div>
     </div>
@@ -367,6 +582,7 @@
         const token = localStorage.getItem('domiknow_token');
         let leasesMap = new Map();
         let allComplaints = [];
+        let activeFilter = 'all';
 
         const CATEGORY_LABELS = {
             billing_concern: 'Billing Concern',
@@ -375,323 +591,425 @@
             policy_violation: 'Policy Violation',
             utility_concern: 'Utility Concern',
             noise_complaint: 'Noise Complaint',
-            other: 'Other'
+            other: 'Other Concern'
         };
 
         const STATUS_FLOW = ['submitted', 'under_review', 'in_progress', 'resolved', 'closed'];
 
+        // ── Init ──────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
             if (!token) return;
             fetchLeases();
             fetchMyComplaints();
-            bindEvents();
+            initUpload();
+            initEventDelegation();
         });
 
-        // ── Fetch ───────────────────────────────────────────────────────────
+        // ── Open / Close Modals ───────────────────────────────
+        function openFormModal() {
+            document.getElementById('formModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            clearAlerts();
+        }
+        function closeFormModal() {
+            document.getElementById('formModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        function openDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+            if (document.getElementById('formModal').style.display === 'none') {
+                document.body.style.overflow = '';
+            }
+        }
 
+        // ── Event Delegation ──────────────────────────────────
+        function initEventDelegation() {
+            document.getElementById('openFormBtn').addEventListener('click', openFormModal);
+            document.getElementById('closeFormBtn').addEventListener('click', closeFormModal);
+            document.getElementById('cancelFormBtn').addEventListener('click', closeFormModal);
+            document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+
+            document.getElementById('closeDetailsBtn').addEventListener('click', closeDetailsModal);
+            document.getElementById('closeDetailsFootBtn').addEventListener('click', closeDetailsModal);
+
+            document.getElementById('formModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('formModal')) closeFormModal();
+            });
+            document.getElementById('detailsModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('detailsModal')) closeDetailsModal();
+            });
+
+            // Filter tabs
+            document.getElementById('filterTabs').addEventListener('click', (e) => {
+                const tab = e.target.closest('.filter-tab');
+                if (!tab) return;
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeFilter = tab.dataset.filter;
+                renderComplaints();
+            });
+
+            // Complaint list item click
+            document.getElementById('complaintsList').addEventListener('click', (e) => {
+                const card = e.target.closest('[data-complaint-id]');
+                if (card) loadComplaintDetails(card.dataset.complaintId);
+            });
+
+            // Lease selector
+            document.getElementById('leaseSelector').addEventListener('change', (e) => {
+                const lease = leasesMap.get(e.target.value);
+                if (lease) {
+                    document.getElementById('libName').textContent = lease.properties?.property_name || 'Property';
+                    document.getElementById('libSub').textContent  = `Landlord: ${lease.landlord?.full_name || 'N/A'} · Contract: ${lease.lease_number || 'N/A'}`;
+                    document.getElementById('leaseInfoBar').style.display = 'flex';
+                } else {
+                    document.getElementById('leaseInfoBar').style.display = 'none';
+                }
+            });
+
+            // Description character count
+            document.getElementById('complaintDescription').addEventListener('input', (e) => {
+                const len = e.target.value.trim().length;
+                const el = document.getElementById('descCharCount');
+                el.textContent = len < 20 ? `${len}/20 — minimum 20 characters required` : `${len} characters`;
+                el.style.color = len < 20 ? 'var(--error)' : 'var(--text-muted)';
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeDetailsModal();
+                    closeFormModal();
+                }
+            });
+        }
+
+        // ── Upload Zone ───────────────────────────────────────
+        function initUpload() {
+            const zone  = document.getElementById('uploadZone');
+            const input = document.getElementById('attachmentFile');
+            const prev  = document.getElementById('uploadPreview');
+            const name  = document.getElementById('previewName');
+
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault(); zone.classList.remove('dragover');
+                if (e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; showPrev(e.dataTransfer.files[0]); }
+            });
+            input.addEventListener('change', () => {
+                if (input.files[0]) showPrev(input.files[0]); else hidePrev();
+            });
+            document.getElementById('removeFileBtn').addEventListener('click', () => {
+                input.value = ''; hidePrev();
+            });
+
+            function showPrev(f) {
+                name.textContent = f.name;
+                prev.style.display = 'flex';
+                zone.style.display = 'none';
+            }
+            function hidePrev() {
+                prev.style.display = 'none';
+                zone.style.display = 'block';
+            }
+        }
+
+        // ── Fetch Data ────────────────────────────────────────
         async function fetchLeases() {
             try {
-                const res = await fetch('/api/tenant/leases/my', { headers: { 'Authorization': `Bearer ${token}` } });
+                // Primary endpoint: /api/leases/my (fallback: /api/tenant/leases/my)
+                let res = await fetch('/api/leases/my', { headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) res = await fetch('/api/tenant/leases/my', { headers: { Authorization: `Bearer ${token}` } });
                 if (!res.ok) return;
+
                 const result = await res.json();
                 const leases = (result.data || []).filter(l => ['active', 'ended', 'terminated'].includes(l.lease_status));
+                
+                if (leases.length === 0) {
+                    document.getElementById('noLeaseWarning').style.display = 'block';
+                    document.getElementById('complaintForm').style.display = 'none';
+                    return;
+                }
+                document.getElementById('complaintForm').style.display = 'block';
+
                 const sel = document.getElementById('leaseSelector');
+                sel.innerHTML = '<option value="">-- Choose your lease contract --</option>';
                 leases.forEach(l => {
                     leasesMap.set(l.id, l);
                     const opt = document.createElement('option');
                     opt.value = l.id;
-                    opt.textContent = `${l.properties?.property_name || 'Property'} — ${l.lease_number || l.id.slice(0,8)}`;
+                    opt.textContent = `${l.properties?.property_name || 'Property'} — Contract #${l.lease_number || 'N/A'}`;
                     sel.appendChild(opt);
                 });
             } catch (err) { console.error(err); }
         }
 
         async function fetchMyComplaints() {
-            const tbody = document.getElementById('complaintsTableBody');
             try {
-                const res = await fetch('/api/tenant/complaints/my', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--error);">Failed to load complaints.</td></tr>`; return; }
+                const res = await fetch('/api/tenant/complaints/my', { headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) { showListError('Failed to load complaints ledger.'); return; }
                 const result = await res.json();
                 allComplaints = result.data || [];
-                renderTable();
-            } catch (err) {
-                console.error(err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--error);">Network error.</td></tr>`;
-            }
+                updateStats();
+                renderComplaints();
+            } catch (err) { showListError('Network error.'); }
         }
 
-        // ── Render ──────────────────────────────────────────────────────────
+        function updateStats() {
+            const review   = allComplaints.filter(c => ['submitted','under_review'].includes(c.status)).length;
+            const progress = allComplaints.filter(c => c.status === 'in_progress').length;
+            const resolved = allComplaints.filter(c => c.status === 'resolved').length;
+            
+            document.getElementById('statReview').textContent   = review;
+            document.getElementById('statProgress').textContent = progress;
+            document.getElementById('statResolved').textContent = resolved;
+            document.getElementById('statTotal').textContent    = allComplaints.length;
+            document.getElementById('countBadge').textContent   = `${allComplaints.length} Filed`;
+        }
 
-        function renderTable() {
-            const tbody = document.getElementById('complaintsTableBody');
-            if (allComplaints.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
-                    <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    <span style="font-weight:600;">No complaints filed</span>
-                    <span style="font-size:0.8rem;">Use the form on the left to submit a formal complaint.</span>
-                </div></td></tr>`;
+        function renderComplaints() {
+            const list = document.getElementById('complaintsList');
+            const filtered = allComplaints.filter(c => {
+                if (activeFilter === 'all') return true;
+                return c.status === activeFilter;
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <p>No complaints match this filter.</p>
+                    </div>`;
                 return;
             }
-            tbody.innerHTML = '';
-            allComplaints.forEach(c => {
-                const dateStr = new Date(c.submitted_at).toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' });
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>
-                        <div style="font-weight:700; font-size:0.88rem;">${escHtml(c.subject)}</div>
-                        <div style="font-size:0.72rem; color:var(--text-muted); font-family:monospace;">${c.complaint_number}</div>
-                    </td>
-                    <td style="font-size:0.82rem;">${CATEGORY_LABELS[c.category] || c.category}</td>
-                    <td><span class="chip chip-${c.status}">${c.status.replace('_',' ')}</span></td>
-                    <td style="font-size:0.82rem; white-space:nowrap; color:var(--text-secondary);">${dateStr}</td>
-                    <td><button class="action-btn btn-view" data-id="${c.id}">Details</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
 
-        // ── Event Bindings ──────────────────────────────────────────────────
+            list.innerHTML = '';
+            filtered.forEach(c => {
+                const dateStr = new Date(c.submitted_at).toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' });
+                const propName = c.properties?.property_name || 'Property';
 
-        function bindEvents() {
-            // Lease selector → show info card
-            document.getElementById('leaseSelector').addEventListener('change', (e) => {
-                const lease = leasesMap.get(e.target.value);
-                const card = document.getElementById('leaseInfoCard');
-                const row = document.getElementById('leaseInfoRow');
-                if (!lease) { card.classList.remove('visible'); return; }
-                row.innerHTML = `
-                    <div class="lease-info-item">
-                        <span class="lease-info-item-label">Property</span>
-                        <span class="lease-info-item-value">${lease.properties?.property_name || 'N/A'}</span>
+                const card = document.createElement('div');
+                card.className = 'complaint-card';
+                card.dataset.complaintId = c.id;
+                card.innerHTML = `
+                    <div class="complaint-card-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     </div>
-                    <div class="lease-info-item">
-                        <span class="lease-info-item-label">Landlord</span>
-                        <span class="lease-info-item-value">${lease.landlord?.full_name || 'N/A'}</span>
+                    <div class="complaint-card-body">
+                        <div class="complaint-card-title">${escHtml(c.subject)}</div>
+                        <div class="complaint-card-meta">${propName} · ${CATEGORY_LABELS[c.category] || c.category} · ${dateStr}</div>
                     </div>
-                    <div class="lease-info-item">
-                        <span class="lease-info-item-label">Contract</span>
-                        <span class="lease-info-item-value" style="font-family:monospace;">${lease.lease_number || 'N/A'}</span>
+                    <div class="complaint-card-right">
+                        ${statusBadge(c.status)}
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">${c.complaint_number}</span>
                     </div>
                 `;
-                card.classList.add('visible');
-            });
-
-            // Char count
-            document.getElementById('complaintDescription').addEventListener('input', (e) => {
-                const len = e.target.value.trim().length;
-                const el = document.getElementById('descCharCount');
-                el.textContent = len < 20 ? `${len}/20 — minimum 20 characters` : `${len} characters`;
-                el.style.color = len < 20 ? 'var(--error)' : 'var(--text-muted)';
-            });
-
-            // Submit
-            document.getElementById('complaintForm').addEventListener('submit', handleSubmit);
-
-            // Close modal
-            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-            document.getElementById('closeModalFooter').addEventListener('click', closeModal);
-            document.getElementById('detailsModal').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('detailsModal')) closeModal();
-            });
-
-            // Table row click
-            document.getElementById('complaintsTableBody').addEventListener('click', (e) => {
-                const btn = e.target.closest('[data-id]');
-                if (btn) openDetailsModal(btn.dataset.id);
+                list.appendChild(card);
             });
         }
 
-        // ── Submit ──────────────────────────────────────────────────────────
-
-        async function handleSubmit(e) {
-            e.preventDefault();
-            const errorEl = document.getElementById('formAlertError');
-            const successEl = document.getElementById('formAlertSuccess');
-            const submitBtn = document.getElementById('submitBtn');
-            errorEl.classList.remove('visible');
-            successEl.classList.remove('visible');
-
-            const leaseId = document.getElementById('leaseSelector').value;
-            const category = document.getElementById('complaintCategory').value;
-            const subject = document.getElementById('complaintSubject').value.trim();
-            const description = document.getElementById('complaintDescription').value.trim();
-
-            if (!leaseId) { errorEl.textContent = 'Please select a lease contract.'; errorEl.classList.add('visible'); return; }
-            if (description.length < 20) { errorEl.textContent = 'Description must be at least 20 characters.'; errorEl.classList.add('visible'); return; }
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-
-            const bodyData = { lease_id: leaseId, category, subject, description };
-
-            // Optional file
-            const fileInput = document.getElementById('attachmentFile');
-            const file = fileInput.files[0];
-
-            const doSubmit = async () => {
-                if (file) {
-                    try {
-                        const b64 = await fileToBase64(file);
-                        bodyData.base64_content = b64;
-                        bodyData.file_name = file.name;
-                        bodyData.mime_type = file.type;
-                        bodyData.file_size = file.size;
-                    } catch {
-                        errorEl.textContent = 'Could not read the attachment file.';
-                        errorEl.classList.add('visible');
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Submit Complaint';
-                        return;
-                    }
-                }
-
-                try {
-                    const res = await fetch('/api/tenant/complaints', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify(bodyData)
-                    });
-                    const result = await res.json();
-                    if (res.ok) {
-                        successEl.textContent = result.message || 'Complaint submitted successfully.';
-                        successEl.classList.add('visible');
-                        document.getElementById('complaintForm').reset();
-                        document.getElementById('leaseInfoCard').classList.remove('visible');
-                        document.getElementById('descCharCount').textContent = 'Minimum 20 characters';
-                        await fetchMyComplaints();
-                    } else {
-                        errorEl.textContent = result.message || 'Submission failed.';
-                        errorEl.classList.add('visible');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    errorEl.textContent = 'Network error. Please try again.';
-                    errorEl.classList.add('visible');
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Submit Complaint';
-                }
-            };
-
-            await doSubmit();
+        function showListError(msg) {
+            document.getElementById('complaintsList').innerHTML = `<div class="empty-state"><p>${msg}</p></div>`;
         }
 
-        // ── Details Modal ───────────────────────────────────────────────────
+        function statusBadge(status) {
+            const label = status.replace(/_/g,' ');
+            return `<span class="badge badge-${status}">${label}</span>`;
+        }
 
-        async function openDetailsModal(complaintId) {
-            const modal = document.getElementById('detailsModal');
-            const body = document.getElementById('modalBody');
-            modal.classList.remove('hidden');
-            body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</div>';
+        // ── Load Complaint Details ────────────────────────────
+        async function loadComplaintDetails(complaintId) {
+            document.getElementById('detailsBody').innerHTML = `<div class="empty-state"><p>Loading complaint details...</p></div>`;
+            openDetailsModal();
 
             try {
-                const res = await fetch(`/api/tenant/complaints/${complaintId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(`/api/tenant/complaints/${complaintId}`, { headers: { Authorization: `Bearer ${token}` } });
                 const result = await res.json();
-                if (!res.ok) { body.innerHTML = `<div style="color:var(--error);">${result.message || 'Failed to load.'}</div>`; return; }
+                if (!res.ok) { document.getElementById('detailsBody').innerHTML = `<div class="form-alert err">${result.message || 'Failed to load details.'}</div>`; return; }
 
                 const c = result.data;
                 const logs = c.status_logs || [];
-                const dateStr = new Date(c.submitted_at).toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' });
+                const dateStr = new Date(c.submitted_at).toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' });
 
-                document.getElementById('modalTitle').textContent = `${c.complaint_number} — Details`;
+                document.getElementById('detailsTitle').textContent = `${c.complaint_number} — ${c.subject}`;
 
-                // Timeline HTML
+                // Timeline
                 let timelineHtml = '';
                 if (c.status === 'rejected') {
                     timelineHtml = `
-                        <div class="timeline-item">
-                            <div class="timeline-dot done"></div>
-                            <div><div class="timeline-text"><strong>Submitted</strong></div></div>
+                        <div class="tl-item tldone">
+                            <div class="tl-meta">Submitted</div>
+                            <div class="tl-notes">Complaint filed by tenant.</div>
                         </div>
-                        <div class="timeline-item">
-                            <div class="timeline-dot rejected"></div>
-                            <div><div class="timeline-text"><strong style="color:var(--error);">Rejected</strong></div>
-                            ${c.rejection_reason ? `<div class="timeline-date" style="color:var(--error);">${escHtml(c.rejection_reason)}</div>` : ''}
-                            </div>
+                        <div class="tl-item tla">
+                            <div class="tl-meta" style="color:var(--error);">Rejected</div>
+                            <div class="tl-notes">${c.rejection_reason ? escHtml(c.rejection_reason) : 'Complaint rejected.'}</div>
                         </div>`;
                 } else {
-                    STATUS_FLOW.forEach((step, i) => {
-                        const pastStatuses = STATUS_FLOW.slice(0, STATUS_FLOW.indexOf(c.status) + 1);
-                        const isDone = pastStatuses.includes(step);
-                        const isActive = step === c.status;
-                        const dotClass = isActive ? 'active' : (isDone ? 'done' : '');
+                    STATUS_FLOW.forEach(step => {
+                        const past = STATUS_FLOW.slice(0, STATUS_FLOW.indexOf(c.status) + 1);
+                        const isDone   = past.includes(step);
+                        const isActive = (step === c.status);
+                        const cls = isActive ? 'tla' : (isDone ? 'tldone' : '');
                         const log = logs.find(l => l.new_status === step);
+
                         timelineHtml += `
-                            <div class="timeline-item">
-                                <div class="timeline-dot ${dotClass}"></div>
-                                <div>
-                                    <div class="timeline-text ${isActive ? 'font-weight:700;' : ''}"><strong style="${isActive ? 'color:var(--primary)' : ''}">${step.replace('_',' ')}</strong></div>
-                                    ${log ? `<div class="timeline-date">${new Date(log.updated_at).toLocaleDateString('en-PH', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
-                                </div>
+                            <div class="tl-item ${cls}">
+                                <div class="tl-meta">${step.replace(/_/g,' ')}</div>
+                                ${log ? `<div class="tl-notes">${new Date(log.updated_at).toLocaleString('en-PH', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
                             </div>`;
                     });
                 }
 
-                body.innerHTML = `
-                    <div class="detail-row">
-                        <span class="detail-label">Complaint No.</span>
-                        <span class="detail-value" style="font-family:monospace; font-weight:700;">${c.complaint_number}</span>
+                let html = `
+                    <div class="detail-grid">
+                        <div>
+                            <div class="dc-label">Complaint Number</div>
+                            <div class="dc-val" style="font-family:monospace;">${c.complaint_number}</div>
+                        </div>
+                        <div>
+                            <div class="dc-label">Category</div>
+                            <div class="dc-val">${CATEGORY_LABELS[c.category] || c.category}</div>
+                        </div>
+                        <div>
+                            <div class="dc-label">Property</div>
+                            <div class="dc-val">${c.properties?.property_name || '—'}</div>
+                        </div>
+                        <div>
+                            <div class="dc-label">Landlord</div>
+                            <div class="dc-val">${c.landlord?.full_name || '—'}</div>
+                        </div>
+                        <div>
+                            <div class="dc-label">Contract Number</div>
+                            <div class="dc-val" style="font-family:monospace;">${c.lease_records?.lease_number || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <div class="dc-label">Status</div>
+                            <div class="dc-val">${statusBadge(c.status)}</div>
+                        </div>
                     </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Property</span>
-                        <span class="detail-value" style="font-weight:700;">${c.properties?.property_name || 'N/A'}</span>
+
+                    <div style="margin-bottom:1.25rem;">
+                        <div class="dc-label" style="margin-bottom:0.4rem;">Subject & Description</div>
+                        <div style="font-weight:700; font-size:0.95rem; color:var(--text-primary); margin-bottom:0.35rem;">${escHtml(c.subject)}</div>
+                        <div style="background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:0.85rem; font-size:0.875rem; color:var(--text-secondary); white-space:pre-wrap; line-height:1.6;">${escHtml(c.description)}</div>
                     </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Landlord</span>
-                        <span class="detail-value">${c.landlord?.full_name || 'N/A'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Lease</span>
-                        <span class="detail-value" style="font-family:monospace;">${c.lease_records?.lease_number || 'N/A'}</span>
-                    </div>
-                    <hr class="detail-divider">
-                    <div class="detail-row">
-                        <span class="detail-label">Category</span>
-                        <span class="detail-value">${CATEGORY_LABELS[c.category] || c.category}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Subject</span>
-                        <span class="detail-value" style="font-weight:600;">${escHtml(c.subject)}</span>
-                    </div>
-                    <div class="detail-row" style="align-items:start;">
-                        <span class="detail-label">Details</span>
-                        <span class="detail-value" style="white-space:pre-wrap;">${escHtml(c.description)}</span>
-                    </div>
-                    ${c.attachment_url ? `
-                    <div class="detail-row">
-                        <span class="detail-label">Attachment</span>
-                        <span class="detail-value"><a href="${c.attachment_url}" target="_blank" style="color:var(--primary);">View Attachment</a></span>
-                    </div>` : ''}
-                    <div class="detail-row">
-                        <span class="detail-label">Submitted</span>
-                        <span class="detail-value">${dateStr}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Status</span>
-                        <span class="detail-value"><span class="chip chip-${c.status}">${c.status.replace('_',' ')}</span></span>
-                    </div>
-                    ${c.resolution_notes ? `
-                    <div class="detail-row" style="align-items:start;">
-                        <span class="detail-label">Resolution</span>
-                        <span class="detail-value" style="background:var(--success-bg); color:var(--success); padding:0.5rem 0.75rem; border-radius:var(--radius-sm); white-space:pre-wrap;">${escHtml(c.resolution_notes)}</span>
-                    </div>` : ''}
-                    <hr class="detail-divider">
-                    <div style="font-size:0.78rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">Status Timeline</div>
-                    <div class="timeline">${timelineHtml}</div>
                 `;
+
+                if (c.attachment_url) {
+                    html += `
+                        <div style="margin-bottom:1.25rem;">
+                            <div class="dc-label" style="margin-bottom:0.4rem;">Attachment</div>
+                            <a href="${c.attachment_url}" target="_blank" class="btn-cancel" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.8rem; text-decoration:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                View Attachment File
+                            </a>
+                        </div>`;
+                }
+
+                if (c.resolution_notes) {
+                    html += `
+                        <div style="background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.25); border-radius:var(--radius-sm); padding:0.85rem; margin-bottom:1.25rem;">
+                            <div style="font-size:0.68rem; font-weight:800; text-transform:uppercase; color:#10b981; margin-bottom:0.3rem;">Resolution Notes</div>
+                            <div style="font-size:0.875rem; color:var(--text-primary); white-space:pre-wrap;">${escHtml(c.resolution_notes)}</div>
+                        </div>`;
+                }
+
+                html += `
+                    <div style="border-top:1px solid var(--border-color); padding-top:1.25rem;">
+                        <div style="font-weight:800; font-size:0.875rem; color:var(--text-primary); margin-bottom:0.75rem;">Status Timeline</div>
+                        <div class="timeline">${timelineHtml}</div>
+                    </div>`;
+
+                document.getElementById('detailsBody').innerHTML = html;
             } catch (err) {
                 console.error(err);
-                body.innerHTML = `<div style="color:var(--error);">Network error.</div>`;
+                document.getElementById('detailsBody').innerHTML = `<div class="form-alert err">Failed to load complaint details.</div>`;
             }
         }
 
-        function closeModal() {
-            document.getElementById('detailsModal').classList.add('hidden');
+        // ── Form Submit ───────────────────────────────────────
+        async function handleSubmit() {
+            clearAlerts();
+
+            const leaseId     = document.getElementById('leaseSelector').value;
+            const category    = document.getElementById('complaintCategory').value;
+            const subject     = document.getElementById('complaintSubject').value.trim();
+            const description = document.getElementById('complaintDescription').value.trim();
+
+            if (!leaseId)     { showError('Please select a lease contract.'); return; }
+            if (!category)    { showError('Please select a complaint category.'); return; }
+            if (!subject)     { showError('Complaint subject is required.'); return; }
+            if (description.length < 20) { showError('Description must be at least 20 characters long.'); return; }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="spin-icon"></span> Submitting...`;
+
+            const bodyData = { lease_id: leaseId, category, subject, description };
+            const fileInput = document.getElementById('attachmentFile');
+            const file = fileInput.files[0];
+
+            if (file) {
+                try {
+                    const b64 = await fileToBase64(file);
+                    bodyData.base64_content = b64;
+                    bodyData.file_name = file.name;
+                    bodyData.mime_type = file.type;
+                    bodyData.file_size = file.size;
+                } catch {
+                    showError('Failed to process attachment file.');
+                    resetSubmitBtn();
+                    return;
+                }
+            }
+
+            try {
+                const res = await fetch('/api/tenant/complaints', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify(bodyData)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    showSuccess('Complaint filed successfully. Your landlord has been notified.');
+                    resetForm();
+                    await fetchMyComplaints();
+                    setTimeout(() => {
+                        closeFormModal();
+                        clearAlerts();
+                    }, 1800);
+                } else {
+                    showError(result.message || 'Failed to submit complaint.');
+                }
+            } catch {
+                showError('Network error. Please try again.');
+            } finally {
+                resetSubmitBtn();
+            }
         }
+
+        function resetForm() {
+            document.getElementById('complaintForm').reset();
+            document.getElementById('leaseInfoBar').style.display = 'none';
+            document.getElementById('uploadPreview').style.display = 'none';
+            document.getElementById('uploadZone').style.display = 'block';
+            document.getElementById('descCharCount').textContent = 'Minimum 20 characters';
+        }
+
+        function resetSubmitBtn() {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg> Submit Complaint`;
+        }
+
+        function showError(msg)   { const el = document.getElementById('formError');   el.textContent = '⚠️ ' + msg; el.style.display = 'flex'; }
+        function showSuccess(msg) { const el = document.getElementById('formSuccess'); el.textContent = '✓ ' + msg;  el.style.display = 'flex'; }
+        function clearAlerts()    { document.getElementById('formError').style.display = 'none'; document.getElementById('formSuccess').style.display = 'none'; }
 
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
