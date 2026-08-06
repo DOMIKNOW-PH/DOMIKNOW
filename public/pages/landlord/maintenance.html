@@ -105,8 +105,21 @@
 
     <!-- Main Content -->
     <main class="dashboard-container">
-        <h2>Maintenance Coordination Center</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Review requests submitted by tenants, allocate technicians, and audit repair reports.</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+            <div>
+                <h2 style="margin: 0;">Maintenance Coordination Center</h2>
+                <p style="color: var(--text-secondary); margin: 0.25rem 0 0 0;">Review requests submitted by tenants, allocate technicians, and audit repair reports.</p>
+            </div>
+            <button type="button" id="openAddWorkerBtn" class="action-btn" style="background: var(--landlord); color: #fff; padding: 0.65rem 1.25rem; font-size: 0.9rem; font-weight: 700; border-radius: var(--radius-md); display: inline-flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="17" y1="11" x2="23" y2="11"></line>
+                </svg>
+                + Add Maintenance Worker
+            </button>
+        </div>
 
         <div class="filters-group">
             <button class="filter-btn active" data-filter="all">All Requests</button>
@@ -143,6 +156,66 @@
         </div>
     </main>
 
+    <!-- Add Maintenance Worker Modal -->
+    <div class="modal-overlay hidden" id="addWorkerModal" style="position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 1.5rem;">
+        <div class="modal-box" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; max-width: 520px; width: 100%; box-shadow: var(--shadow-premium);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Create Maintenance Worker Account</h3>
+                <button type="button" id="closeWorkerModalBtn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.2rem; line-height: 1;">✕</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                Create a login account for your electrician, plumber, carpenter, or repair technician so they can receive job assignments and submit repair reports.
+            </p>
+
+            <div id="workerAlertErr" style="display: none; background: rgba(239,68,68,.1); color: #ef4444; border: 1px solid rgba(239,68,68,.3); padding: 0.65rem 1rem; border-radius: 6px; font-size: 0.83rem; margin-bottom: 1rem;"></div>
+            <div id="workerAlertOk" style="display: none; background: rgba(16,185,129,.1); color: #10b981; border: 1px solid rgba(16,185,129,.3); padding: 0.65rem 1rem; border-radius: 6px; font-size: 0.83rem; margin-bottom: 1rem;"></div>
+
+            <form id="addWorkerForm">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="workerFullName">Worker Full Name <span style="color: var(--error);">*</span></label>
+                    <input type="text" id="workerFullName" class="form-input" placeholder="e.g. Juan Dela Cruz" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="workerTrade">Specialty / Trade <span style="color: var(--text-muted); font-weight: normal;">(Optional)</span></label>
+                    <select id="workerTrade" class="form-input">
+                        <option value="">-- Select Trade --</option>
+                        <option value="General Repair">General Maintenance & Repair</option>
+                        <option value="Plumber">Plumber (Tubo / Plumbing)</option>
+                        <option value="Electrician">Electrician (Kuryente / Wiring)</option>
+                        <option value="Aircon Technician">Aircon Technician (HVAC)</option>
+                        <option value="Carpenter">Carpenter (Karpintero)</option>
+                        <option value="Painter">Painter (Pintor)</option>
+                        <option value="Roofer">Roofer / Leak Repair</option>
+                        <option value="Locksmith">Locksmith / Doors & Keys</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="workerEmail">Email Address (Login Username) <span style="color: var(--error);">*</span></label>
+                    <input type="email" id="workerEmail" class="form-input" placeholder="e.g. worker.juan@gmail.com" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="workerContact">Contact Phone Number</label>
+                    <input type="tel" id="workerContact" class="form-input" placeholder="e.g. 09123456789">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" for="workerPassword">Account Password <span style="color: var(--error);">*</span></label>
+                    <input type="password" id="workerPassword" class="form-input" placeholder="Minimum 6 characters" minlength="6" required>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" id="cancelWorkerModalBtn" class="navbar-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-secondary);">Cancel</button>
+                    <button type="submit" id="submitWorkerBtn" class="action-btn" style="background: var(--landlord); color: #fff; padding: 0.6rem 1.25rem; font-weight: 700;">
+                        Create Worker Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../../js/auth.js"></script>
     <script src="../../js/dashboard.js"></script>
     <script>
@@ -153,6 +226,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (!token) return;
             fetchMaintenanceQueue();
+            bindWorkerModalEvents();
 
             // Filters delegation
             document.querySelector('.filters-group').addEventListener('click', (e) => {
@@ -166,6 +240,82 @@
                 renderQueueTable();
             });
         });
+
+        function bindWorkerModalEvents() {
+            const modal = document.getElementById('addWorkerModal');
+            const openBtn = document.getElementById('openAddWorkerBtn');
+            const closeBtn = document.getElementById('closeWorkerModalBtn');
+            const cancelBtn = document.getElementById('cancelWorkerModalBtn');
+            const form = document.getElementById('addWorkerForm');
+
+            const openModal = () => { modal.style.display = 'flex'; clearWorkerAlerts(); };
+            const closeModal = () => { modal.style.display = 'none'; form.reset(); clearWorkerAlerts(); };
+
+            if (openBtn) openBtn.addEventListener('click', openModal);
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearWorkerAlerts();
+
+                const fullName = document.getElementById('workerFullName').value.trim();
+                const trade = document.getElementById('workerTrade').value.trim();
+                const email = document.getElementById('workerEmail').value.trim();
+                const contact = document.getElementById('workerContact').value.trim();
+                const password = document.getElementById('workerPassword').value;
+
+                const submitBtn = document.getElementById('submitWorkerBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+
+                try {
+                    const res = await fetch('/api/maintenance/workers', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            full_name: fullName,
+                            trade,
+                            email,
+                            contact_number: contact,
+                            password
+                        })
+                    });
+                    const json = await res.json();
+
+                    if (res.ok) {
+                        showWorkerOk('Worker account created successfully! The worker can now log in.');
+                        form.reset();
+                        setTimeout(() => { closeModal(); }, 1600);
+                    } else {
+                        showWorkerErr(json.message || 'Failed to create worker account.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showWorkerErr('Network error. Please try again.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Worker Account';
+                }
+            });
+        }
+
+        function showWorkerErr(msg) {
+            const el = document.getElementById('workerAlertErr');
+            el.textContent = msg; el.style.display = 'block';
+        }
+        function showWorkerOk(msg) {
+            const el = document.getElementById('workerAlertOk');
+            el.textContent = msg; el.style.display = 'block';
+        }
+        function clearWorkerAlerts() {
+            document.getElementById('workerAlertErr').style.display = 'none';
+            document.getElementById('workerAlertOk').style.display = 'none';
+        }
 
         async function fetchMaintenanceQueue() {
             const tableBody = document.getElementById('maintenanceQueueBody');

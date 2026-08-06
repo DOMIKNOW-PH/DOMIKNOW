@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+const userModel = require('../models/userModel');
 const maintenanceModel = require('../models/maintenanceModel');
 const auditLogModel = require('../models/auditLogModel');
 const responseHelper = require('../utils/responseHelper');
@@ -581,6 +583,59 @@ const maintenanceController = {
         } catch (error) {
             console.error('Get technicians list error:', error);
             return responseHelper.error(res, 'Failed to fetch workers list.', error, 500);
+        }
+    },
+
+    // ── Create Maintenance Worker Account (Landlord) ──────────────────────
+    async createMaintenanceWorker(req, res) {
+        try {
+            const { full_name, email, password, contact_number, trade } = req.body;
+            const landlordId = req.user.id;
+
+            if (!full_name || !email || !password) {
+                return responseHelper.error(res, 'Full name, email, and password are required.');
+            }
+            if (password.length < 6) {
+                return responseHelper.error(res, 'Password must be at least 6 characters.');
+            }
+
+            // Check duplicate email
+            const existingUser = await userModel.findByEmail(email);
+            if (existingUser) {
+                return responseHelper.error(res, 'An account with this email address is already registered.');
+            }
+
+            // Hash password
+            const saltRounds = 12;
+            const password_hash = await bcrypt.hash(password, saltRounds);
+
+            // Format worker display name with trade if provided
+            const displayName = trade ? `${full_name.trim()} (${trade.trim()})` : full_name.trim();
+
+            // Create worker user
+            const newWorker = await userModel.createUser({
+                full_name: displayName,
+                email: email.trim().toLowerCase(),
+                password_hash,
+                role: 'maintenance',
+                contact_number: contact_number || null,
+                address: `Created by Landlord #${landlordId}`,
+                is_verified: true,
+                account_status: 'active'
+            });
+
+            await auditLogModel.log(landlordId, 'CREATE_MAINTENANCE_WORKER', `Created worker ${newWorker.email}`);
+
+            return responseHelper.success(res, 'Maintenance worker account created successfully.', {
+                id: newWorker.id,
+                full_name: newWorker.full_name,
+                email: newWorker.email,
+                role: newWorker.role
+            }, 201);
+
+        } catch (error) {
+            console.error('Create worker error:', error);
+            return responseHelper.error(res, 'Failed to create worker account.', error, 500);
         }
     }
 };

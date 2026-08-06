@@ -17,6 +17,7 @@ router.put('/maintenance/requests/:id/landlord-respond', requireRole('landlord')
 router.put('/maintenance/requests/:id/landlord-assign', requireRole('landlord'), maintenanceController.landlordAssignRequest);
 router.put('/maintenance/requests/:id/landlord-verify', requireRole('landlord'), maintenanceController.landlordVerifyCompletion);
 router.get('/maintenance/personnel', requireRole('landlord', 'admin'), maintenanceController.getMaintenancePersonnel);
+router.post('/maintenance/workers', requireRole('landlord'), maintenanceController.createMaintenanceWorker);
 
 // 3. Maintenance Personnel Operations
 router.get('/maintenance/requests/worker', requireRole('maintenance'), maintenanceController.getMaintenanceTasks);

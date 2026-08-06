@@ -787,8 +787,11 @@
                 body.innerHTML = `
                     <div id="actionAlert" style="display:none;"></div>
                     <form id="assignForm">
-                        <div class="form-group" style="margin-top:0.25rem;">
-                            <label class="form-label" for="workerSelect">${icon} Select ${trade}</label>
+                        <div class="form-group">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                                <label class="form-label" for="workerSelect" style="margin-bottom:0;">${icon} Select ${trade}</label>
+                                <button type="button" id="openAddWorkerBtnDetail" style="background:none; border:none; color:var(--landlord); font-size:0.78rem; font-weight:700; cursor:pointer; text-decoration:underline;">+ Register New Worker</button>
+                            </div>
                             <select id="workerSelect" class="form-input" required>
                                 <option value="">— Loading available workers… —</option>
                             </select>
@@ -812,6 +815,14 @@
                 // Set min due date to today
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('dueDate').min = today;
+
+                // Bind modal event for registering worker on-the-fly
+                const detailAddWorkerBtn = document.getElementById('openAddWorkerBtnDetail');
+                if (detailAddWorkerBtn) {
+                    detailAddWorkerBtn.addEventListener('click', () => {
+                        if (typeof openWorkerModalDetail === 'function') openWorkerModalDetail();
+                    });
+                }
 
                 // Populate workers
                 try {
@@ -933,6 +944,154 @@
                 }
             } catch { showActionAlert('Network error. Please try again.'); }
         }
+
+        async function populateWorkers(trade = '') {
+            try {
+                const res = await fetch('/api/maintenance/personnel', { headers: { Authorization: `Bearer ${token}` } });
+                const { data } = await res.json();
+                const sel = document.getElementById('workerSelect');
+                if (!sel) return;
+                if (!data || data.length === 0) {
+                    sel.innerHTML = '<option value="">No maintenance personnel registered</option>';
+                } else {
+                    sel.innerHTML = `<option value="">— Select ${trade || 'Worker'} —</option>`;
+                    data.forEach(w => {
+                        const opt = document.createElement('option');
+                        opt.value = w.id;
+                        opt.textContent = `${w.full_name}`;
+                        sel.appendChild(opt);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function openWorkerModalDetail() {
+            const modal = document.getElementById('addWorkerModalDetail');
+            if (modal) { modal.style.display = 'flex'; clearWorkerAlertsDetail(); }
+        }
+        function closeWorkerModalDetail() {
+            const modal = document.getElementById('addWorkerModalDetail');
+            if (modal) { modal.style.display = 'none'; document.getElementById('addWorkerFormDetail')?.reset(); clearWorkerAlertsDetail(); }
+        }
+
+        function showWorkerErrDetail(msg) { const el = document.getElementById('workerAlertErrDetail'); if (el) { el.textContent = msg; el.style.display = 'block'; } }
+        function showWorkerOkDetail(msg)  { const el = document.getElementById('workerAlertOkDetail');  if (el) { el.textContent = msg; el.style.display = 'block'; } }
+        function clearWorkerAlertsDetail(){ 
+            if (document.getElementById('workerAlertErrDetail')) document.getElementById('workerAlertErrDetail').style.display = 'none';
+            if (document.getElementById('workerAlertOkDetail'))  document.getElementById('workerAlertOkDetail').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('addWorkerFormDetail');
+            const modal = document.getElementById('addWorkerModalDetail');
+            const closeBtn = document.getElementById('closeWorkerModalBtnDetail');
+            const cancelBtn = document.getElementById('cancelWorkerModalBtnDetail');
+
+            if (closeBtn) closeBtn.addEventListener('click', closeWorkerModalDetail);
+            if (cancelBtn) cancelBtn.addEventListener('click', closeWorkerModalDetail);
+            if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) closeWorkerModalDetail(); });
+
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    clearWorkerAlertsDetail();
+
+                    const fullName = document.getElementById('workerFullNameDetail').value.trim();
+                    const trade = document.getElementById('workerTradeDetail').value.trim();
+                    const email = document.getElementById('workerEmailDetail').value.trim();
+                    const contact = document.getElementById('workerContactDetail').value.trim();
+                    const password = document.getElementById('workerPasswordDetail').value;
+
+                    const submitBtn = document.getElementById('submitWorkerBtnDetail');
+                    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating…'; }
+
+                    try {
+                        const res = await fetch('/api/maintenance/workers', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ full_name: fullName, trade, email, contact_number: contact, password })
+                        });
+                        const json = await res.json();
+                        if (res.ok) {
+                            showWorkerOkDetail('Worker account created!');
+                            await populateWorkers();
+                            if (json.data?.id) {
+                                const sel = document.getElementById('workerSelect');
+                                if (sel) sel.value = json.data.id;
+                            }
+                            setTimeout(() => { closeWorkerModalDetail(); }, 1200);
+                        } else {
+                            showWorkerErrDetail(json.message || 'Failed to create worker account.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showWorkerErrDetail('Network error.');
+                    } finally {
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Create Worker Account'; }
+                    }
+                });
+            }
+        });
     </script>
+
+    <!-- Add Maintenance Worker Modal (Detail) -->
+    <div class="modal-overlay hidden" id="addWorkerModalDetail" style="position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 1.5rem;">
+        <div class="modal-box" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; max-width: 520px; width: 100%; box-shadow: var(--shadow-premium);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Create Maintenance Worker Account</h3>
+                <button type="button" id="closeWorkerModalBtnDetail" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.2rem; line-height: 1;">✕</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                Create a login account for your electrician, plumber, carpenter, or repair technician so they can receive job assignments and submit repair reports.
+            </p>
+
+            <div id="workerAlertErrDetail" style="display: none; background: rgba(239,68,68,.1); color: #ef4444; border: 1px solid rgba(239,68,68,.3); padding: 0.65rem 1rem; border-radius: 6px; font-size: 0.83rem; margin-bottom: 1rem;"></div>
+            <div id="workerAlertOkDetail" style="display: none; background: rgba(16,185,129,.1); color: #10b981; border: 1px solid rgba(16,185,129,.3); padding: 0.65rem 1rem; border-radius: 6px; font-size: 0.83rem; margin-bottom: 1rem;"></div>
+
+            <form id="addWorkerFormDetail">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="workerFullNameDetail">Worker Full Name <span style="color: var(--error);">*</span></label>
+                    <input type="text" id="workerFullNameDetail" class="form-input" placeholder="e.g. Juan Dela Cruz" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="workerTradeDetail">Specialty / Trade <span style="color: var(--text-muted); font-weight: normal;">(Optional)</span></label>
+                    <select id="workerTradeDetail" class="form-input">
+                        <option value="">-- Select Trade --</option>
+                        <option value="General Repair">General Maintenance & Repair</option>
+                        <option value="Plumber">Plumber (Tubo / Plumbing)</option>
+                        <option value="Electrician">Electrician (Kuryente / Wiring)</option>
+                        <option value="Aircon Technician">Aircon Technician (HVAC)</option>
+                        <option value="Carpenter">Carpenter (Karpintero)</option>
+                        <option value="Painter">Painter (Pintor)</option>
+                        <option value="Roofer">Roofer / Leak Repair</option>
+                        <option value="Locksmith">Locksmith / Doors & Keys</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="workerEmailDetail">Email Address (Login Username) <span style="color: var(--error);">*</span></label>
+                    <input type="email" id="workerEmailDetail" class="form-input" placeholder="e.g. worker.juan@gmail.com" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label" for="workerContactDetail">Contact Phone Number</label>
+                    <input type="tel" id="workerContactDetail" class="form-input" placeholder="e.g. 09123456789">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" for="workerPasswordDetail">Account Password <span style="color: var(--error);">*</span></label>
+                    <input type="password" id="workerPasswordDetail" class="form-input" placeholder="Minimum 6 characters" minlength="6" required>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button type="button" id="cancelWorkerModalBtnDetail" class="navbar-btn" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-secondary);">Cancel</button>
+                    <button type="submit" id="submitWorkerBtnDetail" class="action-btn" style="background: var(--landlord); color: #fff; padding: 0.6rem 1.25rem; font-weight: 700;">
+                        Create Worker Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
