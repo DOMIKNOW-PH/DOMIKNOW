@@ -187,7 +187,7 @@
             position: fixed;
             bottom: 1.5rem;
             right: 1.5rem;
-            z-index: 999;
+            z-index: 10050;
             background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
             color: #ffffff;
             border: none;
@@ -229,7 +229,7 @@
             border: 1px solid var(--border-color, #e2e8f0);
             border-radius: var(--radius-lg, 16px);
             box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
+            z-index: 10060;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -595,6 +595,9 @@
                 <button type="button" id="leaseModalFooterCloseBtn" onclick="closeLeaseModal()" class="navbar-btn" style="width:auto;">Cancel</button>
             </div>
         </div>
+        </div>
+    </div>
+
     <!-- Floating Chat Head FAB Button (Enabled ONLY when status === 'needs_more_evidence') -->
     <button id="chatHeadFab" class="chat-head-fab hidden" title="Open Admin Inquiry Thread">
         <div class="chat-head-icon">
