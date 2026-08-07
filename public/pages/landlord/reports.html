@@ -478,14 +478,6 @@
                     </div>
                 </div>
 
-                <!-- Admin Remarks -->
-                <div class="detail-section" id="fAdminDecisionSection" style="display:none;">
-                    <div class="detail-title">
-                        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 8l7-5 7 5"></path><path d="M5 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8z"></path><path d="M19 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8z"></path></svg>
-                        Admin Remarks
-                    </div>
-                    <div id="fAdminRemarks" style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;font-size:.875rem;color:var(--text-secondary);line-height:1.6;"></div>
-                </div>
             </div>
 
             <div class="modal-footer" style="display:flex;justify-content:flex-end;">
@@ -532,15 +524,6 @@
                         Evidence
                     </div>
                     <div id="mEvidence"></div>
-                </div>
-
-                <!-- Admin Decision -->
-                <div class="detail-section" id="mDecisionSection" style="display:none;">
-                    <div class="detail-title">
-                        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><path d="M5 8l7-5 7 5"></path><path d="M5 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8z"></path><path d="M19 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8z"></path></svg>
-                        Admin Decision
-                    </div>
-                    <div id="mAdminRemarks" style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;font-size:.875rem;color:var(--text-secondary);line-height:1.6;"></div>
                 </div>
 
                 <!-- Your Explanation -->
@@ -1167,11 +1150,6 @@
                     $('fTenantExpDate').textContent = `Submitted: ${fmtDT(r.tenant_responded_at)}`;
                 }
 
-                if (r.admin_remarks) {
-                    $('fAdminDecisionSection').style.display = 'block';
-                    $('fAdminRemarks').textContent = r.admin_remarks;
-                }
-
                 // Enable Chat Head if status is needs_more_evidence
                 enableChatHead('tenant_report', reportId, 'reporter', r.status);
 
@@ -1339,11 +1317,6 @@
                 if (r.status !== 'pending_admin_review' && r.evidence?.length) {
                     $('mEvidenceSection').style.display = 'block';
                     renderEvidence(r.evidence);
-                }
-
-                if (r.status !== 'pending_admin_review' && r.admin_remarks) {
-                    $('mDecisionSection').style.display = 'block';
-                    $('mAdminRemarks').textContent = r.admin_remarks;
                 }
 
                 if (r.landlord_explanation) {
