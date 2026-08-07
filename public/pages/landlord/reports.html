@@ -1090,7 +1090,6 @@
 
             $('fEvidenceSection').style.display = 'none';
             $('fTenantExpSection').style.display = 'none';
-            $('fAdminDecisionSection').style.display = 'none';
             $('fEvidenceGrid').innerHTML = '';
             $('fStatusBanner').innerHTML = '';
 
@@ -1273,8 +1272,8 @@
             }
             document.body.style.overflow = 'hidden';
 
-            ['mEvidenceSection','mDecisionSection'].forEach(id => $(id).style.display = 'none');
-            ['mExplanationSubmitted','mExplanationForm','mExplanationClosed'].forEach(id => $(id).style.display = 'none');
+            ['mEvidenceSection'].forEach(id => $(id) && ($(id).style.display = 'none'));
+            ['mExplanationSubmitted','mExplanationForm','mExplanationClosed'].forEach(id => $(id) && ($(id).style.display = 'none'));
             $('explanationText').value = '';
             $('explanationError').style.display = 'none';
             $('mEvidence').innerHTML = '';
