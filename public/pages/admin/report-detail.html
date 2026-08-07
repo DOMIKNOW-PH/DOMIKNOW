@@ -355,6 +355,157 @@
             0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
             30% { transform: translateY(-5px); opacity: 1; }
         }
+
+        /* ── Sanction Confirmation Modal ──────────────────────────────── */
+        .sanction-confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 99990;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .sanction-confirm-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .sanction-confirm-box {
+            background: var(--bg-card, #fff);
+            border-radius: 18px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 30px 80px -10px rgba(0,0,0,0.45);
+            overflow: hidden;
+            transform: scale(0.94) translateY(20px);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .sanction-confirm-overlay.open .sanction-confirm-box {
+            transform: scale(1) translateY(0);
+        }
+        .sanction-confirm-header {
+            padding: 1.5rem 1.75rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .sanction-confirm-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            flex-shrink: 0;
+        }
+        .sanction-confirm-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.15rem;
+        }
+        .sanction-confirm-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .sanction-confirm-body {
+            padding: 1.25rem 1.75rem;
+        }
+        .sanction-target-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .sanction-target-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+        .sanction-consequences {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+        }
+        .sanction-consequences-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 0.6rem;
+        }
+        .sanction-consequence-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            line-height: 1.45;
+        }
+        .sanction-consequence-item:last-child { margin-bottom: 0; }
+        .sanction-consequence-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 0.35em;
+        }
+        .sanction-confirm-footer {
+            padding: 1rem 1.75rem 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+        .sanction-btn-cancel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.6rem 1.35rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sanction-btn-cancel:hover { border-color: var(--text-muted); }
+        .sanction-btn-confirm {
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: none;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+        }
+        .sanction-btn-confirm:hover { opacity: 0.88; transform: translateY(-1px); }
+        .sanction-btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     </style>
 </head>
 <body class="app-loading" data-role="admin" data-page-title="Case Investigation Console">
@@ -386,6 +537,45 @@
             </div>
         </div>
     </nav>
+
+    <!-- ── Sanction Confirmation Modal ─────────────────────────────────── -->
+    <div id="sanctionConfirmOverlay" class="sanction-confirm-overlay">
+        <div class="sanction-confirm-box">
+            <div class="sanction-confirm-header">
+                <div id="sanctionConfirmIcon" class="sanction-confirm-icon"></div>
+                <div>
+                    <div id="sanctionConfirmTitle" class="sanction-confirm-title">Confirm Enforcement Action</div>
+                    <div class="sanction-confirm-subtitle">This action will be permanently recorded in the case audit log.</div>
+                </div>
+            </div>
+            <div class="sanction-confirm-body">
+                <!-- Target user -->
+                <div class="sanction-target-box">
+                    <div id="sanctionTargetAvatar" class="sanction-target-avatar">?</div>
+                    <div>
+                        <div id="sanctionTargetName" style="font-weight:800; font-size:0.9rem; color:var(--text-primary);">Target User</div>
+                        <div id="sanctionTargetRole" style="font-size:0.75rem; color:var(--text-muted);">Role</div>
+                    </div>
+                </div>
+                <!-- Consequences list -->
+                <div class="sanction-consequences">
+                    <div class="sanction-consequences-title">⚠️ What will happen</div>
+                    <div id="sanctionConsequencesList"></div>
+                </div>
+                <!-- Remarks preview -->
+                <div style="font-size:0.78rem; color:var(--text-muted); background:var(--bg-secondary); border-radius:8px; padding:0.65rem 0.85rem; border:1px solid var(--border-color);">
+                    <span style="font-weight:700;">Remarks:</span> <span id="sanctionRemarksPreview" style="font-style:italic;">—</span>
+                </div>
+            </div>
+            <div class="sanction-confirm-footer">
+                <button type="button" class="sanction-btn-cancel" id="sanctionCancelBtn">Cancel</button>
+                <button type="button" class="sanction-btn-confirm" id="sanctionConfirmBtn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Confirm &amp; Enforce
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Content Console -->
     <main class="dashboard-container">
@@ -866,28 +1056,164 @@
 
             const suspensionDays = selectedAction === 'suspend' ? parseInt(document.getElementById('suspensionDaysInput').value) : null;
 
-            const endpoint = reportType === 'landlord_report' 
-                ? `/api/admin/landlord-reports/${reportId}/decision` 
-                : `/api/admin/tenant-reports/${reportId}/decision`;
+            // Determine target user from ticket
+            const isLandlordReport = reportType === 'landlord_report';
+            // In tenant_report: landlord is reporter, tenant is target
+            // In landlord_report: tenant is reporter, landlord is target
+            const targetName = isLandlordReport
+                ? (currentTicket.landlord?.full_name || currentTicket.landlord_name || 'Landlord')
+                : (currentTicket.tenant?.full_name  || currentTicket.tenant_name  || 'Tenant');
+            const targetRole = isLandlordReport ? 'Landlord' : 'Tenant';
 
-            try {
-                const res = await fetch(endpoint, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ action: selectedAction, admin_remarks: remarks, suspension_days: suspensionDays })
-                });
-
-                if (res.ok) {
-                    alert('Sanction enforced and ticket updated successfully!');
-                    fetchTicketDetail();
-                } else {
-                    const r = await res.json();
-                    showAlert(r.message || 'Failed to enforce decision.');
+            // Build action-specific metadata
+            const actionMeta = {
+                dismiss: {
+                    icon: '🛡️',
+                    iconBg: 'rgba(100,116,139,0.15)',
+                    iconColor: '#64748b',
+                    title: 'Dismiss Report',
+                    btnColor: '#64748b',
+                    consequences: [
+                        { dot: '#94a3b8', text: 'Report status will be set to Dismissed / Rejected.' },
+                        { dot: '#94a3b8', text: 'No penalty will be applied to the reported user.' },
+                        { dot: '#94a3b8', text: 'Decision remarks will be recorded in the case file.' }
+                    ]
+                },
+                warning: {
+                    icon: '⚠️',
+                    iconBg: 'rgba(245,158,11,0.15)',
+                    iconColor: '#f59e0b',
+                    title: 'Issue Formal Warning',
+                    btnColor: '#f59e0b',
+                    consequences: [
+                        { dot: '#f59e0b', text: `A formal TOS warning will be officially recorded against ${targetName}'s account.` },
+                        { dot: '#f59e0b', text: 'The report status will be set to Action Enforced / Resolved.' },
+                        { dot: '#94a3b8', text: 'Account access is not affected — this is a warning only.' },
+                        { dot: '#94a3b8', text: 'Repeated violations may lead to suspension or ban.' }
+                    ]
+                },
+                suspend: {
+                    icon: '⛔',
+                    iconBg: 'rgba(249,115,22,0.15)',
+                    iconColor: '#f97316',
+                    title: `Temporary Suspension (${suspensionDays || 7} Days)`,
+                    btnColor: '#f97316',
+                    consequences: [
+                        { dot: '#f97316', text: `${targetName}'s account will be suspended for ${suspensionDays || 7} day(s).` },
+                        { dot: '#f97316', text: 'They will be blocked from logging in during the suspension period.' },
+                        { dot: '#22c55e', text: 'Account will be automatically restored after the suspension period expires.' },
+                        { dot: '#94a3b8', text: 'The report status will be set to Action Enforced / Resolved.' }
+                    ]
+                },
+                ban: {
+                    icon: '🚫',
+                    iconBg: 'rgba(225,29,72,0.12)',
+                    iconColor: '#e11d48',
+                    title: 'Permanent Account Ban',
+                    btnColor: '#e11d48',
+                    consequences: isLandlordReport
+                        ? [
+                            { dot: '#e11d48', text: `${targetName}'s account will be PERMANENTLY banned from the platform.` },
+                            { dot: '#e11d48', text: 'All their property listings will be immediately deactivated and hidden.' },
+                            { dot: '#e11d48', text: 'They will be blocked from ever logging in again.' },
+                            { dot: '#f97316', text: 'This action is IRREVERSIBLE. Proceed with utmost caution.' }
+                        ]
+                        : [
+                            { dot: '#e11d48', text: `${targetName}'s account will be PERMANENTLY banned from the platform.` },
+                            { dot: '#e11d48', text: 'They will be blocked from ever logging in again.' },
+                            { dot: '#f97316', text: 'This action is IRREVERSIBLE. Proceed with utmost caution.' }
+                        ]
                 }
-            } catch (err) {
-                console.error(err);
-                showAlert('Network error during decision enforcement.');
+            };
+
+            const meta = actionMeta[selectedAction] || actionMeta.dismiss;
+
+            // Populate modal
+            const icon = document.getElementById('sanctionConfirmIcon');
+            icon.textContent = meta.icon;
+            icon.style.background = meta.iconBg;
+
+            document.getElementById('sanctionConfirmTitle').textContent = meta.title;
+
+            const avatar = document.getElementById('sanctionTargetAvatar');
+            avatar.textContent = targetName.charAt(0).toUpperCase();
+
+            document.getElementById('sanctionTargetName').textContent = targetName;
+            document.getElementById('sanctionTargetRole').textContent = targetRole + ' — ' + (isLandlordReport ? 'Landlord vs Tenant Report' : 'Tenant vs Landlord Report');
+            document.getElementById('sanctionRemarksPreview').textContent = remarks.length > 120 ? remarks.substring(0, 120) + '…' : remarks;
+
+            const list = document.getElementById('sanctionConsequencesList');
+            list.innerHTML = meta.consequences.map(c =>
+                `<div class="sanction-consequence-item">
+                    <div class="sanction-consequence-dot" style="background:${c.dot};"></div>
+                    <span>${c.text}</span>
+                </div>`
+            ).join('');
+
+            const confirmBtn = document.getElementById('sanctionConfirmBtn');
+            confirmBtn.style.background = meta.btnColor;
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = '';
+            confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Confirm &amp; Enforce`;
+
+            // Open modal
+            const overlay = document.getElementById('sanctionConfirmOverlay');
+            overlay.classList.add('open');
+
+            // Confirm button handler (one-time)
+            confirmBtn.onclick = async () => {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Enforcing...`;
+
+                const endpoint = reportType === 'landlord_report'
+                    ? `/api/admin/landlord-reports/${reportId}/decision`
+                    : `/api/admin/tenant-reports/${reportId}/decision`;
+
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ action: selectedAction, admin_remarks: remarks, suspension_days: suspensionDays })
+                    });
+
+                    overlay.classList.remove('open');
+
+                    if (res.ok) {
+                        const r = await res.json();
+                        showSuccessBanner(r.message || 'Sanction enforced and ticket updated successfully!');
+                        fetchTicketDetail();
+                    } else {
+                        const r = await res.json();
+                        showAlert(r.message || 'Failed to enforce decision.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    overlay.classList.remove('open');
+                    showAlert('Network error during decision enforcement.');
+                }
+            };
+        }
+
+        document.getElementById('sanctionCancelBtn').addEventListener('click', () => {
+            document.getElementById('sanctionConfirmOverlay').classList.remove('open');
+        });
+        document.getElementById('sanctionConfirmOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('sanctionConfirmOverlay')) {
+                document.getElementById('sanctionConfirmOverlay').classList.remove('open');
             }
+        });
+
+        function showSuccessBanner(msg) {
+            let banner = document.getElementById('successBanner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'successBanner';
+                banner.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-80px);background:#16a34a;color:white;padding:0.85rem 1.75rem;border-radius:50px;font-weight:800;font-size:0.88rem;z-index:99999;box-shadow:0 8px 25px rgba(22,163,74,0.4);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);display:flex;align-items:center;gap:0.5rem;';
+                document.body.appendChild(banner);
+            }
+            banner.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> ${msg}`;
+            setTimeout(() => { banner.style.transform = 'translateX(-50%) translateY(0)'; }, 10);
+            setTimeout(() => { banner.style.transform = 'translateX(-50%) translateY(-80px)'; }, 4000);
         }
 
         let lastMessageCount = 0;
