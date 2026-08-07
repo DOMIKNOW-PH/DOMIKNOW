@@ -6,111 +6,144 @@
     <title>Report Management & Triage Console - DomiKnow</title>
     <link href="../../css/input.css" rel="stylesheet">
     <style>
-        /* ── Action Capability Banner ────────────────────────────── */
+        /* ── Modern Action Capability Banner ────────────────────────────── */
         .actions-capability-banner {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-left: 4px solid var(--admin);
-            border-radius: var(--radius-md);
-            padding: 1rem 1.25rem;
-            margin-top: 1rem;
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            margin-top: 1.25rem;
             box-shadow: var(--shadow-sm);
         }
         .actions-banner-title {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             font-weight: 800;
             color: var(--text-primary);
             text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin-bottom: 0.6rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.85rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
         .actions-banner-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 0.75rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.85rem;
         }
         .action-banner-item {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 0.65rem 0.85rem;
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
             display: flex;
             align-items: flex-start;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
-        .action-banner-item-icon {
-            font-size: 1.2rem;
-            line-height: 1;
+        .action-banner-item:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+        .action-icon-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
         .action-banner-item-name {
-            font-size: 0.82rem;
-            font-weight: 750;
+            font-size: 0.84rem;
+            font-weight: 800;
             color: var(--text-primary);
+            margin-bottom: 0.15rem;
         }
         .action-banner-item-desc {
-            font-size: 0.72rem;
+            font-size: 0.73rem;
             color: var(--text-muted);
-            line-height: 1.3;
+            line-height: 1.35;
         }
 
         /* ── KPI Summary Strip ─────────────────────────────────── */
         .summary-strip {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 1rem;
-            margin: 1.25rem 0;
-            flex-wrap: wrap;
+            margin: 1.5rem 0;
         }
         .summary-card {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 1rem 1.25rem;
-            box-shadow: var(--shadow-md);
+            border-radius: var(--radius-lg);
+            padding: 1.1rem 1.25rem;
+            box-shadow: var(--shadow-sm);
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
-            min-width: 150px;
-            flex: 1;
+            gap: 0.35rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .summary-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .summary-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .summary-value {
-            font-size: 1.8rem;
-            font-weight: 800;
+            font-size: 1.9rem;
+            font-weight: 850;
             color: var(--text-primary);
+            line-height: 1;
         }
         .summary-label {
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.72rem;
+            font-weight: 750;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
         }
 
-        /* ── Filter Buttons ────────────────────────────────────── */
+        /* ── Filter Pill Buttons ────────────────────────────────── */
         .filters-group {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
-            margin-top: 1rem;
-            margin-bottom: 1rem;
+            margin-top: 1.25rem;
+            margin-bottom: 1.25rem;
         }
         .filter-btn {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             color: var(--text-secondary);
-            padding: 0.45rem 0.9rem;
+            padding: 0.45rem 1.1rem;
             font-size: 0.8rem;
-            border-radius: var(--radius-sm);
+            border-radius: 50px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             transition: all 0.2s ease;
         }
-        .filter-btn.active {
-            background: var(--admin);
-            color: white;
+        .filter-btn:hover {
             border-color: var(--admin);
+            color: var(--text-primary);
+        }
+        .filter-btn.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
         /* ── Table Styling ─────────────────────────────────────── */
@@ -119,106 +152,96 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
             padding: 1.25rem;
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
             overflow-x: auto;
         }
         table {
             width: 100%;
-            min-width: 1100px;
-            border-collapse: collapse;
+            min-width: 1000px;
+            border-collapse: separate;
+            border-spacing: 0;
             text-align: left;
             font-size: 0.88rem;
         }
         th {
-            font-weight: 700;
-            color: var(--text-secondary);
-            padding: 0.75rem 0.85rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            padding: 0.85rem 1rem;
             border-bottom: 2px solid var(--border-color);
             text-transform: uppercase;
-            font-size: 0.72rem;
-            letter-spacing: 0.05em;
+            font-size: 0.7rem;
+            letter-spacing: 0.06em;
         }
         td {
-            padding: 0.85rem;
+            padding: 1rem;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
-            vertical-align: top;
+            vertical-align: middle;
+        }
+        tr:last-child td {
+            border-bottom: none;
         }
         tr:hover td {
-            background-color: var(--bg-primary);
+            background-color: rgba(59, 130, 246, 0.03);
         }
 
         /* ── Badge Helpers ────────────────────────────────────── */
         .chip-type {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
             font-size: 0.7rem;
             font-weight: 800;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
             text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
-        .chip-landlord-vs-tenant { background: rgba(59, 130, 246, 0.15); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .chip-tenant-vs-landlord { background: rgba(168, 85, 247, 0.15); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .chip-landlord-vs-tenant { background: rgba(59, 130, 246, 0.12); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .chip-tenant-vs-landlord { background: rgba(168, 85, 247, 0.12); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.3); }
 
         .prio-badge {
-            display: inline-block;
-            padding: 0.2rem 0.55rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.65rem;
             font-size: 0.7rem;
             font-weight: 800;
-            border-radius: 12px;
+            border-radius: 50px;
             text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
-        .prio-critical { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
-        .prio-major, .prio-high { background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; }
-        .prio-normal, .prio-moderate { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
-        .prio-low, .prio-minor { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+        .prio-critical { background: rgba(225, 29, 72, 0.12); color: #e11d48; border: 1px solid rgba(225, 29, 72, 0.3); }
+        .prio-major, .prio-high { background: rgba(249, 115, 22, 0.12); color: #ea580c; border: 1px solid rgba(249, 115, 22, 0.3); }
+        .prio-normal, .prio-moderate { background: rgba(59, 130, 246, 0.12); color: #0284c7; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .prio-low, .prio-minor { background: rgba(100, 116, 139, 0.12); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.3); }
 
-        /* ── Prominent Action Buttons in Table ──────────────────── */
-        .btn-investigate {
-            background-color: var(--admin);
-            color: white;
+        /* ── Single Action Button in Table ──────────────────────── */
+        .btn-open-report {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: #ffffff !important;
             border: none;
-            padding: 0.4rem 0.75rem;
-            font-size: 0.78rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
             font-weight: 750;
-            border-radius: var(--radius-sm);
+            border-radius: 8px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
-            transition: opacity 0.2s;
+            gap: 0.4rem;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            white-space: nowrap;
         }
-        .btn-investigate:hover { opacity: 0.9; }
-
-        .action-pill-group {
-            display: flex;
-            gap: 0.3rem;
-            flex-wrap: wrap;
-            margin-top: 0.4rem;
+        .btn-open-report:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+            color: #ffffff !important;
         }
-        .action-pill-btn {
-            padding: 0.25rem 0.55rem;
-            font-size: 0.72rem;
-            font-weight: 750;
-            border-radius: 4px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.2rem;
-            border: 1px solid transparent;
-            transition: all 0.15s ease;
+        .btn-open-report:active {
+            transform: translateY(0);
         }
-        .action-pill-warn { background: #ffedd5; color: #c2410c; border-color: #fed7aa; }
-        .action-pill-warn:hover { background: #fed7aa; }
-
-        .action-pill-suspend { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
-        .action-pill-suspend:hover { background: #fca5a5; }
-
-        .action-pill-ban { background: #7f1d1d; color: #ffffff; border-color: #991b1b; }
-        .action-pill-ban:hover { background: #991b1b; }
-
-        .action-pill-dismiss { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
-        .action-pill-dismiss:hover { background: #e2e8f0; }
 
         /* ── Modal Styling ─────────────────────────────────────── */
         .modal-overlay {
@@ -414,42 +437,50 @@
 
     <!-- Main Content -->
     <main class="dashboard-container">
-        <h2>Report Management & Disciplinary Action Console</h2>
+        <h2>Report Management &amp; Disciplinary Action Console</h2>
         <p style="color: var(--text-secondary);">Audit incident reports between Landlords and Tenants, conduct priority triage, evaluate media evidence, and enforce system disciplinary actions.</p>
 
         <!-- Admin Action Capabilities Banner -->
         <div class="actions-capability-banner">
             <div class="actions-banner-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 Admin Enforcement Action Capabilities
             </div>
             <div class="actions-banner-grid">
                 <div class="action-banner-item">
-                    <span class="action-banner-item-icon">🛡️</span>
+                    <div class="action-icon-badge" style="background: rgba(100, 116, 139, 0.12); color: #64748b;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
                     <div>
                         <div class="action-banner-item-name">1. Dismissal</div>
                         <div class="action-banner-item-desc">Dismiss report due to lack of evidence or no policy violation.</div>
                     </div>
                 </div>
                 <div class="action-banner-item">
-                    <span class="action-banner-item-icon">⚠️</span>
+                    <div class="action-icon-badge" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
                     <div>
                         <div class="action-banner-item-name">2. Formal Warning</div>
                         <div class="action-banner-item-desc">Issue official administrative warning notice to reported user.</div>
                     </div>
                 </div>
                 <div class="action-banner-item">
-                    <span class="action-banner-item-icon">⛔</span>
+                    <div class="action-icon-badge" style="background: rgba(249, 115, 22, 0.12); color: #f97316;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
                     <div>
                         <div class="action-banner-item-name">3. Temporary Suspension</div>
-                        <div class="action-banner-item-desc">Temporarily lock user account & hide listings (7, 14, or 30 days).</div>
+                        <div class="action-banner-item-desc">Temporarily lock user account &amp; hide listings (7, 14, or 30 days).</div>
                     </div>
                 </div>
                 <div class="action-banner-item">
-                    <span class="action-banner-item-icon">🚫</span>
+                    <div class="action-icon-badge" style="background: rgba(225, 29, 72, 0.12); color: #e11d48;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    </div>
                     <div>
                         <div class="action-banner-item-name" style="color:var(--error);">4. Permanent Ban</div>
-                        <div class="action-banner-item-desc">Permanently ban account & purge active property listings.</div>
+                        <div class="action-banner-item-desc">Permanently ban account &amp; purge active property listings.</div>
                     </div>
                 </div>
             </div>
@@ -458,23 +489,48 @@
         <!-- Summary Strip -->
         <div class="summary-strip">
             <div class="summary-card">
-                <div class="summary-label">Total Incident Tickets</div>
+                <div class="summary-header-row">
+                    <div class="summary-label">Total Incident Tickets</div>
+                    <div class="summary-icon-box" style="background: rgba(100, 116, 139, 0.12); color: #64748b;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                </div>
                 <div class="summary-value" id="kpiTotal">0</div>
             </div>
             <div class="summary-card">
-                <div class="summary-label" style="color: #ea580c;">New / Pending Triage</div>
+                <div class="summary-header-row">
+                    <div class="summary-label" style="color: #ea580c;">New / Pending Triage</div>
+                    <div class="summary-icon-box" style="background: rgba(234, 88, 12, 0.12); color: #ea580c;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                </div>
                 <div class="summary-value" id="kpiPending" style="color: #ea580c;">0</div>
             </div>
             <div class="summary-card">
-                <div class="summary-label" style="color: #2563eb;">Under Investigation</div>
+                <div class="summary-header-row">
+                    <div class="summary-label" style="color: #2563eb;">Under Investigation</div>
+                    <div class="summary-icon-box" style="background: rgba(37, 99, 235, 0.12); color: #2563eb;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
+                </div>
                 <div class="summary-value" id="kpiReview" style="color: #2563eb;">0</div>
             </div>
             <div class="summary-card">
-                <div class="summary-label" style="color: #9333ea;">Waiting For Evidence</div>
+                <div class="summary-header-row">
+                    <div class="summary-label" style="color: #9333ea;">Waiting For Evidence</div>
+                    <div class="summary-icon-box" style="background: rgba(147, 51, 234, 0.12); color: #9333ea;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                    </div>
+                </div>
                 <div class="summary-value" id="kpiNeedsEvidence" style="color: #9333ea;">0</div>
             </div>
             <div class="summary-card">
-                <div class="summary-label" style="color: #16a34a;">Actions Enforced</div>
+                <div class="summary-header-row">
+                    <div class="summary-label" style="color: #16a34a;">Actions Enforced</div>
+                    <div class="summary-icon-box" style="background: rgba(22, 163, 74, 0.12); color: #16a34a;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                </div>
                 <div class="summary-value" id="kpiResolved" style="color: #16a34a;">0</div>
             </div>
         </div>
@@ -495,18 +551,18 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 140px;">Ticket & Type</th>
-                        <th style="width: 200px;">Reporter & Target User</th>
-                        <th>Category & Incident Summary</th>
-                        <th style="width: 110px;">Priority</th>
-                        <th style="width: 120px;">Status Stage</th>
-                        <th style="width: 100px;">Date Filed</th>
-                        <th style="width: 230px;">Admin Actions & Enforcement</th>
+                        <th style="width: 160px;">Ticket &amp; Type</th>
+                        <th style="width: 220px;">Reporter &amp; Target User</th>
+                        <th>Category &amp; Incident Summary</th>
+                        <th style="width: 120px;">Priority</th>
+                        <th style="width: 130px;">Status Stage</th>
+                        <th style="width: 110px;">Date Filed</th>
+                        <th style="width: 140px; text-align: center;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="reportsTableBody">
                     <tr>
-                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading incident tickets...</td>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">Loading incident tickets...</td>
                     </tr>
                 </tbody>
             </table>
@@ -519,7 +575,7 @@
             <div class="modal-header">
                 <div>
                     <div style="display:flex; align-items:center; gap:0.5rem;">
-                        <h3 id="modalTicketTitle" style="font-size: 1.1rem; font-weight: 800;">Ticket Investigation & Action Enforcement</h3>
+                        <h3 id="modalTicketTitle" style="font-size: 1.1rem; font-weight: 800;">Ticket Investigation &amp; Action Enforcement</h3>
                         <span id="modalTypeChip" class="chip-type"></span>
                     </div>
                     <div style="font-size:0.75rem; color:var(--text-muted);" id="modalTicketSubtitle">Filed Date: —</div>
@@ -534,7 +590,7 @@
                 <div class="case-section">
                     <div class="case-section-title">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        Involved Parties & Rental Context
+                        Involved Parties &amp; Rental Context
                     </div>
                     <div class="info-grid">
                         <div class="info-block">
@@ -548,7 +604,7 @@
                             <div style="font-size:0.75rem; color:var(--text-muted);" id="modalTargetContact">—</div>
                         </div>
                         <div class="info-block">
-                            <label>Property & Unit</label>
+                            <label>Property &amp; Unit</label>
                             <div id="modalPropertyName">—</div>
                             <div style="font-size:0.75rem; color:var(--text-muted);" id="modalUnitInfo">—</div>
                         </div>
@@ -559,7 +615,7 @@
                     </div>
                 </div>
 
-                <!-- 2. PLACED AT THE TOP FOR IMMEDIATE VISIBILITY: Decision & Enforcement Action Selection -->
+                <!-- 2. Action Enforcement Selection -->
                 <div class="case-section" style="background: rgba(225, 29, 72, 0.04); border: 2px solid rgba(225, 29, 72, 0.3);">
                     <div class="case-section-title" style="color: var(--error); font-size:0.9rem;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -568,20 +624,32 @@
 
                     <div class="action-options-grid">
                         <div class="action-card-btn selected" data-action-type="dismiss" onclick="selectActionType('dismiss')">
-                            <div class="action-card-title">🛡️ Dismissal</div>
+                            <div class="action-card-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                Dismissal
+                            </div>
                             <div class="action-card-desc">Dismiss report due to lack of evidence or no policy violation.</div>
                         </div>
                         <div class="action-card-btn" data-action-type="warning" onclick="selectActionType('warning')">
-                            <div class="action-card-title">⚠️ Formal Warning</div>
+                            <div class="action-card-title" style="color:#f59e0b;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Formal Warning
+                            </div>
                             <div class="action-card-desc">Issue official warning notice to reported user.</div>
                         </div>
                         <div class="action-card-btn" data-action-type="suspend" onclick="selectActionType('suspend')">
-                            <div class="action-card-title">⛔ Temporary Suspension</div>
-                            <div class="action-card-desc">Temporarily lock account & hide listings (7, 14, 30 days).</div>
+                            <div class="action-card-title" style="color:#f97316;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                Temporary Suspension
+                            </div>
+                            <div class="action-card-desc">Temporarily lock account &amp; hide listings (7, 14, 30 days).</div>
                         </div>
                         <div class="action-card-btn" data-action-type="ban" onclick="selectActionType('ban')">
-                            <div class="action-card-title" style="color:var(--error);">🚫 Permanent Ban</div>
-                            <div class="action-card-desc">Permanently ban account & deactivate all property listings.</div>
+                            <div class="action-card-title" style="color:var(--error);">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                Permanent Ban
+                            </div>
+                            <div class="action-card-desc">Permanently ban account &amp; deactivate all property listings.</div>
                         </div>
                     </div>
 
@@ -595,7 +663,7 @@
                     </div>
 
                     <div class="form-group" style="margin-top:1rem; margin-bottom:0;">
-                        <label class="form-label" for="decisionRemarks">Official Findings & Decision Remarks <span style="color:var(--error);">*</span></label>
+                        <label class="form-label" for="decisionRemarks">Official Findings &amp; Decision Remarks <span style="color:var(--error);">*</span></label>
                         <textarea id="decisionRemarks" class="form-input" rows="2" placeholder="State official findings, platform TOS grounds, or reasons for dismissal/disciplinary sanction..."></textarea>
                     </div>
                 </div>
@@ -604,16 +672,16 @@
                 <div class="case-section" style="background: rgba(59, 130, 246, 0.04); border-color: rgba(59, 130, 246, 0.2);">
                     <div class="case-section-title" style="color: var(--landlord);">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                        Intake & Priority Triage Stage Control
+                        Intake &amp; Priority Triage Stage Control
                     </div>
                     <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
                         <div class="form-group" style="margin-bottom:0; flex:1; min-width:160px;">
                             <label class="form-label" for="triagePrioritySelect">Priority Level</label>
                             <select id="triagePrioritySelect" class="form-input">
-                                <option value="critical">🚨 Critical / High (Threats, Safety, Scams)</option>
-                                <option value="major">⚠️ Major / High Priority</option>
-                                <option value="moderate">🔵 Moderate / Normal Priority</option>
-                                <option value="minor">⚪ Minor / Low Priority</option>
+                                <option value="critical">Critical / High (Threats, Safety, Scams)</option>
+                                <option value="major">Major / High Priority</option>
+                                <option value="moderate">Moderate / Normal Priority</option>
+                                <option value="minor">Minor / Low Priority</option>
                             </select>
                         </div>
                         <div class="form-group" style="margin-bottom:0; flex:1; min-width:160px;">
@@ -634,11 +702,11 @@
                 <div class="case-section">
                     <div class="case-section-title">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                        Evidence Media & Statements
+                        Evidence Media &amp; Statements
                     </div>
 
                     <div style="margin-bottom:1rem;">
-                        <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Incident Category & Narrative</label>
+                        <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Incident Category &amp; Narrative</label>
                         <div id="modalCategoryBadge" style="font-weight:700; color:var(--text-primary); margin:0.2rem 0;">—</div>
                         <div id="modalDescription" style="font-size:0.88rem; color:var(--text-secondary); background:var(--bg-secondary); padding:0.85rem; border-radius:var(--radius-sm); border:1px solid var(--border-color); white-space:pre-wrap;">—</div>
                     </div>
@@ -662,7 +730,7 @@
                 <div class="case-section" style="background: rgba(168, 85, 247, 0.04); border-color: rgba(168, 85, 247, 0.2);">
                     <div class="case-section-title" style="color: #9333ea;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        Admin Case Inquiry & Discussion Thread
+                        Admin Case Inquiry &amp; Discussion Thread
                     </div>
                     
                     <!-- Messages Feed -->
@@ -691,7 +759,7 @@
             <div class="modal-footer">
                 <button type="button" onclick="closeInvestigateModal()" class="navbar-btn">Cancel</button>
                 <button type="button" id="executeDecisionBtn" class="btn-investigate" style="background:var(--error); padding:0.6rem 1.5rem;">
-                    Enforce Selected Action & Close Ticket
+                    Enforce Selected Action &amp; Close Ticket
                 </button>
             </div>
         </div>
@@ -780,7 +848,7 @@
             });
 
             if (filtered.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No incident tickets match the selected filter.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">No incident tickets match the selected filter.</td></tr>`;
                 return;
             }
 
@@ -788,8 +856,8 @@
             filtered.forEach(t => {
                 const isLandlordReport = t._type === 'landlord_report';
                 const typeChip = isLandlordReport 
-                    ? `<span class="chip-type chip-tenant-vs-landlord">Tenant vs Landlord</span>` 
-                    : `<span class="chip-type chip-landlord-vs-tenant">Landlord vs Tenant</span>`;
+                    ? `<span class="chip-type chip-tenant-vs-landlord"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg> Tenant vs Landlord</span>` 
+                    : `<span class="chip-type chip-landlord-vs-tenant"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg> Landlord vs Tenant</span>`;
 
                 const reporterName = isLandlordReport ? (t.tenant?.full_name || 'Tenant') : (t.landlord?.full_name || 'Landlord');
                 const targetName   = isLandlordReport ? (t.landlord?.full_name || 'Landlord') : (t.tenant?.full_name || 'Tenant');
@@ -803,8 +871,8 @@
                 else if (t.severity === 'minor' || t.severity === 'low') prioClass = 'prio-low';
 
                 let statusBadge = `<span class="status-badge status-pending">Pending Review</span>`;
-                if (t.status === 'in_review') statusBadge = `<span class="status-badge" style="background:#dbeafe; color:#1e40af; border:1px solid #93c5fd;">In Review</span>`;
-                else if (t.status === 'needs_more_evidence') statusBadge = `<span class="status-badge" style="background:#f3e8ff; color:#6b21a8; border:1px solid #d8b4fe;">Needs Evidence</span>`;
+                if (t.status === 'in_review') statusBadge = `<span class="status-badge" style="background:rgba(59,130,246,0.12); color:#1e40af; border:1px solid rgba(59,130,246,0.3);">In Review</span>`;
+                else if (t.status === 'needs_more_evidence') statusBadge = `<span class="status-badge" style="background:rgba(147,51,234,0.12); color:#6b21a8; border:1px solid rgba(147,51,234,0.3);">Needs Evidence</span>`;
                 else if (['approved', 'resolved'].includes(t.status)) statusBadge = `<span class="status-badge status-active">Action Enforced</span>`;
                 else if (['dismissed', 'rejected'].includes(t.status)) statusBadge = `<span class="status-badge status-rejected">Dismissed</span>`;
 
@@ -812,30 +880,27 @@
                 row.innerHTML = `
                     <td>
                         ${typeChip}
-                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem;">ID: #${t.id.slice(0,8)}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-weight:600;">ID: #${t.id.slice(0,8)}</div>
                     </td>
                     <td>
-                        <div><strong>From:</strong> ${reporterName}</div>
-                        <div style="color:var(--error); font-weight:700; font-size:0.8rem; margin-top:0.2rem;">👤 Target: ${targetName}</div>
+                        <div style="font-size:0.85rem; font-weight:600;"><strong>From:</strong> ${reporterName}</div>
+                        <div style="color:var(--error); font-weight:700; font-size:0.8rem; margin-top:0.25rem; display:flex; align-items:center; gap:0.25rem;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            Target: ${targetName}
+                        </div>
                     </td>
                     <td>
-                        <div style="font-weight:700; text-transform:capitalize; color:var(--text-primary);">${categoryText}</div>
-                        <div style="font-size:0.75rem; color:var(--text-secondary); max-width: 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${description}</div>
+                        <div style="font-weight:750; text-transform:capitalize; color:var(--text-primary); margin-bottom:0.15rem;">${categoryText}</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary); max-width: 250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${description}</div>
                     </td>
                     <td><span class="prio-badge ${prioClass}">${t.severity || 'normal'}</span></td>
                     <td>${statusBadge}</td>
-                    <td>${createdDate}</td>
-                    <td>
-                        <a href="report-detail.html?id=${t.id}&type=${t._type}&action=investigate" class="btn-investigate" style="text-decoration:none;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            🔍 Investigate Console
+                    <td style="font-size:0.82rem; font-weight:600; color:var(--text-secondary);">${createdDate}</td>
+                    <td style="text-align: center;">
+                        <a href="report-detail.html?id=${t.id}&type=${t._type}" class="btn-open-report">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            Open Report
                         </a>
-                        <div class="action-pill-group">
-                            <a href="report-detail.html?id=${t.id}&type=${t._type}&action=warning" class="action-pill-btn action-pill-warn" style="text-decoration:none;" title="Issue Formal Warning">⚠️ Warn</a>
-                            <a href="report-detail.html?id=${t.id}&type=${t._type}&action=suspend" class="action-pill-btn action-pill-suspend" style="text-decoration:none;" title="Temporary Suspension">⛔ Suspend</a>
-                            <a href="report-detail.html?id=${t.id}&type=${t._type}&action=ban" class="action-pill-btn action-pill-ban" style="text-decoration:none;" title="Permanent Ban">🚫 Ban</a>
-                            <a href="report-detail.html?id=${t.id}&type=${t._type}&action=dismiss" class="action-pill-btn action-pill-dismiss" style="text-decoration:none;" title="Dismiss Ticket">🛡️ Dismiss</a>
-                        </div>
                     </td>
                 `;
                 tableBody.appendChild(row);
