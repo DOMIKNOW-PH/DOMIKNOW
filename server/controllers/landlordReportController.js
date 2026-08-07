@@ -1,5 +1,6 @@
 const landlordReportModel = require('../models/landlordReportModel');
 const userModel          = require('../models/userModel');
+const propertyModel      = require('../models/propertyModel');
 const responseHelper     = require('../utils/responseHelper');
 const auditLogModel  = require('../models/auditLogModel');
 const storageHelper  = require('../utils/storageHelper');
@@ -352,17 +353,19 @@ const landlordReportController = {
             } else if (action === 'warning') {
                 finalStatus = 'approved';
                 auditAction = 'ISSUE_WARNING_LANDLORD';
-                successMessage = `Formal warning issued to landlord ${report.landlord?.full_name || ''}.`;
+                successMessage = `Formal warning issued to landlord ${report.landlord?.full_name || report.landlord_id}. This warning is recorded on their account.`;
             } else if (action === 'suspend') {
                 finalStatus = 'approved';
                 auditAction = 'SUSPEND_LANDLORD_ACCOUNT';
-                await userModel.updateStatus(report.landlord_id, 'suspended');
-                successMessage = `Landlord account suspended for ${suspension_days || 7} days.`;
+                await userModel.updateSuspension(report.landlord_id, parseInt(suspension_days) || 7);
+                successMessage = `Landlord account suspended for ${suspension_days || 7} days. Account will be automatically restored after the suspension period.`;
             } else if (action === 'ban') {
                 finalStatus = 'approved';
                 auditAction = 'BAN_LANDLORD_ACCOUNT';
                 await userModel.updateStatus(report.landlord_id, 'banned');
-                successMessage = 'Landlord account permanently banned.';
+                // Deactivate all properties owned by this landlord
+                const deactivated = await propertyModel.deactivateByLandlordId(report.landlord_id);
+                successMessage = `Landlord account permanently banned. ${deactivated.length} property listing(s) have been deactivated.`;
             } else if (status === 'approved') {
                 finalStatus = 'approved';
                 auditAction = 'APPROVE_LANDLORD_REPORT';

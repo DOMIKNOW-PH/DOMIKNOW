@@ -191,6 +191,20 @@ const authController = {
                 return responseHelper.error(res, 'Your account application was rejected.', null, 403);
             }
 
+            // Auto-lift expired suspensions before enforcing block
+            const currentUser = await userModel.liftExpiredSuspension(user);
+
+            if (currentUser.account_status === 'suspended') {
+                const liftAt = currentUser.suspension_lifted_at ? new Date(currentUser.suspension_lifted_at) : null;
+                const daysLeft = liftAt ? Math.ceil((liftAt - new Date()) / (1000 * 60 * 60 * 24)) : '?';
+                await auditLogModel.log(user.id, 'LOGIN_BLOCKED', `Account suspended. Lifts in ${daysLeft} day(s).`);
+                return responseHelper.error(res, `Your account has been temporarily suspended. It will be lifted in ${daysLeft} day(s). Contact support for assistance.`, null, 403);
+            }
+            if (currentUser.account_status === 'banned') {
+                await auditLogModel.log(user.id, 'LOGIN_BLOCKED', 'Account permanently banned.');
+                return responseHelper.error(res, 'Your account has been permanently banned from the platform due to a serious platform violation. Contact support if you believe this is an error.', null, 403);
+            }
+
             // 4. Generate JWT token
             const token = jwt.sign(
                 { id: user.id, role: user.role },

@@ -56,12 +56,64 @@ const userModel = {
     async updateStatus(id, status) {
         const { data, error } = await supabase
             .from('users')
-            .update({ account_status: status, updated_at: new Date() })
+            .update({ account_status: status, suspension_lifted_at: null, updated_at: new Date() })
             .eq('id', id)
             .select('id, email, account_status')
             .single();
             
         if (error) throw error;
+        return data;
+    },
+
+    /**
+     * Suspend a user for a specific number of days.
+     * Stores suspension_lifted_at so the server can auto-lift it on next login.
+     */
+    async updateSuspension(id, days) {
+        const liftAt = new Date();
+        liftAt.setDate(liftAt.getDate() + (days || 7));
+
+        const { data, error } = await supabase
+            .from('users')
+            .update({
+                account_status: 'suspended',
+                suspension_lifted_at: liftAt.toISOString(),
+                updated_at: new Date()
+            })
+            .eq('id', id)
+            .select('id, email, account_status, suspension_lifted_at')
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    /**
+     * Check if a suspended user's suspension has expired and auto-lift if so.
+     * Call this on every login for suspended accounts.
+     * Returns the (possibly updated) user record.
+     */
+    async liftExpiredSuspension(user) {
+        if (user.account_status !== 'suspended') return user;
+        if (!user.suspension_lifted_at) return user;
+
+        const liftAt = new Date(user.suspension_lifted_at);
+        if (new Date() < liftAt) return user; // Still within suspension period
+
+        // Period over — restore to active
+        const { data, error } = await supabase
+            .from('users')
+            .update({
+                account_status: 'active',
+                suspension_lifted_at: null,
+                updated_at: new Date()
+            })
+            .eq('id', user.id)
+            .select('id, email, account_status, suspension_lifted_at')
+            .single();
+
+        if (error) throw error;
+        console.log(`[Auth] Suspension lifted for user ${user.id} (${user.email}) — period expired.`);
         return data;
     },
 

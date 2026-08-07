@@ -297,6 +297,21 @@ const propertyModel = {
             ...p,
             amenities: amenitiesMap[p.id] || []
         }));
+    },
+
+    /**
+     * Deactivate all properties owned by a landlord (used on permanent ban).
+     * Sets status to 'deactivated' so they are hidden from public listings.
+     */
+    async deactivateByLandlordId(landlordId) {
+        const { data, error } = await supabase
+            .from('properties')
+            .update({ status: 'deactivated', updated_at: new Date() })
+            .eq('landlord_id', landlordId)
+            .select('id, property_name, status');
+
+        if (error) throw error;
+        return data || [];
     }
 };
 

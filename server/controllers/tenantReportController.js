@@ -410,17 +410,17 @@ const tenantReportController = {
             } else if (action === 'warning') {
                 finalStatus = 'approved';
                 auditAction = 'ISSUE_WARNING_TENANT';
-                successMessage = `Formal warning issued to tenant ${report.tenant?.full_name || ''}.`;
+                successMessage = `Formal warning issued to tenant ${report.tenant?.full_name || report.tenant_id}. This warning is recorded on their account.`;
             } else if (action === 'suspend') {
                 finalStatus = 'approved';
                 auditAction = 'SUSPEND_TENANT_ACCOUNT';
-                await userModel.updateStatus(report.tenant_id, 'suspended');
-                successMessage = `Tenant account suspended for ${suspension_days || 7} days.`;
+                await userModel.updateSuspension(report.tenant_id, parseInt(suspension_days) || 7);
+                successMessage = `Tenant account suspended for ${suspension_days || 7} days. Account will be automatically restored after the suspension period.`;
             } else if (action === 'ban') {
                 finalStatus = 'approved';
                 auditAction = 'BAN_TENANT_ACCOUNT';
                 await userModel.updateStatus(report.tenant_id, 'banned');
-                successMessage = 'Tenant account permanently banned.';
+                successMessage = 'Tenant account has been permanently banned from the platform.';
             } else if (status === 'approved') {
                 finalStatus = 'approved';
                 auditAction = 'APPROVE_TENANT_REPORT';
