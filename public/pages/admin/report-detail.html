@@ -562,9 +562,13 @@
                     <div class="sanction-consequences-title">⚠️ What will happen</div>
                     <div id="sanctionConsequencesList"></div>
                 </div>
-                <!-- Remarks preview -->
-                <div style="font-size:0.78rem; color:var(--text-muted); background:var(--bg-secondary); border-radius:8px; padding:0.65rem 0.85rem; border:1px solid var(--border-color);">
-                    <span style="font-weight:700;">Remarks:</span> <span id="sanctionRemarksPreview" style="font-style:italic;">—</span>
+                <!-- Remarks input inside modal -->
+                <div style="margin-top:0.85rem;">
+                    <label style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:0.35rem;">
+                        Official Findings &amp; Decision Remarks *
+                    </label>
+                    <textarea id="sanctionModalRemarks" class="form-input" rows="3" placeholder="State official findings, platform TOS grounds, or reasons for this action (min. 5 characters)..." style="width:100%; box-sizing:border-box; font-size:0.84rem;"></textarea>
+                    <div id="sanctionModalError" style="display:none; color:var(--error); font-size:0.78rem; font-weight:700; margin-top:0.3rem;">Please provide official findings remarks (at least 5 characters).</div>
                 </div>
             </div>
             <div class="sanction-confirm-footer">
@@ -1045,24 +1049,22 @@
         }
 
         async function handleExecuteDecision() {
-            if (!currentTicket) return;
             clearAlert();
+            const modalError = document.getElementById('sanctionModalError');
+            if (modalError) modalError.style.display = 'none';
 
-            const remarks = document.getElementById('decisionRemarks').value.trim();
-            if (!remarks || remarks.length < 5) {
-                showAlert('Please provide official decision & findings remarks (at least 5 characters).');
-                return;
-            }
+            // Get remarks from panel textarea or prefill
+            const panelRemarks = (document.getElementById('decisionRemarks')?.value || '').trim();
+            const modalRemarksInput = document.getElementById('sanctionModalRemarks');
+            if (modalRemarksInput) modalRemarksInput.value = panelRemarks;
 
-            const suspensionDays = selectedAction === 'suspend' ? parseInt(document.getElementById('suspensionDaysInput').value) : null;
+            const suspensionDays = selectedAction === 'suspend' ? parseInt(document.getElementById('suspensionDaysInput')?.value || 7) : null;
 
             // Determine target user from ticket
             const isLandlordReport = reportType === 'landlord_report';
-            // In tenant_report: landlord is reporter, tenant is target
-            // In landlord_report: tenant is reporter, landlord is target
             const targetName = isLandlordReport
-                ? (currentTicket.landlord?.full_name || currentTicket.landlord_name || 'Landlord')
-                : (currentTicket.tenant?.full_name  || currentTicket.tenant_name  || 'Tenant');
+                ? (currentTicket?.landlord?.full_name || currentTicket?.landlord_name || 'Landlord')
+                : (currentTicket?.tenant?.full_name  || currentTicket?.tenant_name  || 'Tenant');
             const targetRole = isLandlordReport ? 'Landlord' : 'Tenant';
 
             // Build action-specific metadata
@@ -1076,7 +1078,7 @@
                     consequences: [
                         { dot: '#94a3b8', text: 'Report status will be set to Dismissed / Rejected.' },
                         { dot: '#94a3b8', text: 'No penalty will be applied to the reported user.' },
-                        { dot: '#94a3b8', text: 'Decision remarks will be recorded in the case file.' }
+                        { dot: '#94a3b8', text: 'Decision remarks will be recorded in the case audit file.' }
                     ]
                 },
                 warning: {
@@ -1088,8 +1090,8 @@
                     consequences: [
                         { dot: '#f59e0b', text: `A formal TOS warning will be officially recorded against ${targetName}'s account.` },
                         { dot: '#f59e0b', text: 'The report status will be set to Action Enforced / Resolved.' },
-                        { dot: '#94a3b8', text: 'Account access is not affected — this is a warning only.' },
-                        { dot: '#94a3b8', text: 'Repeated violations may lead to suspension or ban.' }
+                        { dot: '#94a3b8', text: 'Account access is not affected — this is a warning notice only.' },
+                        { dot: '#94a3b8', text: 'Repeated violations may lead to account suspension or ban.' }
                     ]
                 },
                 suspend: {
@@ -1101,7 +1103,7 @@
                     consequences: [
                         { dot: '#f97316', text: `${targetName}'s account will be suspended for ${suspensionDays || 7} day(s).` },
                         { dot: '#f97316', text: 'They will be blocked from logging in during the suspension period.' },
-                        { dot: '#22c55e', text: 'Account will be automatically restored after the suspension period expires.' },
+                        { dot: '#22c55e', text: 'Account access will be automatically restored after the suspension period expires.' },
                         { dot: '#94a3b8', text: 'The report status will be set to Action Enforced / Resolved.' }
                     ]
                 },
@@ -1128,70 +1130,93 @@
 
             const meta = actionMeta[selectedAction] || actionMeta.dismiss;
 
-            // Populate modal
+            // Populate modal elements
             const icon = document.getElementById('sanctionConfirmIcon');
-            icon.textContent = meta.icon;
-            icon.style.background = meta.iconBg;
+            if (icon) {
+                icon.textContent = meta.icon;
+                icon.style.background = meta.iconBg;
+            }
 
-            document.getElementById('sanctionConfirmTitle').textContent = meta.title;
+            const title = document.getElementById('sanctionConfirmTitle');
+            if (title) title.textContent = meta.title;
 
             const avatar = document.getElementById('sanctionTargetAvatar');
-            avatar.textContent = targetName.charAt(0).toUpperCase();
+            if (avatar) avatar.textContent = (targetName || 'U').charAt(0).toUpperCase();
 
-            document.getElementById('sanctionTargetName').textContent = targetName;
-            document.getElementById('sanctionTargetRole').textContent = targetRole + ' — ' + (isLandlordReport ? 'Landlord vs Tenant Report' : 'Tenant vs Landlord Report');
-            document.getElementById('sanctionRemarksPreview').textContent = remarks.length > 120 ? remarks.substring(0, 120) + '…' : remarks;
+            const targetNameEl = document.getElementById('sanctionTargetName');
+            if (targetNameEl) targetNameEl.textContent = targetName;
+
+            const targetRoleEl = document.getElementById('sanctionTargetRole');
+            if (targetRoleEl) targetRoleEl.textContent = targetRole + ' — ' + (isLandlordReport ? 'Landlord vs Tenant Report' : 'Tenant vs Landlord Report');
 
             const list = document.getElementById('sanctionConsequencesList');
-            list.innerHTML = meta.consequences.map(c =>
-                `<div class="sanction-consequence-item">
-                    <div class="sanction-consequence-dot" style="background:${c.dot};"></div>
-                    <span>${c.text}</span>
-                </div>`
-            ).join('');
+            if (list) {
+                list.innerHTML = meta.consequences.map(c =>
+                    `<div class="sanction-consequence-item">
+                        <div class="sanction-consequence-dot" style="background:${c.dot};"></div>
+                        <span>${c.text}</span>
+                    </div>`
+                ).join('');
+            }
 
             const confirmBtn = document.getElementById('sanctionConfirmBtn');
-            confirmBtn.style.background = meta.btnColor;
-            confirmBtn.disabled = false;
-            confirmBtn.textContent = '';
-            confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Confirm &amp; Enforce`;
+            if (confirmBtn) {
+                confirmBtn.style.background = meta.btnColor;
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Confirm &amp; Enforce`;
+            }
 
-            // Open modal
+            // Show confirmation modal
             const overlay = document.getElementById('sanctionConfirmOverlay');
-            overlay.classList.add('open');
+            if (overlay) overlay.classList.add('open');
 
-            // Confirm button handler (one-time)
-            confirmBtn.onclick = async () => {
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Enforcing...`;
-
-                const endpoint = reportType === 'landlord_report'
-                    ? `/api/admin/landlord-reports/${reportId}/decision`
-                    : `/api/admin/tenant-reports/${reportId}/decision`;
-
-                try {
-                    const res = await fetch(endpoint, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({ action: selectedAction, admin_remarks: remarks, suspension_days: suspensionDays })
-                    });
-
-                    overlay.classList.remove('open');
-
-                    if (res.ok) {
-                        const r = await res.json();
-                        showSuccessBanner(r.message || 'Sanction enforced and ticket updated successfully!');
-                        fetchTicketDetail();
-                    } else {
-                        const r = await res.json();
-                        showAlert(r.message || 'Failed to enforce decision.');
+            // Set up confirm handler
+            if (confirmBtn) {
+                confirmBtn.onclick = async () => {
+                    const finalRemarks = (document.getElementById('sanctionModalRemarks')?.value || '').trim();
+                    if (!finalRemarks || finalRemarks.length < 5) {
+                        const err = document.getElementById('sanctionModalError');
+                        if (err) err.style.display = 'block';
+                        const remInput = document.getElementById('sanctionModalRemarks');
+                        if (remInput) remInput.focus();
+                        return;
                     }
-                } catch (err) {
-                    console.error(err);
-                    overlay.classList.remove('open');
-                    showAlert('Network error during decision enforcement.');
-                }
-            };
+
+                    // Sync back to main panel remarks textarea
+                    const mainRemarks = document.getElementById('decisionRemarks');
+                    if (mainRemarks) mainRemarks.value = finalRemarks;
+
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Enforcing...`;
+
+                    const endpoint = reportType === 'landlord_report'
+                        ? `/api/admin/landlord-reports/${reportId}/decision`
+                        : `/api/admin/tenant-reports/${reportId}/decision`;
+
+                    try {
+                        const res = await fetch(endpoint, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ action: selectedAction, admin_remarks: finalRemarks, suspension_days: suspensionDays })
+                        });
+
+                        if (overlay) overlay.classList.remove('open');
+
+                        if (res.ok) {
+                            const r = await res.json();
+                            showSuccessBanner(r.message || 'Sanction enforced and ticket updated successfully!');
+                            fetchTicketDetail();
+                        } else {
+                            const r = await res.json();
+                            showAlert(r.message || 'Failed to enforce decision.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        if (overlay) overlay.classList.remove('open');
+                        showAlert('Network error during decision enforcement.');
+                    }
+                };
+            }
         }
 
         document.getElementById('sanctionCancelBtn').addEventListener('click', () => {
