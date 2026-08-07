@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,12 +16,14 @@
             overflow-x: auto;
             margin-bottom: 2rem;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
             font-size: 0.9375rem;
         }
+
         th {
             font-weight: 700;
             color: var(--text-secondary);
@@ -30,19 +33,23 @@
             font-size: 0.75rem;
             letter-spacing: 0.05em;
         }
+
         td {
             padding: 1rem;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
         }
+
         tr:hover td {
             background-color: var(--bg-primary);
         }
+
         .action-group {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
         }
+
         .btn-action {
             display: inline-flex;
             align-items: center;
@@ -55,45 +62,55 @@
             cursor: pointer;
             transition: all var(--transition-fast);
         }
+
         .btn-action-approve {
             background-color: var(--success-bg);
             color: var(--success);
             border-color: rgba(16, 185, 129, 0.2);
         }
+
         .btn-action-approve:hover {
             background-color: var(--success);
             color: white;
         }
+
         .btn-action-reject {
             background-color: var(--error-bg);
             color: var(--error);
             border-color: rgba(239, 68, 68, 0.2);
         }
+
         .btn-action-reject:hover {
             background-color: var(--error);
             color: white;
         }
+
         .btn-action-disable {
             background-color: #f1f5f9;
             color: var(--text-secondary);
             border-color: #cbd5e1;
         }
+
         .btn-action-disable:hover {
             background-color: var(--text-secondary);
             color: white;
         }
+
         .btn-action-reactivate {
             background-color: var(--primary-light);
             color: var(--primary);
             border-color: rgba(99, 102, 241, 0.2);
         }
+
         .btn-action-reactivate:hover {
             background-color: var(--primary);
             color: white;
         }
+
         .nav-back {
             margin-bottom: 1.5rem;
         }
+
         .nav-back-link {
             text-decoration: none;
             color: var(--text-secondary);
@@ -101,11 +118,13 @@
             font-size: 0.875rem;
             transition: color var(--transition-fast);
         }
+
         .nav-back-link:hover {
             color: var(--primary);
         }
     </style>
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-admin">
@@ -135,7 +154,8 @@
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h2>User Directory Management</h2>
-            <div id="actionFeedback" class="alert alert-success hidden" style="margin-bottom: 0; padding: 0.5rem 1rem;"></div>
+            <div id="actionFeedback" class="alert alert-success hidden" style="margin-bottom: 0; padding: 0.5rem 1rem;">
+            </div>
         </div>
 
         <div class="table-card">
@@ -153,7 +173,8 @@
                 </thead>
                 <tbody id="usersTableBody">
                     <tr>
-                        <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading system users...</td>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading system users...
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -192,13 +213,13 @@
                 tableBody.innerHTML = '';
                 users.forEach(user => {
                     const row = document.createElement('tr');
-                    
+
                     // Format role badge
                     let roleBadgeClass = 'navbar-badge-tenant';
                     if (user.role === 'landlord') roleBadgeClass = 'navbar-badge-landlord';
                     if (user.role === 'maintenance') roleBadgeClass = 'navbar-badge-maintenance';
                     if (user.role === 'admin') roleBadgeClass = 'navbar-badge-admin';
-                    
+
                     // Format status badge
                     let statusClass = 'status-pending';
                     if (user.account_status === 'active') statusClass = 'status-active';
@@ -236,13 +257,13 @@
                         <td>${regDate}</td>
                         <td><div class="action-group">${actionsHtml}</div></td>
                     `;
-                    
+
                     tableBody.appendChild(row);
-                    
+
                     // Attach event listeners to action buttons
                     const actionButtons = row.querySelectorAll('.btn-action[data-user-id]');
                     actionButtons.forEach(btn => {
-                        btn.addEventListener('click', function() {
+                        btn.addEventListener('click', function () {
                             const userId = this.getAttribute('data-user-id');
                             const newStatus = this.getAttribute('data-action');
                             updateStatus(userId, newStatus);
@@ -284,4 +305,5 @@
         }
     </script>
 </body>
+
 </html>

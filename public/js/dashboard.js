@@ -170,29 +170,16 @@ function renderNewDashboardLayout(user) {
             {
                 section: 'Main',
                 items: [
-                    { label: 'Dashboard', href: 'dashboard.html' },
-                    { label: 'User Management', href: 'users.html' }
-                ]
-            },
-            {
-                section: 'Property and Rental',
-                items: [
+                    { label: 'Users', href: 'users.html' },
                     { label: 'Property Review', href: 'property-review.html' },
-                    { label: 'Screening Monitor', href: 'screening.html' },
-                    { label: 'Lease Monitor', href: 'leases.html' },
-                    { label: 'Billing Monitor', href: 'billings.html' },
-                    { label: 'Payment Monitor', href: 'payments.html' }
+                    { label: 'Reservation Monitoring', href: 'reservations.html' }
                 ]
             },
             {
-                section: 'System Monitoring',
+                section: 'Monitoring & Logs',
                 items: [
-                    { label: 'Maintenance Monitor', href: 'maintenance.html' },
-                    { label: 'General Reports Monitor', href: 'reports.html' },
-                    { label: 'Tenant Reports Monitor', href: 'tenant-reports.html' },
-                    { label: 'Disputes Monitor', href: 'disputes.html' },
-                    { label: 'Policy Violations Monitor', href: 'policy-violations.html' },
-                    { label: 'Feedback Monitor', href: 'feedback.html' },
+                    { label: 'Payment Monitor', href: 'payments.html' },
+                    { label: 'Reports Triage', href: 'reports.html' },
                     { label: 'Audit Logs', href: 'audit-logs.html' }
                 ]
             }

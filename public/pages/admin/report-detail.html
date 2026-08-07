@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
+
         .btn-back {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -28,6 +30,7 @@
             gap: 0.4rem;
             transition: all 0.2s ease;
         }
+
         .btn-back:hover {
             border-color: var(--admin);
             color: var(--admin);
@@ -42,6 +45,7 @@
             box-shadow: var(--shadow-md);
             margin-bottom: 1.5rem;
         }
+
         .case-card-title {
             font-size: 0.92rem;
             font-weight: 800;
@@ -62,6 +66,7 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.25rem;
         }
+
         .info-block label {
             font-size: 0.72rem;
             font-weight: 700;
@@ -70,6 +75,7 @@
             display: block;
             margin-bottom: 0.25rem;
         }
+
         .info-block div {
             font-size: 0.9rem;
             font-weight: 650;
@@ -83,6 +89,7 @@
             gap: 0.85rem;
             margin-bottom: 1.25rem;
         }
+
         .action-card-btn {
             border: 2px solid var(--border-color);
             border-radius: var(--radius-md);
@@ -92,14 +99,17 @@
             text-align: left;
             transition: all 0.2s ease;
         }
+
         .action-card-btn:hover {
             border-color: var(--admin);
         }
+
         .action-card-btn.selected {
             border-color: var(--admin);
             background: rgba(59, 130, 246, 0.12);
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
+
         .action-card-title {
             font-size: 0.9rem;
             font-weight: 800;
@@ -109,6 +119,7 @@
             gap: 0.4rem;
             margin-bottom: 0.3rem;
         }
+
         .action-card-desc {
             font-size: 0.75rem;
             color: var(--text-muted);
@@ -122,6 +133,7 @@
             gap: 1rem;
             margin-top: 0.75rem;
         }
+
         .evidence-thumb {
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
@@ -130,15 +142,18 @@
             position: relative;
             aspect-ratio: 4/3;
         }
-        .evidence-thumb img, .evidence-thumb video {
+
+        .evidence-thumb img,
+        .evidence-thumb video {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
         .evidence-thumb-link {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.45);
+            background: rgba(0, 0, 0, 0.45);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -149,7 +164,10 @@
             opacity: 0;
             transition: opacity 0.2s;
         }
-        .evidence-thumb:hover .evidence-thumb-link { opacity: 1; }
+
+        .evidence-thumb:hover .evidence-thumb-link {
+            opacity: 1;
+        }
 
         /* ── Badges ────────────────────────────────────────────── */
         .chip-type {
@@ -160,8 +178,18 @@
             border-radius: 4px;
             text-transform: uppercase;
         }
-        .chip-landlord-vs-tenant { background: rgba(59, 130, 246, 0.15); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .chip-tenant-vs-landlord { background: rgba(168, 85, 247, 0.15); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+        .chip-landlord-vs-tenant {
+            background: rgba(59, 130, 246, 0.15);
+            color: #2563eb;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .chip-tenant-vs-landlord {
+            background: rgba(168, 85, 247, 0.15);
+            color: #9333ea;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
 
         .btn-action-primary {
             background-color: var(--error);
@@ -177,7 +205,10 @@
             gap: 0.4rem;
             transition: opacity 0.2s;
         }
-        .btn-action-primary:hover { opacity: 0.9; }
+
+        .btn-action-primary:hover {
+            opacity: 0.9;
+        }
 
         .btn-action-landlord {
             background-color: var(--landlord);
@@ -193,7 +224,10 @@
             gap: 0.4rem;
             transition: opacity 0.2s;
         }
-        .btn-action-landlord:hover { opacity: 0.9; }
+
+        .btn-action-landlord:hover {
+            opacity: 0.9;
+        }
 
         /* ── Floating Chat Head FAB & Modal Window ────────────────────────────── */
         .chat-head-fab {
@@ -213,18 +247,22 @@
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         .chat-head-fab:hover {
             transform: translateY(-3px) scale(1.04);
             box-shadow: 0 14px 30px -5px rgba(147, 51, 234, 0.6);
         }
+
         .chat-head-fab:active {
             transform: translateY(0);
         }
+
         .chat-head-icon {
             display: flex;
             align-items: center;
             justify-content: center;
         }
+
         .chat-head-label {
             font-weight: 750;
             font-size: 0.88rem;
@@ -249,11 +287,13 @@
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         .chat-head-modal.hidden {
             opacity: 0;
             pointer-events: none;
             transform: translateY(20px) scale(0.94);
         }
+
         .chat-head-modal-header {
             background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
             color: #ffffff;
@@ -262,6 +302,7 @@
             align-items: center;
             justify-content: space-between;
         }
+
         .chat-head-close-btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -277,9 +318,11 @@
             justify-content: center;
             transition: background 0.2s ease;
         }
+
         .chat-head-close-btn:hover {
             background: rgba(255, 255, 255, 0.35);
         }
+
         .chat-head-switch-btn {
             background: rgba(255, 255, 255, 0.22);
             color: #ffffff;
@@ -292,9 +335,11 @@
             transition: all 0.2s ease;
             white-space: nowrap;
         }
+
         .chat-head-switch-btn:hover {
             background: rgba(255, 255, 255, 0.38);
         }
+
         .chat-head-modal-body {
             padding: 0.85rem;
             display: flex;
@@ -303,6 +348,7 @@
             overflow: hidden;
             background: var(--bg-secondary);
         }
+
         .chat-head-feed {
             flex: 1;
             overflow-y: auto;
@@ -315,6 +361,7 @@
             border: 1px solid var(--border-color);
             margin-bottom: 0.75rem;
         }
+
         .chat-head-form {
             display: flex;
             flex-direction: column;
@@ -334,11 +381,13 @@
             margin-bottom: 0.35rem;
             width: fit-content;
         }
+
         .messenger-dots {
             display: flex;
             align-items: center;
             gap: 3px;
         }
+
         .messenger-dots span {
             width: 6px;
             height: 6px;
@@ -347,13 +396,32 @@
             display: inline-block;
             animation: messengerWave 1.3s infinite ease-in-out;
         }
-        .messenger-dots span:nth-child(1) { animation-delay: 0s; }
-        .messenger-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .messenger-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        .messenger-dots span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .messenger-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .messenger-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
 
         @keyframes messengerWave {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-            30% { transform: translateY(-5px); opacity: 1; }
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+
+            30% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
         }
 
         /* ── Sanction Confirmation Modal ──────────────────────────────── */
@@ -371,23 +439,27 @@
             pointer-events: none;
             transition: opacity 0.25s ease;
         }
+
         .sanction-confirm-overlay.open {
             opacity: 1;
             pointer-events: all;
         }
+
         .sanction-confirm-box {
             background: var(--bg-card, #fff);
             border-radius: 18px;
             width: 100%;
             max-width: 520px;
-            box-shadow: 0 30px 80px -10px rgba(0,0,0,0.45);
+            box-shadow: 0 30px 80px -10px rgba(0, 0, 0, 0.45);
             overflow: hidden;
             transform: scale(0.94) translateY(20px);
             transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         .sanction-confirm-overlay.open .sanction-confirm-box {
             transform: scale(1) translateY(0);
         }
+
         .sanction-confirm-header {
             padding: 1.5rem 1.75rem 1.25rem;
             border-bottom: 1px solid var(--border-color);
@@ -395,6 +467,7 @@
             align-items: center;
             gap: 1rem;
         }
+
         .sanction-confirm-icon {
             width: 52px;
             height: 52px;
@@ -405,19 +478,23 @@
             font-size: 1.6rem;
             flex-shrink: 0;
         }
+
         .sanction-confirm-title {
             font-size: 1.05rem;
             font-weight: 800;
             color: var(--text-primary);
             margin-bottom: 0.15rem;
         }
+
         .sanction-confirm-subtitle {
             font-size: 0.8rem;
             color: var(--text-muted);
         }
+
         .sanction-confirm-body {
             padding: 1.25rem 1.75rem;
         }
+
         .sanction-target-box {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -428,6 +505,7 @@
             align-items: center;
             gap: 0.75rem;
         }
+
         .sanction-target-avatar {
             width: 40px;
             height: 40px;
@@ -441,6 +519,7 @@
             color: white;
             flex-shrink: 0;
         }
+
         .sanction-consequences {
             background: var(--bg-primary);
             border-radius: 10px;
@@ -448,6 +527,7 @@
             padding: 0.9rem 1rem;
             margin-bottom: 1rem;
         }
+
         .sanction-consequences-title {
             font-size: 0.72rem;
             font-weight: 800;
@@ -456,6 +536,7 @@
             color: var(--text-muted);
             margin-bottom: 0.6rem;
         }
+
         .sanction-consequence-item {
             display: flex;
             align-items: flex-start;
@@ -465,7 +546,11 @@
             margin-bottom: 0.4rem;
             line-height: 1.45;
         }
-        .sanction-consequence-item:last-child { margin-bottom: 0; }
+
+        .sanction-consequence-item:last-child {
+            margin-bottom: 0;
+        }
+
         .sanction-consequence-dot {
             width: 6px;
             height: 6px;
@@ -473,12 +558,14 @@
             flex-shrink: 0;
             margin-top: 0.35em;
         }
+
         .sanction-confirm-footer {
             padding: 1rem 1.75rem 1.5rem;
             display: flex;
             gap: 0.75rem;
             justify-content: flex-end;
         }
+
         .sanction-btn-cancel {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -490,7 +577,11 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .sanction-btn-cancel:hover { border-color: var(--text-muted); }
+
+        .sanction-btn-cancel:hover {
+            border-color: var(--text-muted);
+        }
+
         .sanction-btn-confirm {
             padding: 0.6rem 1.5rem;
             border-radius: 8px;
@@ -504,10 +595,20 @@
             gap: 0.4rem;
             transition: all 0.2s;
         }
-        .sanction-btn-confirm:hover { opacity: 0.88; transform: translateY(-1px); }
-        .sanction-btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .sanction-btn-confirm:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+        .sanction-btn-confirm:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
+
 <body class="app-loading" data-role="admin" data-page-title="Case Investigation Console">
     <!-- Navbar -->
     <nav class="navbar navbar-admin">
@@ -545,7 +646,8 @@
                 <div id="sanctionConfirmIcon" class="sanction-confirm-icon"></div>
                 <div>
                     <div id="sanctionConfirmTitle" class="sanction-confirm-title">Confirm Enforcement Action</div>
-                    <div class="sanction-confirm-subtitle">This action will be permanently recorded in the case audit log.</div>
+                    <div class="sanction-confirm-subtitle">This action will be permanently recorded in the case audit
+                        log.</div>
                 </div>
             </div>
             <div class="sanction-confirm-body">
@@ -553,7 +655,8 @@
                 <div class="sanction-target-box">
                     <div id="sanctionTargetAvatar" class="sanction-target-avatar">?</div>
                     <div>
-                        <div id="sanctionTargetName" style="font-weight:800; font-size:0.9rem; color:var(--text-primary);">Target User</div>
+                        <div id="sanctionTargetName"
+                            style="font-weight:800; font-size:0.9rem; color:var(--text-primary);">Target User</div>
                         <div id="sanctionTargetRole" style="font-size:0.75rem; color:var(--text-muted);">Role</div>
                     </div>
                 </div>
@@ -564,17 +667,25 @@
                 </div>
                 <!-- Remarks input inside modal -->
                 <div style="margin-top:0.85rem;">
-                    <label style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:0.35rem;">
+                    <label
+                        style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:0.35rem;">
                         Official Findings &amp; Decision Remarks *
                     </label>
-                    <textarea id="sanctionModalRemarks" class="form-input" rows="3" placeholder="State official findings, platform TOS grounds, or reasons for this action (min. 5 characters)..." style="width:100%; box-sizing:border-box; font-size:0.84rem;"></textarea>
-                    <div id="sanctionModalError" style="display:none; color:var(--error); font-size:0.78rem; font-weight:700; margin-top:0.3rem;">Please provide official findings remarks (at least 5 characters).</div>
+                    <textarea id="sanctionModalRemarks" class="form-input" rows="3"
+                        placeholder="State official findings, platform TOS grounds, or reasons for this action (min. 5 characters)..."
+                        style="width:100%; box-sizing:border-box; font-size:0.84rem;"></textarea>
+                    <div id="sanctionModalError"
+                        style="display:none; color:var(--error); font-size:0.78rem; font-weight:700; margin-top:0.3rem;">
+                        Please provide official findings remarks (at least 5 characters).</div>
                 </div>
             </div>
             <div class="sanction-confirm-footer">
                 <button type="button" class="sanction-btn-cancel" id="sanctionCancelBtn">Cancel</button>
                 <button type="button" class="sanction-btn-confirm" id="sanctionConfirmBtn">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
                     Confirm &amp; Enforce
                 </button>
             </div>
@@ -587,11 +698,15 @@
         <div class="page-header-row">
             <div>
                 <a href="reports.html" class="btn-back">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
                     Back to Incident Reports List
                 </a>
                 <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.75rem;">
-                    <h2 id="caseTicketTitle" style="margin:0; font-size:1.4rem; font-weight:800;">Ticket Investigation</h2>
+                    <h2 id="caseTicketTitle" style="margin:0; font-size:1.4rem; font-weight:800;">Ticket Investigation
+                    </h2>
                     <span id="caseTypeChip" class="chip-type"></span>
                 </div>
                 <p id="caseTicketSubtitle" style="color: var(--text-secondary); margin-top:0.25rem;">Filed Date: —</p>
@@ -603,7 +718,12 @@
         <!-- 1. Involved Parties & Rental Context -->
         <div class="case-card">
             <div class="case-card-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
                 Involved Parties & Rental Context
             </div>
             <div class="info-grid">
@@ -630,9 +750,13 @@
         </div>
 
         <!-- Target User Prior Report History & Offenses -->
-        <div class="case-card" id="historyCard" style="display:none; background: rgba(245, 158, 11, 0.04); border-color: rgba(245, 158, 11, 0.25);">
+        <div class="case-card" id="historyCard"
+            style="display:none; background: rgba(245, 158, 11, 0.04); border-color: rgba(245, 158, 11, 0.25);">
             <div class="case-card-title" style="color: #d97706;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 8v4l3 3" />
+                    <circle cx="12" cy="12" r="10" />
+                </svg>
                 Target User Prior Report History & Offenses
             </div>
             <div id="historyFeed" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
@@ -641,7 +765,9 @@
         <!-- 2. Disciplinary Action Enforcement Panel (Platform TOS) -->
         <div class="case-card" style="background: rgba(225, 29, 72, 0.03); border: 2px solid rgba(225, 29, 72, 0.3);">
             <div class="case-card-title" style="color: var(--error);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
                 Admin Disciplinary Action Enforcement Panel (Platform TOS)
             </div>
 
@@ -675,7 +801,8 @@
 
             <div style="margin-top:1rem;">
                 <label class="form-label" for="decisionRemarks">Official Findings & Decision Remarks *</label>
-                <textarea id="decisionRemarks" class="form-input" rows="3" placeholder="State official findings, platform TOS grounds, or reasons for dismissal/disciplinary sanction..."></textarea>
+                <textarea id="decisionRemarks" class="form-input" rows="3"
+                    placeholder="State official findings, platform TOS grounds, or reasons for dismissal/disciplinary sanction..."></textarea>
             </div>
 
             <div style="margin-top:1rem; display:flex; justify-content:flex-end;">
@@ -686,9 +813,13 @@
         </div>
 
         <!-- 3. Intake & Priority Triage Stage Control -->
-        <div class="case-card" style="background: rgba(59, 130, 246, 0.04); border: 1px solid rgba(59, 130, 246, 0.25);">
+        <div class="case-card"
+            style="background: rgba(59, 130, 246, 0.04); border: 1px solid rgba(59, 130, 246, 0.25);">
             <div class="case-card-title" style="color: var(--landlord);">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
                 Intake & Priority Triage Stage Control
             </div>
             <div style="display:flex; gap:1.25rem; flex-wrap:wrap; align-items:flex-end;">
@@ -718,30 +849,47 @@
         <!-- 4. Evidence Media & Statements -->
         <div class="case-card">
             <div class="case-card-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </svg>
                 Evidence Media & Statements
             </div>
 
             <div style="margin-bottom:1.25rem;">
                 <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem;">
-                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Incident Category</label>
-                    <span id="categoryBadge" style="font-weight:700; font-size:0.8rem; background:var(--bg-secondary); padding:0.2rem 0.5rem; border-radius:4px;">—</span>
+                    <label
+                        style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Incident
+                        Category</label>
+                    <span id="categoryBadge"
+                        style="font-weight:700; font-size:0.8rem; background:var(--bg-secondary); padding:0.2rem 0.5rem; border-radius:4px;">—</span>
                 </div>
-                <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Reporter Narrative Statement</label>
-                <div id="incidentDescription" style="font-size:0.9rem; color:var(--text-primary); background:var(--bg-primary); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-color); white-space:pre-wrap; margin-top:0.35rem;">—</div>
+                <label
+                    style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Reporter
+                    Narrative Statement</label>
+                <div id="incidentDescription"
+                    style="font-size:0.9rem; color:var(--text-primary); background:var(--bg-primary); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-color); white-space:pre-wrap; margin-top:0.35rem;">
+                    —</div>
             </div>
 
             <div style="margin-bottom:1.25rem;">
-                <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Uploaded Evidence Attachments (Photos / Videos / Docs)</label>
+                <label
+                    style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Uploaded
+                    Evidence Attachments (Photos / Videos / Docs)</label>
                 <div id="evidenceContainer" class="evidence-grid" style="margin-top:0.35rem;">
-                    <div style="font-size:0.85rem; color:var(--text-muted); font-style:italic; grid-column:1/-1;">No evidence attachments provided.</div>
+                    <div style="font-size:0.85rem; color:var(--text-muted); font-style:italic; grid-column:1/-1;">No
+                        evidence attachments provided.</div>
                 </div>
             </div>
 
             <div>
-                <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Reported User Response / Defense Statement</label>
-                <div id="userExplanation" style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); padding:1rem; border-radius:var(--radius-md); border:1px dashed var(--border-color); white-space:pre-wrap; margin-top:0.35rem;">
-                    <span style="font-style:italic; color:var(--text-muted);">No response submitted yet by the reported user.</span>
+                <label
+                    style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Reported
+                    User Response / Defense Statement</label>
+                <div id="userExplanation"
+                    style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-primary); padding:1rem; border-radius:var(--radius-md); border:1px dashed var(--border-color); white-space:pre-wrap; margin-top:0.35rem;">
+                    <span style="font-style:italic; color:var(--text-muted);">No response submitted yet by the reported
+                        user.</span>
                 </div>
             </div>
         </div>
@@ -750,7 +898,9 @@
     <!-- Floating Chat Head FAB Button -->
     <button id="chatHeadFab" class="chat-head-fab" title="Open Case Inquiry & Discussion Thread">
         <div class="chat-head-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
         </div>
         <span class="chat-head-label">Case Inquiry Thread</span>
     </button>
@@ -759,7 +909,9 @@
     <div id="chatHeadModal" class="chat-head-modal hidden">
         <div class="chat-head-modal-header">
             <div style="display:flex; align-items:center; gap:0.4rem; flex:1; overflow:hidden;">
-                <span id="chatHeaderTitle" style="font-weight:750; font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">💬 Reporter Convo</span>
+                <span id="chatHeaderTitle"
+                    style="font-weight:750; font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">💬
+                    Reporter Convo</span>
             </div>
             <div style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
                 <button type="button" id="switchConvoBtn" class="chat-head-switch-btn">Switch to Target ➔</button>
@@ -769,528 +921,531 @@
         <div class="chat-head-modal-body">
             <!-- Messages Feed -->
             <div id="messagesFeed" class="chat-head-feed">
-                <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in this thread.</div>
+                <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted
+                    yet in this thread.</div>
             </div>
             <!-- Typing Indicator Container -->
             <div id="typingIndicatorContainer" style="margin-bottom:0.4rem;"></div>
             <!-- Inquiry Form (Recipient dropdown removed) -->
             <form id="postInquiryForm" class="chat-head-form">
                 <div style="display:flex; gap:0.5rem;">
-                    <input type="text" id="msgTextInput" class="form-input" placeholder="Type inquiry to Reporter..." style="flex:1; font-size:0.82rem; padding:0.45rem 0.75rem;">
-                    <button type="submit" class="btn-action-primary" style="background:#9333ea; padding:0.45rem 0.85rem; font-size:0.82rem;">Send</button>
+                    <input type="text" id="msgTextInput" class="form-input" placeholder="Type inquiry to Reporter..."
+                        style="flex:1; font-size:0.82rem; padding:0.45rem 0.75rem;">
+                    <button type="submit" class="btn-action-primary"
+                        style="background:#9333ea; padding:0.45rem 0.85rem; font-size:0.82rem;">Send</button>
                 </div>
             </form>
         </div>
-    </main>
+        </main>
 
-    <script src="../../js/auth.js"></script>
-    <script src="../../js/dashboard.js"></script>
-    <script>
-        const token = localStorage.getItem('domiknow_token');
-        const params = new URLSearchParams(window.location.search);
-        const reportId = params.get('id');
-        const reportType = params.get('type');
-        const defaultAction = params.get('action') || 'dismiss';
+        <script src="../../js/auth.js"></script>
+        <script src="../../js/dashboard.js"></script>
+        <script>
+            const token = localStorage.getItem('domiknow_token');
+            const params = new URLSearchParams(window.location.search);
+            const reportId = params.get('id');
+            const reportType = params.get('type');
+            const defaultAction = params.get('action') || 'dismiss';
 
-        let currentTicket = null;
-        let selectedAction = 'dismiss';
-        let activeThread = 'reporter'; // 'reporter' or 'target'
+            let currentTicket = null;
+            let selectedAction = 'dismiss';
+            let activeThread = 'reporter'; // 'reporter' or 'target'
 
-        function updateConvoHeaderUI() {
-            const isReporter = activeThread === 'reporter';
-            const reporterName = (document.getElementById('reporterName')?.textContent || '').trim().split('\n')[0] || 'Reporter';
-            const targetName = (document.getElementById('targetName')?.textContent || '').trim().split('\n')[0] || 'Target';
+            function updateConvoHeaderUI() {
+                const isReporter = activeThread === 'reporter';
+                const reporterName = (document.getElementById('reporterName')?.textContent || '').trim().split('\n')[0] || 'Reporter';
+                const targetName = (document.getElementById('targetName')?.textContent || '').trim().split('\n')[0] || 'Target';
 
-            const headerTitle = document.getElementById('chatHeaderTitle');
-            const switchBtn = document.getElementById('switchConvoBtn');
-            const msgInput = document.getElementById('msgTextInput');
+                const headerTitle = document.getElementById('chatHeaderTitle');
+                const switchBtn = document.getElementById('switchConvoBtn');
+                const msgInput = document.getElementById('msgTextInput');
 
-            if (headerTitle) {
-                headerTitle.textContent = isReporter ? `💬 Reporter: ${reporterName}` : `💬 Target: ${targetName}`;
-            }
-            if (switchBtn) {
-                switchBtn.textContent = isReporter ? `Switch to Target ➔` : `Switch to Reporter ➔`;
-            }
-            if (msgInput) {
-                msgInput.placeholder = isReporter ? `Type inquiry to Reporter (${reporterName})...` : `Type inquiry to Target (${targetName})...`;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!token || !reportId || !reportType) {
-                alert('Invalid ticket parameters.');
-                window.location.href = 'reports.html';
-                return;
+                if (headerTitle) {
+                    headerTitle.textContent = isReporter ? `💬 Reporter: ${reporterName}` : `💬 Target: ${targetName}`;
+                }
+                if (switchBtn) {
+                    switchBtn.textContent = isReporter ? `Switch to Target ➔` : `Switch to Reporter ➔`;
+                }
+                if (msgInput) {
+                    msgInput.placeholder = isReporter ? `Type inquiry to Reporter (${reporterName})...` : `Type inquiry to Target (${targetName})...`;
+                }
             }
 
-            fetchTicketDetail();
+            document.addEventListener('DOMContentLoaded', () => {
+                if (!token || !reportId || !reportType) {
+                    alert('Invalid ticket parameters.');
+                    window.location.href = 'reports.html';
+                    return;
+                }
 
-            document.getElementById('saveTriageBtn').addEventListener('click', handleSaveTriage);
-            document.getElementById('executeDecisionBtn').addEventListener('click', handleExecuteDecision);
-            document.getElementById('postInquiryForm').addEventListener('submit', handlePostInquiry);
+                fetchTicketDetail();
 
-            const fab = document.getElementById('chatHeadFab');
-            const chatModal = document.getElementById('chatHeadModal');
-            const closeBtn = document.getElementById('closeChatHeadModalBtn');
+                document.getElementById('saveTriageBtn').addEventListener('click', handleSaveTriage);
+                document.getElementById('executeDecisionBtn').addEventListener('click', handleExecuteDecision);
+                document.getElementById('postInquiryForm').addEventListener('submit', handlePostInquiry);
 
-            if (fab && chatModal && closeBtn) {
-                fab.addEventListener('click', () => {
-                    chatModal.classList.toggle('hidden');
-                    if (!chatModal.classList.contains('hidden')) {
+                const fab = document.getElementById('chatHeadFab');
+                const chatModal = document.getElementById('chatHeadModal');
+                const closeBtn = document.getElementById('closeChatHeadModalBtn');
+
+                if (fab && chatModal && closeBtn) {
+                    fab.addEventListener('click', () => {
+                        chatModal.classList.toggle('hidden');
+                        if (!chatModal.classList.contains('hidden')) {
+                            updateConvoHeaderUI();
+                            const feed = document.getElementById('messagesFeed');
+                            if (feed) feed.scrollTop = feed.scrollHeight;
+                        }
+                    });
+                    closeBtn.addEventListener('click', () => {
+                        chatModal.classList.add('hidden');
+                    });
+                }
+
+                const switchBtn = document.getElementById('switchConvoBtn');
+                if (switchBtn) {
+                    switchBtn.addEventListener('click', () => {
+                        activeThread = activeThread === 'reporter' ? 'target' : 'reporter';
+                        lastMessageCount = -1;
                         updateConvoHeaderUI();
-                        const feed = document.getElementById('messagesFeed');
-                        if (feed) feed.scrollTop = feed.scrollHeight;
-                    }
-                });
-                closeBtn.addEventListener('click', () => {
-                    chatModal.classList.add('hidden');
-                });
-            }
+                        pollRealtimeThread();
+                    });
+                }
 
-            const switchBtn = document.getElementById('switchConvoBtn');
-            if (switchBtn) {
-                switchBtn.addEventListener('click', () => {
-                    activeThread = activeThread === 'reporter' ? 'target' : 'reporter';
-                    lastMessageCount = -1;
-                    updateConvoHeaderUI();
-                    pollRealtimeThread();
-                });
-            }
+                const msgInput = document.getElementById('msgTextInput');
+                if (msgInput) {
+                    msgInput.addEventListener('input', () => {
+                        sendTypingState(true);
+                        clearTimeout(typingTimeout);
+                        typingTimeout = setTimeout(() => sendTypingState(false), 3000);
+                    });
+                }
 
-            const msgInput = document.getElementById('msgTextInput');
-            if (msgInput) {
-                msgInput.addEventListener('input', () => {
-                    sendTypingState(true);
-                    clearTimeout(typingTimeout);
-                    typingTimeout = setTimeout(() => sendTypingState(false), 3000);
-                });
-            }
+                // Real-time polling interval (every 800ms for instant typing & message sync)
+                setInterval(pollRealtimeThread, 800);
+            });
 
-            // Real-time polling interval (every 800ms for instant typing & message sync)
-            setInterval(pollRealtimeThread, 800);
-        });
+            async function fetchTicketDetail() {
+                clearAlert();
+                const endpoint = reportType === 'landlord_report'
+                    ? `/api/admin/landlord-reports/${reportId}`
+                    : `/api/admin/tenant-reports/${reportId}`;
 
-        async function fetchTicketDetail() {
-            clearAlert();
-            const endpoint = reportType === 'landlord_report' 
-                ? `/api/admin/landlord-reports/${reportId}` 
-                : `/api/admin/tenant-reports/${reportId}`;
+                try {
+                    const res = await fetch(endpoint, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (!res.ok) { alert('Failed to fetch ticket detail.'); return; }
 
-            try {
-                const res = await fetch(endpoint, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) { alert('Failed to fetch ticket detail.'); return; }
+                    const { data } = await res.json();
+                    currentTicket = { ...data, _type: reportType };
 
-                const { data } = await res.json();
-                currentTicket = { ...data, _type: reportType };
+                    const isLandlordReport = reportType === 'landlord_report';
 
-                const isLandlordReport = reportType === 'landlord_report';
+                    document.getElementById('caseTicketTitle').textContent = `Ticket Investigation #${reportId.slice(0, 8)}`;
+                    document.getElementById('caseTypeChip').textContent = isLandlordReport ? 'Tenant vs Landlord' : 'Landlord vs Tenant';
+                    document.getElementById('caseTypeChip').className = `chip-type ${isLandlordReport ? 'chip-tenant-vs-landlord' : 'chip-landlord-vs-tenant'}`;
+                    document.getElementById('caseTicketSubtitle').textContent = `Filed Date: ${new Date(currentTicket.created_at).toLocaleString()}`;
 
-                document.getElementById('caseTicketTitle').textContent = `Ticket Investigation #${reportId.slice(0,8)}`;
-                document.getElementById('caseTypeChip').textContent = isLandlordReport ? 'Tenant vs Landlord' : 'Landlord vs Tenant';
-                document.getElementById('caseTypeChip').className = `chip-type ${isLandlordReport ? 'chip-tenant-vs-landlord' : 'chip-landlord-vs-tenant'}`;
-                document.getElementById('caseTicketSubtitle').textContent = `Filed Date: ${new Date(currentTicket.created_at).toLocaleString()}`;
+                    // Involved parties
+                    const reporter = isLandlordReport ? currentTicket.tenant : currentTicket.landlord;
+                    const target = isLandlordReport ? currentTicket.landlord : currentTicket.tenant;
 
-                // Involved parties
-                const reporter = isLandlordReport ? currentTicket.tenant : currentTicket.landlord;
-                const target   = isLandlordReport ? currentTicket.landlord : currentTicket.tenant;
+                    document.getElementById('reporterName').textContent = reporter?.full_name || '—';
+                    document.getElementById('reporterContact').textContent = `${reporter?.email || ''} ${reporter?.contact_number ? '· ' + reporter.contact_number : ''}`;
 
-                document.getElementById('reporterName').textContent = reporter?.full_name || '—';
-                document.getElementById('reporterContact').textContent = `${reporter?.email || ''} ${reporter?.contact_number ? '· ' + reporter.contact_number : ''}`;
-                
-                document.getElementById('targetName').textContent = target?.full_name || '—';
-                document.getElementById('targetContact').textContent = `${target?.email || ''} ${target?.contact_number ? '· ' + target.contact_number : ''}`;
+                    document.getElementById('targetName').textContent = target?.full_name || '—';
+                    document.getElementById('targetContact').textContent = `${target?.email || ''} ${target?.contact_number ? '· ' + target.contact_number : ''}`;
 
-                const unitNum = currentTicket.lease_records?.property_units?.unit_number ||
-                                currentTicket.lease_records?.units?.unit_number ||
-                                currentTicket.properties?.unit_number ||
-                                currentTicket.units?.unit_number ||
-                                'N/A';
+                    const unitNum = currentTicket.lease_records?.property_units?.unit_number ||
+                        currentTicket.lease_records?.units?.unit_number ||
+                        currentTicket.properties?.unit_number ||
+                        currentTicket.units?.unit_number ||
+                        'N/A';
 
-                document.getElementById('propertyName').textContent = currentTicket.properties?.property_name || '—';
-                document.getElementById('unitInfo').textContent = `Unit: ${unitNum}`;
-                document.getElementById('leaseNum').textContent = currentTicket.lease_records?.lease_number || currentTicket.leases?.lease_number || '—';
+                    document.getElementById('propertyName').textContent = currentTicket.properties?.property_name || '—';
+                    document.getElementById('unitInfo').textContent = `Unit: ${unitNum}`;
+                    document.getElementById('leaseNum').textContent = currentTicket.lease_records?.lease_number || currentTicket.leases?.lease_number || '—';
 
-                // Target user prior report history
-                const prevList = currentTicket.previous_reports || [];
-                const histCard = document.getElementById('historyCard');
-                const histFeed = document.getElementById('historyFeed');
-                if (prevList.length > 0) {
-                    histFeed.innerHTML = '';
-                    prevList.forEach(p => {
-                        const item = document.createElement('div');
-                        item.style.cssText = 'background:var(--bg-primary); padding:0.6rem 0.85rem; border-radius:6px; border:1px solid var(--border-color); font-size:0.82rem; display:flex; justify-content:space-between; align-items:center;';
-                        item.innerHTML = `
+                    // Target user prior report history
+                    const prevList = currentTicket.previous_reports || [];
+                    const histCard = document.getElementById('historyCard');
+                    const histFeed = document.getElementById('historyFeed');
+                    if (prevList.length > 0) {
+                        histFeed.innerHTML = '';
+                        prevList.forEach(p => {
+                            const item = document.createElement('div');
+                            item.style.cssText = 'background:var(--bg-primary); padding:0.6rem 0.85rem; border-radius:6px; border:1px solid var(--border-color); font-size:0.82rem; display:flex; justify-content:space-between; align-items:center;';
+                            item.innerHTML = `
                             <div>
                                 <strong>Category:</strong> ${(p.report_category || 'General').replace(/_/g, ' ')} · 
                                 <span style="color:var(--text-muted);">Filed Date: ${new Date(p.created_at).toLocaleDateString()}</span>
                             </div>
                             <span class="prio-badge prio-critical" style="font-size:0.75rem; text-transform:uppercase;">Status: ${p.status}</span>
                         `;
-                        histFeed.appendChild(item);
-                    });
-                    histCard.style.display = 'block';
-                } else {
-                    histCard.style.display = 'none';
-                }
+                            histFeed.appendChild(item);
+                        });
+                        histCard.style.display = 'block';
+                    } else {
+                        histCard.style.display = 'none';
+                    }
 
-                // Triage controls
-                let currentStage = currentTicket.status || 'pending_admin_review';
-                if (currentStage === 'pending_admin_review' && currentTicket.admin_id) {
-                    currentStage = 'in_review';
-                }
-                document.getElementById('triagePrioritySelect').value = currentTicket.severity || 'moderate';
-                document.getElementById('triageStageSelect').value    = currentStage;
+                    // Triage controls
+                    let currentStage = currentTicket.status || 'pending_admin_review';
+                    if (currentStage === 'pending_admin_review' && currentTicket.admin_id) {
+                        currentStage = 'in_review';
+                    }
+                    document.getElementById('triagePrioritySelect').value = currentTicket.severity || 'moderate';
+                    document.getElementById('triageStageSelect').value = currentStage;
 
-                // Narrative
-                document.getElementById('categoryBadge').textContent = (currentTicket.report_category || 'General').replace(/_/g, ' ');
-                document.getElementById('incidentDescription').textContent = currentTicket.incident_description || 'No statement narrative recorded.';
+                    // Narrative
+                    document.getElementById('categoryBadge').textContent = (currentTicket.report_category || 'General').replace(/_/g, ' ');
+                    document.getElementById('incidentDescription').textContent = currentTicket.incident_description || 'No statement narrative recorded.';
 
-                // Explanation / Defense
-                const explanationText = isLandlordReport ? currentTicket.landlord_explanation : currentTicket.tenant_explanation;
-                if (explanationText) {
-                    document.getElementById('userExplanation').innerHTML = `<div style="font-weight:700; color:var(--text-primary); margin-bottom:0.2rem;">Submitted Statement:</div>${explanationText}`;
-                } else {
-                    document.getElementById('userExplanation').innerHTML = `<span style="font-style:italic; color:var(--text-muted);">No response submitted yet by the reported user.</span>`;
-                }
+                    // Explanation / Defense
+                    const explanationText = isLandlordReport ? currentTicket.landlord_explanation : currentTicket.tenant_explanation;
+                    if (explanationText) {
+                        document.getElementById('userExplanation').innerHTML = `<div style="font-weight:700; color:var(--text-primary); margin-bottom:0.2rem;">Submitted Statement:</div>${explanationText}`;
+                    } else {
+                        document.getElementById('userExplanation').innerHTML = `<span style="font-style:italic; color:var(--text-muted);">No response submitted yet by the reported user.</span>`;
+                    }
 
-                // Evidence
-                const evContainer = document.getElementById('evidenceContainer');
-                evContainer.innerHTML = '';
-                const evidenceList = currentTicket.evidence || [];
-                if (evidenceList.length === 0) {
-                    evContainer.innerHTML = `<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic; grid-column:1/-1;">No evidence attachments provided.</div>`;
-                } else {
-                    evidenceList.forEach(ev => {
-                        const thumb = document.createElement('div');
-                        thumb.className = 'evidence-thumb';
+                    // Evidence
+                    const evContainer = document.getElementById('evidenceContainer');
+                    evContainer.innerHTML = '';
+                    const evidenceList = currentTicket.evidence || [];
+                    if (evidenceList.length === 0) {
+                        evContainer.innerHTML = `<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic; grid-column:1/-1;">No evidence attachments provided.</div>`;
+                    } else {
+                        evidenceList.forEach(ev => {
+                            const thumb = document.createElement('div');
+                            thumb.className = 'evidence-thumb';
 
-                        if (ev.file_type === 'video' || (ev.file_name && ev.file_name.match(/\.(mp4|webm|mov)$/i))) {
-                            thumb.innerHTML = `
+                            if (ev.file_type === 'video' || (ev.file_name && ev.file_name.match(/\.(mp4|webm|mov)$/i))) {
+                                thumb.innerHTML = `
                                 <video src="${ev.file_url}" muted></video>
                                 <a href="${ev.file_url}" target="_blank" class="evidence-thumb-link">Play Video ↗</a>
                             `;
-                        } else {
-                            thumb.innerHTML = `
+                            } else {
+                                thumb.innerHTML = `
                                 <img src="${ev.file_url}" alt="Evidence" onerror="this.src='https://placehold.co/160x120?text=Doc'">
                                 <a href="${ev.file_url}" target="_blank" class="evidence-thumb-link">View File ↗</a>
                             `;
-                        }
-                        evContainer.appendChild(thumb);
-                    });
+                            }
+                            evContainer.appendChild(thumb);
+                        });
+                    }
+
+                    // Load case discussion thread
+                    loadInvestigationMessages(reportType, reportId);
+
+                    // Select action
+                    const targetAction = ['dismiss', 'warning', 'suspend', 'ban'].includes(defaultAction) ? defaultAction : 'dismiss';
+                    selectActionType(targetAction);
+                    document.getElementById('decisionRemarks').value = currentTicket.admin_remarks || '';
+
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Error loading ticket details.');
                 }
-
-                // Load case discussion thread
-                loadInvestigationMessages(reportType, reportId);
-
-                // Select action
-                const targetAction = ['dismiss', 'warning', 'suspend', 'ban'].includes(defaultAction) ? defaultAction : 'dismiss';
-                selectActionType(targetAction);
-                document.getElementById('decisionRemarks').value = currentTicket.admin_remarks || '';
-
-            } catch (err) {
-                console.error(err);
-                showAlert('Error loading ticket details.');
             }
-        }
 
-        function selectActionType(type) {
-            selectedAction = type;
-            document.querySelectorAll('.action-card-btn').forEach(btn => {
-                if (btn.dataset.actionType === type) btn.classList.add('selected');
-                else btn.classList.remove('selected');
-            });
-
-            const durBox = document.getElementById('suspensionDurationBox');
-            if (type === 'suspend') durBox.style.display = 'block';
-            else durBox.style.display = 'none';
-        }
-
-        function showAlert(msg, type = 'error') {
-            const el = document.getElementById('pageAlert');
-            el.className = `alert alert-${type}`;
-            el.textContent = msg;
-            el.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        function clearAlert() {
-            const el = document.getElementById('pageAlert');
-            el.style.display = 'none';
-        }
-
-        async function handleSaveTriage() {
-            if (!currentTicket) return;
-            clearAlert();
-
-            const priority = document.getElementById('triagePrioritySelect').value;
-            const stage    = document.getElementById('triageStageSelect').value;
-
-            const endpoint = reportType === 'landlord_report' 
-                ? `/api/admin/landlord-reports/${reportId}/decision` 
-                : `/api/admin/tenant-reports/${reportId}/decision`;
-
-            try {
-                const res = await fetch(endpoint, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ action: 'triage', status: stage, severity: priority })
+            function selectActionType(type) {
+                selectedAction = type;
+                document.querySelectorAll('.action-card-btn').forEach(btn => {
+                    if (btn.dataset.actionType === type) btn.classList.add('selected');
+                    else btn.classList.remove('selected');
                 });
 
-                if (res.ok) {
-                    showAlert('Triage stage and priority updated successfully.', 'success');
-                    fetchTicketDetail();
-                } else {
-                    const r = await res.json();
-                    showAlert(r.message || 'Failed to update triage.');
-                }
-            } catch (err) {
-                console.error(err);
-                showAlert('Network error during triage update.');
-            }
-        }
-
-        async function handleExecuteDecision() {
-            clearAlert();
-            const modalError = document.getElementById('sanctionModalError');
-            if (modalError) modalError.style.display = 'none';
-
-            // Get remarks from panel textarea or prefill
-            const panelRemarks = (document.getElementById('decisionRemarks')?.value || '').trim();
-            const modalRemarksInput = document.getElementById('sanctionModalRemarks');
-            if (modalRemarksInput) modalRemarksInput.value = panelRemarks;
-
-            const suspensionDays = selectedAction === 'suspend' ? parseInt(document.getElementById('suspensionDaysInput')?.value || 7) : null;
-
-            // Determine target user from ticket
-            const isLandlordReport = reportType === 'landlord_report';
-            const targetName = isLandlordReport
-                ? (currentTicket?.landlord?.full_name || currentTicket?.landlord_name || 'Landlord')
-                : (currentTicket?.tenant?.full_name  || currentTicket?.tenant_name  || 'Tenant');
-            const targetRole = isLandlordReport ? 'Landlord' : 'Tenant';
-
-            // Build action-specific metadata
-            const actionMeta = {
-                dismiss: {
-                    icon: '🛡️',
-                    iconBg: 'rgba(100,116,139,0.15)',
-                    iconColor: '#64748b',
-                    title: 'Dismiss Report',
-                    btnColor: '#64748b',
-                    consequences: [
-                        { dot: '#94a3b8', text: 'Report status will be set to Dismissed / Rejected.' },
-                        { dot: '#94a3b8', text: 'No penalty will be applied to the reported user.' },
-                        { dot: '#94a3b8', text: 'Decision remarks will be recorded in the case audit file.' }
-                    ]
-                },
-                warning: {
-                    icon: '⚠️',
-                    iconBg: 'rgba(245,158,11,0.15)',
-                    iconColor: '#f59e0b',
-                    title: 'Issue Formal Warning',
-                    btnColor: '#f59e0b',
-                    consequences: [
-                        { dot: '#f59e0b', text: `A formal TOS warning will be officially recorded against ${targetName}'s account.` },
-                        { dot: '#f59e0b', text: 'The report status will be set to Action Enforced / Resolved.' },
-                        { dot: '#94a3b8', text: 'Account access is not affected — this is a warning notice only.' },
-                        { dot: '#94a3b8', text: 'Repeated violations may lead to account suspension or ban.' }
-                    ]
-                },
-                suspend: {
-                    icon: '⛔',
-                    iconBg: 'rgba(249,115,22,0.15)',
-                    iconColor: '#f97316',
-                    title: `Temporary Suspension (${suspensionDays || 7} Days)`,
-                    btnColor: '#f97316',
-                    consequences: [
-                        { dot: '#f97316', text: `${targetName}'s account will be suspended for ${suspensionDays || 7} day(s).` },
-                        { dot: '#f97316', text: 'They will be blocked from logging in during the suspension period.' },
-                        { dot: '#22c55e', text: 'Account access will be automatically restored after the suspension period expires.' },
-                        { dot: '#94a3b8', text: 'The report status will be set to Action Enforced / Resolved.' }
-                    ]
-                },
-                ban: {
-                    icon: '🚫',
-                    iconBg: 'rgba(225,29,72,0.12)',
-                    iconColor: '#e11d48',
-                    title: 'Permanent Account Ban',
-                    btnColor: '#e11d48',
-                    consequences: isLandlordReport
-                        ? [
-                            { dot: '#e11d48', text: `${targetName}'s account will be PERMANENTLY banned from the platform.` },
-                            { dot: '#e11d48', text: 'All their property listings will be immediately deactivated and hidden.' },
-                            { dot: '#e11d48', text: 'They will be blocked from ever logging in again.' },
-                            { dot: '#f97316', text: 'This action is IRREVERSIBLE. Proceed with utmost caution.' }
-                        ]
-                        : [
-                            { dot: '#e11d48', text: `${targetName}'s account will be PERMANENTLY banned from the platform.` },
-                            { dot: '#e11d48', text: 'They will be blocked from ever logging in again.' },
-                            { dot: '#f97316', text: 'This action is IRREVERSIBLE. Proceed with utmost caution.' }
-                        ]
-                }
-            };
-
-            const meta = actionMeta[selectedAction] || actionMeta.dismiss;
-
-            // Populate modal elements
-            const icon = document.getElementById('sanctionConfirmIcon');
-            if (icon) {
-                icon.textContent = meta.icon;
-                icon.style.background = meta.iconBg;
+                const durBox = document.getElementById('suspensionDurationBox');
+                if (type === 'suspend') durBox.style.display = 'block';
+                else durBox.style.display = 'none';
             }
 
-            const title = document.getElementById('sanctionConfirmTitle');
-            if (title) title.textContent = meta.title;
+            function showAlert(msg, type = 'error') {
+                const el = document.getElementById('pageAlert');
+                el.className = `alert alert-${type}`;
+                el.textContent = msg;
+                el.style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            function clearAlert() {
+                const el = document.getElementById('pageAlert');
+                el.style.display = 'none';
+            }
 
-            const avatar = document.getElementById('sanctionTargetAvatar');
-            if (avatar) avatar.textContent = (targetName || 'U').charAt(0).toUpperCase();
+            async function handleSaveTriage() {
+                if (!currentTicket) return;
+                clearAlert();
 
-            const targetNameEl = document.getElementById('sanctionTargetName');
-            if (targetNameEl) targetNameEl.textContent = targetName;
+                const priority = document.getElementById('triagePrioritySelect').value;
+                const stage = document.getElementById('triageStageSelect').value;
 
-            const targetRoleEl = document.getElementById('sanctionTargetRole');
-            if (targetRoleEl) targetRoleEl.textContent = targetRole + ' — ' + (isLandlordReport ? 'Landlord vs Tenant Report' : 'Tenant vs Landlord Report');
+                const endpoint = reportType === 'landlord_report'
+                    ? `/api/admin/landlord-reports/${reportId}/decision`
+                    : `/api/admin/tenant-reports/${reportId}/decision`;
 
-            const list = document.getElementById('sanctionConsequencesList');
-            if (list) {
-                list.innerHTML = meta.consequences.map(c =>
-                    `<div class="sanction-consequence-item">
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ action: 'triage', status: stage, severity: priority })
+                    });
+
+                    if (res.ok) {
+                        showAlert('Triage stage and priority updated successfully.', 'success');
+                        fetchTicketDetail();
+                    } else {
+                        const r = await res.json();
+                        showAlert(r.message || 'Failed to update triage.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Network error during triage update.');
+                }
+            }
+
+            async function handleExecuteDecision() {
+                clearAlert();
+                const modalError = document.getElementById('sanctionModalError');
+                if (modalError) modalError.style.display = 'none';
+
+                // Get remarks from panel textarea or prefill
+                const panelRemarks = (document.getElementById('decisionRemarks')?.value || '').trim();
+                const modalRemarksInput = document.getElementById('sanctionModalRemarks');
+                if (modalRemarksInput) modalRemarksInput.value = panelRemarks;
+
+                const suspensionDays = selectedAction === 'suspend' ? parseInt(document.getElementById('suspensionDaysInput')?.value || 7) : null;
+
+                // Determine target user from ticket
+                const isLandlordReport = reportType === 'landlord_report';
+                const targetName = isLandlordReport
+                    ? (currentTicket?.landlord?.full_name || currentTicket?.landlord_name || 'Landlord')
+                    : (currentTicket?.tenant?.full_name || currentTicket?.tenant_name || 'Tenant');
+                const targetRole = isLandlordReport ? 'Landlord' : 'Tenant';
+
+                // Build action-specific metadata
+                const actionMeta = {
+                    dismiss: {
+                        icon: '🛡️',
+                        iconBg: 'rgba(100,116,139,0.15)',
+                        iconColor: '#64748b',
+                        title: 'Dismiss Report',
+                        btnColor: '#64748b',
+                        consequences: [
+                            { dot: '#94a3b8', text: 'Report status will be set to Dismissed / Rejected.' },
+                            { dot: '#94a3b8', text: 'No penalty will be applied to the reported user.' },
+                            { dot: '#94a3b8', text: 'Decision remarks will be recorded in the case audit file.' }
+                        ]
+                    },
+                    warning: {
+                        icon: '⚠️',
+                        iconBg: 'rgba(245,158,11,0.15)',
+                        iconColor: '#f59e0b',
+                        title: 'Issue Formal Warning',
+                        btnColor: '#f59e0b',
+                        consequences: [
+                            { dot: '#f59e0b', text: `A formal TOS warning will be officially recorded against ${targetName}'s account.` },
+                            { dot: '#f59e0b', text: 'The report status will be set to Action Enforced / Resolved.' },
+                            { dot: '#94a3b8', text: 'Account access is not affected — this is a warning notice only.' },
+                            { dot: '#94a3b8', text: 'Repeated violations may lead to account suspension or ban.' }
+                        ]
+                    },
+                    suspend: {
+                        icon: '⛔',
+                        iconBg: 'rgba(249,115,22,0.15)',
+                        iconColor: '#f97316',
+                        title: `Temporary Suspension (${suspensionDays || 7} Days)`,
+                        btnColor: '#f97316',
+                        consequences: [
+                            { dot: '#f97316', text: `${targetName}'s account will be suspended for ${suspensionDays || 7} day(s).` },
+                            { dot: '#f97316', text: 'They will be blocked from logging in during the suspension period.' },
+                            { dot: '#22c55e', text: 'Account access will be automatically restored after the suspension period expires.' },
+                            { dot: '#94a3b8', text: 'The report status will be set to Action Enforced / Resolved.' }
+                        ]
+                    },
+                    ban: {
+                        icon: '🚫',
+                        iconBg: 'rgba(225,29,72,0.12)',
+                        iconColor: '#e11d48',
+                        title: 'Permanent Account Ban',
+                        btnColor: '#e11d48',
+                        consequences: isLandlordReport
+                            ? [
+                                { dot: '#e11d48', text: `${targetName}'s account will be PERMANENTLY banned from the platform.` },
+                                { dot: '#e11d48', text: 'All their property listings will be immediately deactivated and hidden.' },
+                                { dot: '#e11d48', text: 'They will be blocked from ever logging in again.' },
+                                { dot: '#f97316', text: 'This action is IRREVERSIBLE. Proceed with utmost caution.' }
+                            ]
+                            : [
+                                { dot: '#e11d48', text: `${targetName}'s account will be PERMANENTLY banned from the platform.` },
+                                { dot: '#e11d48', text: 'They will be blocked from ever logging in again.' },
+                                { dot: '#f97316', text: 'This action is IRREVERSIBLE. Proceed with utmost caution.' }
+                            ]
+                    }
+                };
+
+                const meta = actionMeta[selectedAction] || actionMeta.dismiss;
+
+                // Populate modal elements
+                const icon = document.getElementById('sanctionConfirmIcon');
+                if (icon) {
+                    icon.textContent = meta.icon;
+                    icon.style.background = meta.iconBg;
+                }
+
+                const title = document.getElementById('sanctionConfirmTitle');
+                if (title) title.textContent = meta.title;
+
+                const avatar = document.getElementById('sanctionTargetAvatar');
+                if (avatar) avatar.textContent = (targetName || 'U').charAt(0).toUpperCase();
+
+                const targetNameEl = document.getElementById('sanctionTargetName');
+                if (targetNameEl) targetNameEl.textContent = targetName;
+
+                const targetRoleEl = document.getElementById('sanctionTargetRole');
+                if (targetRoleEl) targetRoleEl.textContent = targetRole + ' — ' + (isLandlordReport ? 'Landlord vs Tenant Report' : 'Tenant vs Landlord Report');
+
+                const list = document.getElementById('sanctionConsequencesList');
+                if (list) {
+                    list.innerHTML = meta.consequences.map(c =>
+                        `<div class="sanction-consequence-item">
                         <div class="sanction-consequence-dot" style="background:${c.dot};"></div>
                         <span>${c.text}</span>
                     </div>`
-                ).join('');
-            }
+                    ).join('');
+                }
 
-            const confirmBtn = document.getElementById('sanctionConfirmBtn');
-            if (confirmBtn) {
-                confirmBtn.style.background = meta.btnColor;
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Confirm &amp; Enforce`;
-            }
+                const confirmBtn = document.getElementById('sanctionConfirmBtn');
+                if (confirmBtn) {
+                    confirmBtn.style.background = meta.btnColor;
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Confirm &amp; Enforce`;
+                }
 
-            // Show confirmation modal
-            const overlay = document.getElementById('sanctionConfirmOverlay');
-            if (overlay) overlay.classList.add('open');
+                // Show confirmation modal
+                const overlay = document.getElementById('sanctionConfirmOverlay');
+                if (overlay) overlay.classList.add('open');
 
-            // Set up confirm handler
-            if (confirmBtn) {
-                confirmBtn.onclick = async () => {
-                    const finalRemarks = (document.getElementById('sanctionModalRemarks')?.value || '').trim();
-                    if (!finalRemarks || finalRemarks.length < 5) {
-                        const err = document.getElementById('sanctionModalError');
-                        if (err) err.style.display = 'block';
-                        const remInput = document.getElementById('sanctionModalRemarks');
-                        if (remInput) remInput.focus();
-                        return;
-                    }
-
-                    // Sync back to main panel remarks textarea
-                    const mainRemarks = document.getElementById('decisionRemarks');
-                    if (mainRemarks) mainRemarks.value = finalRemarks;
-
-                    confirmBtn.disabled = true;
-                    confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Enforcing...`;
-
-                    const endpoint = reportType === 'landlord_report'
-                        ? `/api/admin/landlord-reports/${reportId}/decision`
-                        : `/api/admin/tenant-reports/${reportId}/decision`;
-
-                    try {
-                        const res = await fetch(endpoint, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                            body: JSON.stringify({ action: selectedAction, admin_remarks: finalRemarks, suspension_days: suspensionDays })
-                        });
-
-                        if (overlay) overlay.classList.remove('open');
-
-                        if (res.ok) {
-                            const r = await res.json();
-                            showSuccessBanner(r.message || 'Sanction enforced and ticket updated successfully!');
-                            fetchTicketDetail();
-                        } else {
-                            const r = await res.json();
-                            showAlert(r.message || 'Failed to enforce decision.');
+                // Set up confirm handler
+                if (confirmBtn) {
+                    confirmBtn.onclick = async () => {
+                        const finalRemarks = (document.getElementById('sanctionModalRemarks')?.value || '').trim();
+                        if (!finalRemarks || finalRemarks.length < 5) {
+                            const err = document.getElementById('sanctionModalError');
+                            if (err) err.style.display = 'block';
+                            const remInput = document.getElementById('sanctionModalRemarks');
+                            if (remInput) remInput.focus();
+                            return;
                         }
-                    } catch (err) {
-                        console.error(err);
-                        if (overlay) overlay.classList.remove('open');
-                        showAlert('Network error during decision enforcement.');
-                    }
-                };
-            }
-        }
 
-        document.getElementById('sanctionCancelBtn').addEventListener('click', () => {
-            document.getElementById('sanctionConfirmOverlay').classList.remove('open');
-        });
-        document.getElementById('sanctionConfirmOverlay').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('sanctionConfirmOverlay')) {
+                        // Sync back to main panel remarks textarea
+                        const mainRemarks = document.getElementById('decisionRemarks');
+                        if (mainRemarks) mainRemarks.value = finalRemarks;
+
+                        confirmBtn.disabled = true;
+                        confirmBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Enforcing...`;
+
+                        const endpoint = reportType === 'landlord_report'
+                            ? `/api/admin/landlord-reports/${reportId}/decision`
+                            : `/api/admin/tenant-reports/${reportId}/decision`;
+
+                        try {
+                            const res = await fetch(endpoint, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                body: JSON.stringify({ action: selectedAction, admin_remarks: finalRemarks, suspension_days: suspensionDays })
+                            });
+
+                            if (overlay) overlay.classList.remove('open');
+
+                            if (res.ok) {
+                                const r = await res.json();
+                                showSuccessBanner(r.message || 'Sanction enforced and ticket updated successfully!');
+                                fetchTicketDetail();
+                            } else {
+                                const r = await res.json();
+                                showAlert(r.message || 'Failed to enforce decision.');
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            if (overlay) overlay.classList.remove('open');
+                            showAlert('Network error during decision enforcement.');
+                        }
+                    };
+                }
+            }
+
+            document.getElementById('sanctionCancelBtn').addEventListener('click', () => {
                 document.getElementById('sanctionConfirmOverlay').classList.remove('open');
+            });
+            document.getElementById('sanctionConfirmOverlay').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('sanctionConfirmOverlay')) {
+                    document.getElementById('sanctionConfirmOverlay').classList.remove('open');
+                }
+            });
+
+            function showSuccessBanner(msg) {
+                let banner = document.getElementById('successBanner');
+                if (!banner) {
+                    banner = document.createElement('div');
+                    banner.id = 'successBanner';
+                    banner.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-80px);background:#16a34a;color:white;padding:0.85rem 1.75rem;border-radius:50px;font-weight:800;font-size:0.88rem;z-index:99999;box-shadow:0 8px 25px rgba(22,163,74,0.4);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);display:flex;align-items:center;gap:0.5rem;';
+                    document.body.appendChild(banner);
+                }
+                banner.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> ${msg}`;
+                setTimeout(() => { banner.style.transform = 'translateX(-50%) translateY(0)'; }, 10);
+                setTimeout(() => { banner.style.transform = 'translateX(-50%) translateY(-80px)'; }, 4000);
             }
-        });
 
-        function showSuccessBanner(msg) {
-            let banner = document.getElementById('successBanner');
-            if (!banner) {
-                banner = document.createElement('div');
-                banner.id = 'successBanner';
-                banner.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-80px);background:#16a34a;color:white;padding:0.85rem 1.75rem;border-radius:50px;font-weight:800;font-size:0.88rem;z-index:99999;box-shadow:0 8px 25px rgba(22,163,74,0.4);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);display:flex;align-items:center;gap:0.5rem;';
-                document.body.appendChild(banner);
-            }
-            banner.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> ${msg}`;
-            setTimeout(() => { banner.style.transform = 'translateX(-50%) translateY(0)'; }, 10);
-            setTimeout(() => { banner.style.transform = 'translateX(-50%) translateY(-80px)'; }, 4000);
-        }
+            let lastMessageCount = 0;
+            let typingTimeout = null;
 
-        let lastMessageCount = 0;
-        let typingTimeout = null;
+            async function pollRealtimeThread() {
+                if (!reportType || !reportId) return;
 
-        async function pollRealtimeThread() {
-            if (!reportType || !reportId) return;
-
-            try {
-                // 1. Fetch messages for activeThread
-                const res = await fetch(`/api/reports/messages/${reportType}/${reportId}?thread=${activeThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (res.ok) {
-                    const { data } = await res.json();
-                    const messages = data || [];
-                    if (messages.length !== lastMessageCount) {
-                        const shouldScroll = lastMessageCount > 0 || lastMessageCount === -1;
-                        lastMessageCount = messages.length;
-                        renderMessagesFeed(messages);
-                        if (shouldScroll) {
-                            const feed = document.getElementById('messagesFeed');
-                            if (feed) feed.scrollTop = feed.scrollHeight;
+                try {
+                    // 1. Fetch messages for activeThread
+                    const res = await fetch(`/api/reports/messages/${reportType}/${reportId}?thread=${activeThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (res.ok) {
+                        const { data } = await res.json();
+                        const messages = data || [];
+                        if (messages.length !== lastMessageCount) {
+                            const shouldScroll = lastMessageCount > 0 || lastMessageCount === -1;
+                            lastMessageCount = messages.length;
+                            renderMessagesFeed(messages);
+                            if (shouldScroll) {
+                                const feed = document.getElementById('messagesFeed');
+                                if (feed) feed.scrollTop = feed.scrollHeight;
+                            }
                         }
                     }
-                }
 
-                // 2. Fetch active typers for activeThread
-                const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing?thread=${activeThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (typingRes.ok) {
-                    const { data: typers } = await typingRes.json();
-                    renderTypingState(typers);
-                }
-            } catch (e) {}
-        }
-
-        function renderMessagesFeed(data) {
-            const feed = document.getElementById('messagesFeed');
-            if (!feed) return;
-            if (!data || data.length === 0) {
-                const isReporter = activeThread === 'reporter';
-                feed.innerHTML = `<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in ${isReporter ? 'Reporter' : 'Target'} thread.</div>`;
-                return;
+                    // 2. Fetch active typers for activeThread
+                    const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing?thread=${activeThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (typingRes.ok) {
+                        const { data: typers } = await typingRes.json();
+                        renderTypingState(typers);
+                    }
+                } catch (e) { }
             }
 
-            feed.innerHTML = '';
-            data.forEach(m => {
-                const isMe = m.sender_role === 'admin';
-                const senderName = m.sender?.full_name || (m.sender_role === 'admin' ? 'System Admin' : m.sender_role);
-                const dateStr = new Date(m.created_at).toLocaleString();
+            function renderMessagesFeed(data) {
+                const feed = document.getElementById('messagesFeed');
+                if (!feed) return;
+                if (!data || data.length === 0) {
+                    const isReporter = activeThread === 'reporter';
+                    feed.innerHTML = `<div style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">No inquiry messages posted yet in ${isReporter ? 'Reporter' : 'Target'} thread.</div>`;
+                    return;
+                }
 
-                const item = document.createElement('div');
-                item.style.cssText = `background:${isMe ? 'rgba(59,130,246,0.1)' : 'var(--bg-secondary)'}; border:1px solid var(--border-color); padding:0.75rem 1rem; border-radius:8px; font-size:0.88rem;`;
-                item.innerHTML = `
+                feed.innerHTML = '';
+                data.forEach(m => {
+                    const isMe = m.sender_role === 'admin';
+                    const senderName = m.sender?.full_name || (m.sender_role === 'admin' ? 'System Admin' : m.sender_role);
+                    const dateStr = new Date(m.created_at).toLocaleString();
+
+                    const item = document.createElement('div');
+                    item.style.cssText = `background:${isMe ? 'rgba(59,130,246,0.1)' : 'var(--bg-secondary)'}; border:1px solid var(--border-color); padding:0.75rem 1rem; border-radius:8px; font-size:0.88rem;`;
+                    item.innerHTML = `
                     <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.75rem;">
                         <span style="font-weight:800; color:${isMe ? 'var(--landlord)' : 'var(--text-primary)'};">${senderName} (${m.sender_role.toUpperCase()})</span>
                         <span style="color:var(--text-muted);">${dateStr}</span>
@@ -1298,20 +1453,20 @@
                     <div style="color:var(--text-primary); white-space:pre-wrap;">${m.message_text}</div>
                     ${m.attachment_url ? `<div style="margin-top:0.4rem;"><a href="${m.attachment_url}" target="_blank" style="color:var(--landlord); font-weight:700; font-size:0.8rem;">📎 View Attached Media ↗</a></div>` : ''}
                 `;
-                feed.appendChild(item);
-            });
-        }
-
-        function renderTypingState(typers) {
-            const container = document.getElementById('typingIndicatorContainer');
-            if (!container) return;
-            if (!typers || typers.length === 0) {
-                container.innerHTML = '';
-                return;
+                    feed.appendChild(item);
+                });
             }
-            const roleLabels = typers.map(t => t.userRole.charAt(0).toUpperCase() + t.userRole.slice(1).toLowerCase()).join(', ');
-            const verb = typers.length > 1 ? 'are' : 'is';
-            container.innerHTML = `
+
+            function renderTypingState(typers) {
+                const container = document.getElementById('typingIndicatorContainer');
+                if (!container) return;
+                if (!typers || typers.length === 0) {
+                    container.innerHTML = '';
+                    return;
+                }
+                const roleLabels = typers.map(t => t.userRole.charAt(0).toUpperCase() + t.userRole.slice(1).toLowerCase()).join(', ');
+                const verb = typers.length > 1 ? 'are' : 'is';
+                container.innerHTML = `
                 <div class="typing-indicator-box">
                     <span><strong>${roleLabels}</strong> ${verb} typing</span>
                     <div class="messenger-dots">
@@ -1321,58 +1476,59 @@
                     </div>
                 </div>
             `;
-        }
-
-        async function sendTypingState(isTyping) {
-            if (!reportType || !reportId) return;
-            try {
-                await fetch(`/api/reports/messages/${reportType}/${reportId}/typing`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ is_typing: isTyping, thread: activeThread })
-                });
-                const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing?thread=${activeThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (typingRes.ok) {
-                    const { data: typers } = await typingRes.json();
-                    renderTypingState(typers);
-                }
-            } catch (e) {}
-        }
-
-        async function loadInvestigationMessages(type, id) {
-            await pollRealtimeThread();
-        }
-
-        async function handlePostInquiry(e) {
-            e.preventDefault();
-            if (!currentTicket) return;
-
-            const msgInput = document.getElementById('msgTextInput');
-            const text = msgInput.value.trim();
-            if (!text) return;
-
-            try {
-                sendTypingState(false);
-                const res = await fetch(`/api/reports/messages/${reportType}/${reportId}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ message_text: text, recipient_role: activeThread })
-                });
-                if (res.ok) {
-                    msgInput.value = '';
-                    lastMessageCount = -1;
-                    await pollRealtimeThread();
-                    const feed = document.getElementById('messagesFeed');
-                    if (feed) feed.scrollTop = feed.scrollHeight;
-                } else {
-                    const r = await res.json();
-                    alert(r.message || 'Failed to post message.');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Network error posting message.');
             }
-        }
-    </script>
+
+            async function sendTypingState(isTyping) {
+                if (!reportType || !reportId) return;
+                try {
+                    await fetch(`/api/reports/messages/${reportType}/${reportId}/typing`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ is_typing: isTyping, thread: activeThread })
+                    });
+                    const typingRes = await fetch(`/api/reports/messages/${reportType}/${reportId}/typing?thread=${activeThread}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (typingRes.ok) {
+                        const { data: typers } = await typingRes.json();
+                        renderTypingState(typers);
+                    }
+                } catch (e) { }
+            }
+
+            async function loadInvestigationMessages(type, id) {
+                await pollRealtimeThread();
+            }
+
+            async function handlePostInquiry(e) {
+                e.preventDefault();
+                if (!currentTicket) return;
+
+                const msgInput = document.getElementById('msgTextInput');
+                const text = msgInput.value.trim();
+                if (!text) return;
+
+                try {
+                    sendTypingState(false);
+                    const res = await fetch(`/api/reports/messages/${reportType}/${reportId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ message_text: text, recipient_role: activeThread })
+                    });
+                    if (res.ok) {
+                        msgInput.value = '';
+                        lastMessageCount = -1;
+                        await pollRealtimeThread();
+                        const feed = document.getElementById('messagesFeed');
+                        if (feed) feed.scrollTop = feed.scrollHeight;
+                    } else {
+                        const r = await res.json();
+                        alert(r.message || 'Failed to post message.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Network error posting message.');
+                }
+            }
+        </script>
 </body>
+
 </html>

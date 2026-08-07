@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
             margin-bottom: 2rem;
             overflow-x: auto;
         }
+
         .filter-tabs {
             display: flex;
             gap: 0.5rem;
@@ -22,6 +24,7 @@
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.75rem;
         }
+
         .tab-btn {
             background: none;
             border: none;
@@ -34,20 +37,24 @@
             border-radius: var(--radius-md);
             transition: all var(--transition-fast);
         }
+
         .tab-btn:hover {
             background-color: var(--primary-light);
             color: var(--primary);
         }
+
         .tab-btn.active {
             background-color: var(--primary);
             color: white;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
             font-size: 0.9375rem;
         }
+
         th {
             font-weight: 700;
             color: var(--text-secondary);
@@ -57,14 +64,17 @@
             font-size: 0.75rem;
             letter-spacing: 0.05em;
         }
+
         td {
             padding: 1.25rem 1rem;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
         }
+
         tr:hover td {
             background-color: var(--bg-primary);
         }
+
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
@@ -72,6 +82,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-admin">
@@ -96,13 +107,15 @@
     <!-- Main Content -->
     <main class="dashboard-container">
         <h2>Property Registration Review</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Audit new landlord submissions, check licenses, and control property discoverability.</p>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Audit new landlord submissions, check licenses,
+            and control property discoverability.</p>
 
         <div class="review-card">
             <!-- Tabs to filter properties -->
             <div class="filter-tabs">
                 <button onclick="switchTab('all')" id="tab-all" class="tab-btn active">All Listings</button>
-                <button onclick="switchTab('pending_review')" id="tab-pending_review" class="tab-btn">Pending Review</button>
+                <button onclick="switchTab('pending_review')" id="tab-pending_review" class="tab-btn">Pending
+                    Review</button>
                 <button onclick="switchTab('approved')" id="tab-approved" class="tab-btn">Approved</button>
                 <button onclick="switchTab('rejected')" id="tab-rejected" class="tab-btn">Rejected</button>
             </div>
@@ -122,7 +135,8 @@
                 </thead>
                 <tbody id="propertiesTableBody">
                     <tr>
-                        <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading registered properties...</td>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading registered
+                            properties...</td>
                     </tr>
                 </tbody>
             </table>
@@ -165,7 +179,7 @@
 
         function switchTab(status) {
             activeTabFilter = status;
-            
+
             // Toggle active styles on buttons
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tab-${status}`).classList.add('active');
@@ -234,4 +248,5 @@
         }
     </script>
 </body>
+
 </html>
