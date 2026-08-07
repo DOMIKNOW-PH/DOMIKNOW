@@ -1099,10 +1099,11 @@
                     needs_more_evidence:  'background:rgba(99,102,241,.1);color:var(--primary);border:1px solid rgba(99,102,241,.3);'
                 };
                 const bannerMessages = {
-                    pending_admin_review: 'Your report against landlord is currently pending admin review.',
-                    approved:             'This report has been approved by admin.',
-                    rejected:             'This report was reviewed and rejected by admin.',
-                    needs_more_evidence:  'The admin has requested more evidence from you regarding this report.'
+                    pending_admin_review: '⏳ Pending Admin Review: Your report is queued for investigation by admin staff.',
+                    approved:             '✅ Action Enforced: Your report was investigated and validated by admin. Disciplinary action/warning has been enforced.',
+                    rejected:             '🛡️ Case Dismissed: Your report was reviewed and dismissed by admin (insufficient evidence or no TOS policy violation found).',
+                    dismissed:            '🛡️ Case Dismissed: Your report was reviewed and dismissed by admin (insufficient evidence or no TOS policy violation found).',
+                    needs_more_evidence:  '📎 Evidence Requested: The admin has requested additional evidence from you regarding this report.'
                 };
                 $('fStatusBanner').style.cssText = bannerColors[r.status] || bannerColors.pending_admin_review;
                 $('fStatusBanner').textContent   = bannerMessages[r.status] || statusLabel(r.status);
@@ -1281,12 +1282,12 @@
                     needs_more_evidence:  'background:rgba(99,102,241,.1);color:var(--primary);border:1px solid rgba(99,102,241,.3);'
                 };
                 const bannerMessages = {
-                    pending_admin_review: 'This report is currently pending admin review. You may submit your explanation below.',
-                    in_review:            'Admin staff has been assigned and investigation is ongoing. You may submit your explanation below.',
-                    approved:             'This report has been approved by admin.',
-                    rejected:             'This report was dismissed by admin. No action will be taken against you.',
-                    dismissed:            'This report was dismissed by admin. No action will be taken against you.',
-                    needs_more_evidence:  'The admin has requested more evidence regarding this report.'
+                    pending_admin_review: '⏳ Under Review: A report was filed regarding a potential incident. You may submit your explanation below.',
+                    in_review:            '🔍 Investigation Ongoing: Admin staff is currently reviewing this case and evidence. Submit your explanation below.',
+                    approved:             '⛔ Disciplinary Sanction Enforced: The admin investigated this report, confirmed TOS policy grounds, and enforced administrative action/warning against your account.',
+                    rejected:             '🛡️ Case Dismissed: The report filed against you was reviewed and dismissed by admin. No disciplinary action will be taken against your account.',
+                    dismissed:            '🛡️ Case Dismissed: The report filed against you was reviewed and dismissed by admin. No disciplinary action will be taken against your account.',
+                    needs_more_evidence:  '📎 Evidence / Statement Requested: The admin has requested additional details or clarification from you regarding this case.'
                 };
                 $('mStatusBanner').style.cssText = bannerColors[r.status] || bannerColors.pending_admin_review;
                 $('mStatusBanner').textContent   = bannerMessages[r.status] || statusLabel(r.status);
