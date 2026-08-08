@@ -112,14 +112,27 @@
                 <div class="filter-section">
                     <label class="form-label" for="filterBarangay">Barangay</label>
                     <select id="filterBarangay" class="form-select">
-                        <option value="">All Barangays</option>
-                        <option value="G. Redor">G. Redor</option>
-                        <option value="Halayhayin">Halayhayin</option>
-                        <option value="Pandeño">Pandeño</option>
-                        <option value="Macasipac">Macasipac</option>
+                        <option value="">All Barangays in Siniloan</option>
                         <option value="Acevida">Acevida</option>
-                        <option value="Mendiola">Mendiola</option>
+                        <option value="Bagong Pag-asa">Bagong Pag-asa (Poblacion)</option>
+                        <option value="Bagumayan">Bagumayan</option>
+                        <option value="Buhay">Buhay</option>
+                        <option value="Gen. Luna">Gen. Luna</option>
+                        <option value="G. Redor">G. Redor (Poblacion)</option>
+                        <option value="Halayhayin">Halayhayin</option>
+                        <option value="I. Mendiola">I. Mendiola (Poblacion)</option>
+                        <option value="Kalaiya">Kalaiya</option>
+                        <option value="Kapatalan">Kapatalan</option>
+                        <option value="Laguio">Laguio</option>
+                        <option value="Liyang">Liyang</option>
+                        <option value="Llavac">Llavac</option>
+                        <option value="Macatad">Macatad</option>
+                        <option value="Magsaysay">Magsaysay</option>
+                        <option value="Maybo">Maybo</option>
+                        <option value="Pandeño">Pandeño</option>
                         <option value="Salubungan">Salubungan</option>
+                        <option value="Valderrama">Valderrama</option>
+                        <option value="Wawa">Wawa</option>
                     </select>
                 </div>
 
@@ -302,49 +315,71 @@
         function getBarangayPolygon(barangayName) {
             const key = (barangayName || '').trim().toLowerCase();
             const predefinedPolygons = {
-                'halayhayin': [
-                    [14.4320, 121.4380], [14.4340, 121.4460], [14.4260, 121.4500], [14.4200, 121.4450], [14.4210, 121.4390]
-                ],
                 'acevida': [
-                    [14.4170, 121.4460], [14.4180, 121.4520], [14.4090, 121.4550], [14.4050, 121.4490], [14.4110, 121.4450]
+                    [14.4170, 121.4460], [14.4180, 121.4540], [14.4090, 121.4560], [14.4050, 121.4490], [14.4110, 121.4450]
+                ],
+                'bagong pag-asa': [
+                    [14.4205, 121.4435], [14.4210, 121.4465], [14.4160, 121.4470], [14.4155, 121.4440]
+                ],
+                'bagumayan': [
+                    [14.4185, 121.4470], [14.4190, 121.4500], [14.4140, 121.4505], [14.4135, 121.4475]
+                ],
+                'buhay': [
+                    [14.4255, 121.4470], [14.4260, 121.4510], [14.4210, 121.4515], [14.4205, 121.4475]
+                ],
+                'gen. luna': [
+                    [14.4225, 121.4430], [14.4230, 121.4460], [14.4180, 121.4465], [14.4175, 121.4435]
                 ],
                 'g. redor': [
                     [14.4200, 121.4455], [14.4205, 121.4485], [14.4150, 121.4495], [14.4145, 121.4460]
                 ],
-                'macatad': [
-                    [14.4330, 121.4500], [14.4340, 121.4600], [14.4240, 121.4610], [14.4230, 121.4510]
+                'halayhayin': [
+                    [14.4340, 121.4360], [14.4360, 121.4460], [14.4260, 121.4500], [14.4200, 121.4450], [14.4210, 121.4390]
                 ],
-                'wawa': [
-                    [14.4140, 121.4410], [14.4150, 121.4470], [14.4070, 121.4480], [14.4060, 121.4420]
+                'i. mendiola': [
+                    [14.4215, 121.4450], [14.4220, 121.4480], [14.4170, 121.4485], [14.4165, 121.4455]
+                ],
+                'kalaiya': [
+                    [14.4650, 121.4820], [14.4680, 121.4940], [14.4550, 121.4960], [14.4530, 121.4840]
+                ],
+                'kapatalan': [
+                    [14.4600, 121.4760], [14.4620, 121.4880], [14.4500, 121.4900], [14.4480, 121.4780]
+                ],
+                'laguio': [
+                    [14.4380, 121.4580], [14.4400, 121.4660], [14.4310, 121.4670], [14.4300, 121.4590]
+                ],
+                'liyang': [
+                    [14.4410, 121.4630], [14.4430, 121.4710], [14.4340, 121.4720], [14.4330, 121.4640]
+                ],
+                'llavac': [
+                    [14.4520, 121.4700], [14.4540, 121.4800], [14.4430, 121.4820], [14.4420, 121.4720]
+                ],
+                'macatad': [
+                    [14.4330, 121.4500], [14.4350, 121.4600], [14.4240, 121.4620], [14.4230, 121.4510]
+                ],
+                'magsaysay': [
+                    [14.4200, 121.4475], [14.4205, 121.4505], [14.4155, 121.4510], [14.4150, 121.4480]
+                ],
+                'maybo': [
+                    [14.4380, 121.4460], [14.4400, 121.4540], [14.4320, 121.4550], [14.4300, 121.4470]
+                ],
+                'pandeño': [
+                    [14.4440, 121.4630], [14.4460, 121.4720], [14.4360, 121.4730], [14.4350, 121.4640]
                 ],
                 'salubungan': [
                     [14.4350, 121.4550], [14.4360, 121.4630], [14.4280, 121.4640], [14.4270, 121.4560]
                 ],
-                'pandeño': [
-                    [14.4440, 121.4630], [14.4450, 121.4720], [14.4360, 121.4730], [14.4350, 121.4640]
+                'valderrama': [
+                    [14.4235, 121.4410], [14.4240, 121.4445], [14.4190, 121.4450], [14.4185, 121.4415]
+                ],
+                'wawa': [
+                    [14.4140, 121.4410], [14.4150, 121.4470], [14.4070, 121.4480], [14.4060, 121.4420]
                 ]
             };
 
             if (predefinedPolygons[key]) return predefinedPolygons[key];
 
-            const barangayCoords = {
-                'bagong pag-asa': [14.4172, 121.4475],
-                'bagumayan': [14.4168, 121.4480],
-                'i. mendiola': [14.4180, 121.4465],
-                'mercado': [14.4165, 121.4472],
-                'p. burgos': [14.4150, 121.4460],
-                'magsaysay': [14.4190, 121.4485],
-                'castro': [14.4220, 121.4520],
-                'laguio': [14.4330, 121.4600],
-                'liyang': [14.4380, 121.4650],
-                'pandeno': [14.4400, 121.4680],
-                'llavac': [14.4480, 121.4750],
-                'kapatalan': [14.4550, 121.4820],
-                'kalaiya': [14.4600, 121.4880],
-                'maybo': [14.4350, 121.4500]
-            };
-
-            const center = barangayCoords[key] || [14.4172, 121.4475];
+            const center = [14.4172, 121.4475];
             const lat = center[0];
             const lon = center[1];
             return [
