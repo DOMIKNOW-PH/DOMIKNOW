@@ -26,27 +26,40 @@ const PRIVATE_BUCKETS = [
 // Signed URL expiry: 7 days (in seconds) — sufficient for demo and capstone use
 const SIGNED_URL_EXPIRY = 7 * 24 * 60 * 60;
 
+// In-memory set of verified buckets to prevent redundant API calls on every upload
+const verifiedBuckets = new Set();
+
 const ensureBucket = async (bucketName) => {
+    if (verifiedBuckets.has(bucketName)) return;
+
     try {
         const { data: buckets, error: listError } = await supabase.storage.listBuckets();
         if (listError) {
-            console.error('Error listing buckets:', listError);
+            console.warn(`[storageHelper] Warning listing buckets (${listError.message || listError.status || 'Timeout'}). Proceeding with upload...`);
             return;
         }
-        const exists = buckets && buckets.some(b => b.name === bucketName);
-        if (!exists) {
+        if (buckets && Array.isArray(buckets)) {
+            buckets.forEach(b => verifiedBuckets.add(b.name));
+        }
+        if (!verifiedBuckets.has(bucketName)) {
             const isPrivate = PRIVATE_BUCKETS.includes(bucketName);
             const { error: createError } = await supabase.storage.createBucket(bucketName, {
                 public: !isPrivate
             });
             if (createError) {
-                console.error(`Error creating bucket ${bucketName}:`, createError);
+                // If bucket already exists error or other API warning, log cleanly
+                if (createError.message && createError.message.includes('already exists')) {
+                    verifiedBuckets.add(bucketName);
+                } else {
+                    console.warn(`[storageHelper] Notice creating bucket ${bucketName}:`, createError.message || createError);
+                }
             } else {
-                console.log(`Successfully created Supabase storage bucket: ${bucketName} (public: ${!isPrivate})`);
+                verifiedBuckets.add(bucketName);
+                console.log(`Successfully verified/created Supabase storage bucket: ${bucketName} (public: ${!isPrivate})`);
             }
         }
     } catch (err) {
-        console.error(`Error in ensureBucket for ${bucketName}:`, err);
+        console.warn(`[storageHelper] Non-fatal warning in ensureBucket for ${bucketName}:`, err.message || err);
     }
 };
 

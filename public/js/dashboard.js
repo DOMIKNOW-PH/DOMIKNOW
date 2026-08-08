@@ -176,10 +176,11 @@ function renderNewDashboardLayout(user) {
                 ]
             },
             {
-                section: 'Monitoring & Logs',
+                section: 'Monitoring & Governance',
                 items: [
                     { label: 'Payment Monitor', href: 'payments.html' },
                     { label: 'Reports Triage', href: 'reports.html' },
+                    { label: 'Policy Management', href: 'policy-management.html' },
                     { label: 'Audit Logs', href: 'audit-logs.html' }
                 ]
             }
@@ -244,6 +245,13 @@ function renderNewDashboardLayout(user) {
 
     sidebarHtml += `
             </div>
+            <!-- Bottom Sidebar Footer with Logout Button -->
+            <div style="padding: 1rem; border-top: 1px solid var(--border-color); margin-top: auto;">
+                <button id="newLogoutBtn" class="sidebar-link" style="width: 100%; border: none; background: rgba(239, 68, 68, 0.08); color: var(--error); border-radius: var(--radius-md); font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.65rem; padding: 0.75rem 1rem; transition: background 0.2s;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Logout</span>
+                </button>
+            </div>
         </aside>
     `;
 
@@ -268,11 +276,12 @@ function renderNewDashboardLayout(user) {
                     </button>
                     <h1 class="topbar-title">${pageTitle}</h1>
                 </div>
-                <div class="topbar-right">
-                    <div class="topbar-welcome">
-                        Welcome, <span class="user-name" style="font-weight:700;">${(user && user.full_name) ? user.full_name : 'User'}</span>
-                    </div>
-                    <button id="newLogoutBtn" class="navbar-btn" style="border-color: rgba(239, 68, 68, 0.2); color: var(--error); padding: 0.4rem 0.8rem;">Logout</button>
+                <div class="topbar-right" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <!-- System Notification Bell Button -->
+                    <button id="notifBellBtn" title="System Notifications & Alerts" style="position: relative; background: var(--bg-primary); border: 1px solid var(--border-color); cursor: pointer; color: var(--text-primary); width: 38px; height: 38px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span id="notifBadgeCounter" class="hidden" style="position: absolute; top: -3px; right: -3px; background: #ef4444; color: white; border-radius: 999px; font-size: 0.65rem; font-weight: 800; padding: 0.1rem 0.35rem; min-width: 16px; text-align: center; box-shadow: 0 2px 6px rgba(239,68,68,0.4);">0</span>
+                    </button>
                 </div>
             </header>
             <div class="main-content-inner">
@@ -280,6 +289,23 @@ function renderNewDashboardLayout(user) {
             </div>
         </div>
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Slide-over Notification Drawer -->
+        <div id="notifDrawer" class="hidden" style="position: fixed; top: 0; right: 0; bottom: 0; width: 400px; max-width: 90vw; background: var(--bg-secondary); border-left: 1px solid var(--border-color); box-shadow: -10px 0 30px rgba(0,0,0,0.18); z-index: 99999; display: flex; flex-direction: column; transition: all 0.3s ease;">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-primary);">Notifications</h3>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <button id="markAllNotifsReadBtn" style="background: none; border: none; color: #4f46e5; font-size: 0.78rem; font-weight: 800; cursor: pointer;">Mark all read</button>
+                    <button id="closeNotifDrawerBtn" style="background: none; border: none; font-size: 1.5rem; color: var(--text-secondary); cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+            </div>
+            <div id="notifListContainer" style="padding: 1rem; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; font-style: italic; padding: 2rem 0;">Loading notifications...</div>
+            </div>
+        </div>
     `;
 
     dashboardLayout.innerHTML = sidebarHtml + topbarHtml;
@@ -337,9 +363,195 @@ function renderNewDashboardLayout(user) {
         });
     }
 
+    // 5. Initialize System Notification Bell & Drawer
+    initNotificationSystem();
+
     // ⚡ INSTANT FADE-IN: Reveal layout smooth & flicker-free once sidebar is constructed
     document.body.classList.remove('app-loading');
     document.body.classList.add('app-ready');
+}
+
+function initNotificationSystem() {
+    const bellBtn = document.getElementById('notifBellBtn');
+    const badge = document.getElementById('notifBadgeCounter');
+    const drawer = document.getElementById('notifDrawer');
+    const closeBtn = document.getElementById('closeNotifDrawerBtn');
+    const markAllBtn = document.getElementById('markAllNotifsReadBtn');
+
+    if (!bellBtn || !drawer) return;
+
+    bellBtn.addEventListener('click', () => {
+        drawer.classList.toggle('hidden');
+        if (!drawer.classList.contains('hidden')) {
+            fetchNotifications();
+        }
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => drawer.classList.add('hidden'));
+    }
+
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', async () => {
+            const token = localStorage.getItem('domiknow_token');
+            if (!token) return;
+            try {
+                await fetch('/api/notifications/read-all', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                fetchNotifications();
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    }
+
+    // Initial badge count check
+    fetchNotifications();
+
+    async function fetchNotifications() {
+        const token = localStorage.getItem('domiknow_token');
+        if (!token) return;
+
+        try {
+            const res = await fetch('/api/notifications/my', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const result = await res.json();
+                const data = result.data || {};
+                const list = data.notifications || [];
+                const unread = data.unreadCount || 0;
+
+                // Update badge counter
+                if (badge) {
+                    if (unread > 0) {
+                        badge.textContent = unread;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+
+                renderNotificationList(list);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderNotificationList(list) {
+        const container = document.getElementById('notifListContainer');
+        if (!container) return;
+
+        if (list.length === 0) {
+            container.innerHTML = `<div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; font-style: italic; padding: 2rem 0;">No system notifications available.</div>`;
+            return;
+        }
+
+        container.innerHTML = '';
+        list.forEach(item => {
+            const notifCard = document.createElement('div');
+            const isUnread = !item.read_status;
+
+            let typeBg = 'rgba(79, 70, 229, 0.08)';
+            let typeBorder = '#c7d2fe';
+            let iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+
+            if (item.type === 'admin_warning') {
+                typeBg = '#fffbeb';
+                typeBorder = '#fde68a';
+                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+            } else if (item.type === 'admin_suspension') {
+                typeBg = '#fff1f2';
+                typeBorder = '#fecdd3';
+                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>`;
+            } else if (item.type === 'report_resolved') {
+                typeBg = '#ecfdf5';
+                typeBorder = '#a7f3d0';
+                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>`;
+            }
+
+            notifCard.style.cssText = `background: ${typeBg}; border: 1px solid ${typeBorder}; padding: 0.9rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; position: relative; cursor: pointer; transition: transform 0.15s ease; ${isUnread ? 'border-left: 4px solid #4f46e5;' : ''}`;
+
+            notifCard.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <div style="margin-top: 2px; flex-shrink: 0;">${iconSvg}</div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.25rem;">
+                            <h4 style="margin: 0; font-size: 0.88rem; font-weight: 800; color: var(--text-primary);">${item.title}</h4>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap;">${new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <button class="btn-delete-notif" title="Delete notification" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem; padding: 2px 4px; border-radius: 4px; line-height: 1; transition: background 0.2s;" onclick="event.stopPropagation(); deleteSingleNotif('${item.id}');">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        <p style="margin: 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45;">${item.message}</p>
+                        <div style="margin-top: 0.45rem; font-size: 0.75rem; font-weight: 800; color: #4f46e5; display: inline-flex; align-items: center; gap: 4px;">
+                            View Details &rarr;
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Click Handler: Mark as read & redirect to Reports Page (Notification stays in list!)
+            notifCard.addEventListener('click', async () => {
+                const token = localStorage.getItem('domiknow_token');
+                if (token && !item.read_status) {
+                    try {
+                        await fetch(`/api/notifications/${item.id}/read`, {
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                    } catch (err) {
+                        console.error('Error marking notification read:', err);
+                    }
+                }
+
+                // Update unread badge counter display
+                fetchNotifications();
+
+                // Redirect user to the Reports page
+                const role = localStorage.getItem('domiknow_role') || 'tenant';
+                if (role === 'tenant') {
+                    window.location.href = item.reference_id 
+                        ? `/pages/tenant/reports.html?id=${item.reference_id}` 
+                        : '/pages/tenant/reports.html';
+                } else if (role === 'landlord') {
+                    window.location.href = '/pages/landlord/reports.html';
+                } else {
+                    window.location.href = '/pages/tenant/reports.html';
+                }
+            });
+
+            container.appendChild(notifCard);
+        });
+    }
+}
+
+// Global helper function for single notification deletion
+async function deleteSingleNotif(id) {
+    const token = localStorage.getItem('domiknow_token');
+    if (!token) return;
+
+    try {
+        const res = await fetch(`/api/notifications/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            // Re-fetch notifications list
+            if (typeof fetchNotifications === 'function') {
+                fetchNotifications();
+            } else {
+                window.location.reload();
+            }
+        }
+    } catch (err) {
+        console.error('Error deleting notification:', err);
+    }
 }
 
 function initSidebarScrollPersistence(sidebar) {

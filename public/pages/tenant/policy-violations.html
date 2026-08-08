@@ -84,10 +84,18 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="dashboard-container">
-        <h2>Policy Violations & Misconduct</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Report violations of housing policy, lease rules, noise restrictions, or property damage.</p>
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #312e81 40%, #4f46e5 100%); color: white; padding: 1.25rem 1.75rem; border-radius: var(--radius-lg); margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: var(--shadow-md);">
+            <div>
+                <h3 style="margin: 0 0 0.25rem 0; font-size: 1.15rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Platform Terms of Service &amp; Community Rules
+                </h3>
+                <p style="margin: 0; font-size: 0.88rem; color: rgba(255,255,255,0.88);">Review published housing standards, quiet hours rules, and admin disciplinary penalty guidelines.</p>
+            </div>
+            <button type="button" id="openPlatformPolicyModalBtn" class="btn-primary" style="background: white; color: #4f46e5; font-weight: 800; border: none; padding: 0.6rem 1.25rem; border-radius: var(--radius-md); font-size: 0.88rem; cursor: pointer;">
+                View Platform TOS &amp; Rules
+            </button>
+        </div>
 
         <div class="violations-grid">
             <!-- Submit Form -->
@@ -337,6 +345,72 @@
                 };
             } else {
                 submitPayload(null);
+            }
+        }
+
+        // Platform Policy Viewer Modal Logic
+        const modalHtml = `
+            <div id="userPolicyModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;">
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 100%; max-width: 760px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden;">
+                    <div style="padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary);">
+                        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#4f46e5" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Platform Terms of Service &amp; Rules
+                        </h3>
+                        <button id="closeUserPolicyModalBtn" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 1.5rem; font-weight: 700;">&times;</button>
+                    </div>
+                    <div id="userPolicyModalBody" style="padding: 1.5rem; overflow-y: auto; flex-grow: 1;">
+                        <div style="text-align: center; color: var(--text-muted); font-style: italic;">Loading published platform policies...</div>
+                    </div>
+                    <div style="padding: 1rem 1.75rem; border-top: 1px solid var(--border-color); text-align: right; background: var(--bg-primary);">
+                        <button onclick="document.getElementById('userPolicyModal').style.opacity='0'; document.getElementById('userPolicyModal').style.pointerEvents='none';" class="navbar-btn" style="padding: 0.5rem 1.25rem;">Close Rules</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        const openBtn = document.getElementById('openPlatformPolicyModalBtn');
+        const modal = document.getElementById('userPolicyModal');
+        const closeBtn = document.getElementById('closeUserPolicyModalBtn');
+
+        if (openBtn && modal) {
+            openBtn.addEventListener('click', async () => {
+                modal.style.opacity = '1';
+                modal.style.pointerEvents = 'auto';
+                
+                try {
+                    const res = await fetch('/api/policies');
+                    if (res.ok) {
+                        const result = await res.json();
+                        const policies = result.data || [];
+                        const body = document.getElementById('userPolicyModalBody');
+                        body.innerHTML = policies.map(p => `
+                            <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+                                <div style="font-size: 0.75rem; font-weight: 800; color: #4f46e5; text-transform: uppercase;">${p.category || 'Policy Section'} · ${p.version || 'v1.0'}</div>
+                                <h4 style="margin: 0.25rem 0 0.5rem 0; font-size: 1.15rem; font-weight: 800; color: var(--text-primary);">${p.title}</h4>
+                                <p style="margin: 0 0 1rem 0; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; font-weight: 500;">${p.summary}</p>
+                                <div>
+                                    ${(p.sections || []).map(s => `
+                                        <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color);">
+                                            <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 0.25rem;">${s.heading}</div>
+                                            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${s.content}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    modal.style.opacity = '0';
+                    modal.style.pointerEvents = 'none';
+                });
             }
         }
     </script>

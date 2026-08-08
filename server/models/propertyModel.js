@@ -224,13 +224,25 @@ const propertyModel = {
 
 
     async getRecommendationCandidates() {
-        // Fetch all approved properties along with their amenities
-        const { data: properties, error } = await supabase
-            .from('properties')
-            .select('*')
-            .eq('status', 'approved');
+        // Fetch all approved properties along with their landlord information and amenities
+        let properties = [];
+        try {
+            const { data, error } = await supabase
+                .from('properties')
+                .select('*, landlord:users(id, full_name, landlord_trust_score)')
+                .eq('status', 'approved');
 
-        if (error) throw error;
+            if (!error && data) {
+                properties = data;
+            } else {
+                const { data: rawProps } = await supabase.from('properties').select('*').eq('status', 'approved');
+                properties = rawProps || [];
+            }
+        } catch (e) {
+            const { data: rawProps } = await supabase.from('properties').select('*').eq('status', 'approved');
+            properties = rawProps || [];
+        }
+
         if (properties.length === 0) return [];
 
         const propertyIds = properties.map(p => p.id);

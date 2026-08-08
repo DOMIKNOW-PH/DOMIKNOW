@@ -37,9 +37,9 @@ router.get('/', searchValidation, handleValidationErrors, propertyController.get
 // Property Details API (PUBLIC - anyone can view details)
 router.get('/:id', propertyIdValidation, handleValidationErrors, propertyController.getPropertyById);
 
-// AUTHENTICATED ROUTES - Require login
-// Property Recommendations API (Tenant only)
-router.get('/recommendations/personalized', requireAuth, requireRole('tenant'), propertyController.getRecommended);
+// Property Recommendations API (Multi-Criteria Ranked)
+router.get('/recommendations/ranked', propertyController.getRecommended);
+router.get('/recommendations/personalized', propertyController.getRecommended);
 
 // Property Comparison API (Authenticated users)
 router.post('/compare', requireAuth, compareValidation, handleValidationErrors, propertyController.compareProperties);

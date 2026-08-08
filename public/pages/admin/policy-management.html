@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Policy Presentation & Management - DomiKnow Admin</title>
+    <link href="../../css/input.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-hsl: 224, 76%, 48%;
+            --admin-hsl: 262, 80%, 50%;
+        }
+
+        .policy-header-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #4f46e5 100%);
+            color: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 2.25rem 2rem;
+            margin-bottom: 1.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .policy-header-card::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -10%;
+            width: 360px;
+            height: 360px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+
+        .stats-summary-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .stat-chip-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .stat-chip-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .policy-tabs-bar {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .policy-tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all var(--transition-fast);
+        }
+
+        .policy-tab-btn:hover {
+            color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.05);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+
+        .policy-tab-btn.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+
+        .policy-content-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+
+        .policy-section-box {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.25rem;
+            transition: border-color var(--transition-fast);
+        }
+
+        .policy-section-box:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .policy-section-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin: 0 0 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .policy-section-body {
+            font-size: 0.925rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease-in-out;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-container {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 760px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.96) translateY(10px);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-secondary);
+        }
+
+        .modal-body {
+            padding: 1.75rem;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .modal-footer {
+            padding: 1.1rem 1.75rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            background-color: var(--bg-primary);
+        }
+
+        .btn-icon-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0.35rem;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color var(--transition-fast), color var(--transition-fast);
+        }
+
+        .btn-icon-close:hover {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .toast-banner {
+            position: fixed;
+            top: 1.25rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.88rem;
+            z-index: 99999;
+            box-shadow: 0 8px 25px rgba(22,163,74,0.4);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toast-banner.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div id="toastBanner" class="toast-banner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+        <span id="toastMsg">Policy updated successfully!</span>
+    </div>
+
+    <!-- Main Content -->
+    <main class="dashboard-container" style="max-width: 1240px; margin: 0 auto; padding: 2rem 1.5rem;">
+        <!-- Header Card -->
+        <div class="policy-header-card">
+            <div style="position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+                        <span style="background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); color: #ffffff; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Platform Governance &amp; TOS
+                        </span>
+                    </div>
+                    <h2 style="margin: 0; font-size: 1.85rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">Admin Policy Presentation &amp; Management</h2>
+                    <p style="margin: 0.6rem 0 0 0; color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; max-width: 680px; line-height: 1.5;">
+                        Official platform rules, terms of service, listing compliance standards, and administrative disciplinary penalty guidelines.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <button id="previewPublicBtn" class="btn-primary" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); border-color: rgba(255,255,255,0.3); color: white; display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 1.1rem; font-weight: 700;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12c.077-.19.152-.38.229-.567C3.564 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Preview Public Presentation
+                    </button>
+                    <button id="editActivePolicyBtn" class="btn-primary" style="background-color: #10b981; border-color: #10b981; color: white; display: inline-flex; align-items: center; gap: 6px; padding: 0.6rem 1.25rem; font-weight: 700;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                        Edit Active Policy Section
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Summary Bar -->
+        <div class="stats-summary-bar">
+            <div class="stat-chip-card">
+                <div class="stat-icon-wrapper" style="background-color: #e0e7ff; color: #4f46e5;">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Platform Policy Modules</span>
+                    <h4 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: var(--text-primary);">4 Sections</h4>
+                </div>
+            </div>
+
+            <div class="stat-chip-card">
+                <div class="stat-icon-wrapper" style="background-color: #ecfdf5; color: #059669;">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Active TOS Version</span>
+                    <h4 id="statTOSVersion" style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #059669;">v2.4 (2026)</h4>
+                </div>
+            </div>
+
+            <div class="stat-chip-card">
+                <div class="stat-icon-wrapper" style="background-color: #fef3c7; color: #d97706;">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Sanction Matrix</span>
+                    <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #d97706;">4 Action Levels</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Policy Category Navigation Tabs -->
+        <div class="policy-tabs-bar">
+            <button class="policy-tab-btn active" onclick="switchPolicyTab('tos')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                Platform Terms of Service (TOS)
+            </button>
+            <button class="policy-tab-btn" onclick="switchPolicyTab('listing_standards')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+                Landlord Listing Standards
+            </button>
+            <button class="policy-tab-btn" onclick="switchPolicyTab('tenant_code')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+                Tenant Code of Conduct
+            </button>
+            <button class="policy-tab-btn" onclick="switchPolicyTab('disciplinary_guidelines')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Disciplinary Sanction Policy
+            </button>
+        </div>
+
+        <!-- Active Policy Presentation Display Card -->
+        <div class="policy-content-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <div>
+                    <span id="policyCategoryTag" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 800; color: #4f46e5; background-color: #e0e7ff; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); text-transform: uppercase; letter-spacing: 0.04em;">Legal &amp; Governance</span>
+                    <h3 id="policyTitleDisplay" style="margin: 0.5rem 0 0 0; font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Platform Terms of Service (TOS)</h3>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.8125rem; font-weight: 700; color: var(--text-secondary);" id="policyVersionDisplay">Version: v2.4 (2026)</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;" id="policyLastUpdatedDisplay">Last Updated: August 1, 2026</div>
+                </div>
+            </div>
+
+            <!-- Summary callout -->
+            <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.06), rgba(99, 102, 241, 0.06)); border: 1px solid rgba(79, 70, 229, 0.2); border-radius: var(--radius-md); padding: 1.15rem 1.35rem; margin-bottom: 1.75rem;">
+                <div style="font-size: 0.78rem; font-weight: 800; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                    Policy Executive Summary
+                </div>
+                <p id="policySummaryDisplay" style="margin: 0; font-size: 0.925rem; color: var(--text-primary); line-height: 1.55; font-weight: 500;">
+                    Loading policy summary...
+                </p>
+            </div>
+
+            <!-- Sections Container -->
+            <div id="policySectionsContainer">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Policy Modal -->
+    <div id="editPolicyModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: var(--radius-md); background-color: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                    </div>
+                    <h3 id="editModalTitle" style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--text-primary);">Edit Policy Section</h3>
+                </div>
+                <button id="closeEditModalBtn" class="btn-icon-close" title="Close Modal">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form id="editPolicyForm" style="display: flex; flex-direction: column; overflow: hidden; height: 100%;">
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="inputPolicyTitle" class="form-label">Policy Title *</label>
+                            <input type="text" id="inputPolicyTitle" required class="form-input">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="inputPolicyVersion" class="form-label">Version String *</label>
+                            <input type="text" id="inputPolicyVersion" required placeholder="e.g., v2.5 (2026)" class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="inputPolicySummary" class="form-label">Policy Summary / Purpose *</label>
+                        <textarea id="inputPolicySummary" rows="2" required class="form-input" style="resize: vertical;"></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <label class="form-label" style="margin: 0;">Policy Clauses &amp; Sections</label>
+                            <button type="button" onclick="addSectionField()" class="btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; background-color: #4f46e5; border-color: #4f46e5;">+ Add Clause Section</button>
+                        </div>
+                        <div id="editSectionsList" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <!-- Editable section inputs generated via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="cancelEditModalBtn" class="navbar-btn" style="padding: 0.55rem 1.15rem; font-weight: 600;">Cancel</button>
+                    <button type="submit" id="savePolicyBtn" class="btn-primary" style="background-color: #10b981; border-color: #10b981; padding: 0.55rem 1.35rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                        Publish Policy Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Public Presentation Preview Modal -->
+    <div id="previewModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: var(--radius-md); background-color: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12c.077-.19.152-.38.229-.567C3.564 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-primary);">Public User Presentation View</h3>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">How Tenants &amp; Landlords view this policy in their portals</span>
+                    </div>
+                </div>
+                <button id="closePreviewModalBtn" class="btn-icon-close" title="Close Modal">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" id="previewModalBody">
+                <!-- Rendered preview content -->
+            </div>
+            <div class="modal-footer" style="justify-content: flex-end;">
+                <button type="button" onclick="document.getElementById('previewModal').classList.remove('active')" class="navbar-btn" style="padding: 0.55rem 1.25rem;">Close Preview</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem('domiknow_token');
+        let currentPolicyKey = 'tos';
+        let allPoliciesData = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) {
+                window.location.href = '../auth/login.html';
+                return;
+            }
+
+            fetchPolicies();
+
+            document.getElementById('editActivePolicyBtn').addEventListener('click', openEditModal);
+            document.getElementById('previewPublicBtn').addEventListener('click', openPreviewModal);
+            document.getElementById('closeEditModalBtn').addEventListener('click', () => toggleModal('editPolicyModal', false));
+            document.getElementById('cancelEditModalBtn').addEventListener('click', () => toggleModal('editPolicyModal', false));
+            document.getElementById('closePreviewModalBtn').addEventListener('click', () => toggleModal('previewModal', false));
+
+            document.getElementById('editPolicyForm').addEventListener('submit', handleSavePolicySubmit);
+        });
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastBanner');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        function toggleModal(id, show) {
+            const modal = document.getElementById(id);
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        }
+
+        async function fetchPolicies() {
+            try {
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const response = await fetch('/api/policies', { headers });
+                if (response.ok) {
+                    const result = await response.json();
+                    const list = result.data || [];
+                    list.forEach(p => {
+                        allPoliciesData[p.key] = p;
+                    });
+                    renderActivePolicy();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function switchPolicyTab(key) {
+            currentPolicyKey = key;
+            document.querySelectorAll('.policy-tab-btn').forEach(btn => {
+                if (btn.getAttribute('onclick').includes(key)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            renderActivePolicy();
+        }
+
+        function renderActivePolicy() {
+            const p = allPoliciesData[currentPolicyKey];
+            if (!p) return;
+
+            document.getElementById('policyCategoryTag').textContent = p.category || 'Platform Policy';
+            document.getElementById('policyTitleDisplay').textContent = p.title || 'Policy Section';
+            document.getElementById('policyVersionDisplay').textContent = `Version: ${p.version || 'v1.0'}`;
+            document.getElementById('policyLastUpdatedDisplay').textContent = `Last Updated: ${p.last_updated || 'Recent'}`;
+            document.getElementById('policySummaryDisplay').textContent = p.summary || '';
+
+            if (currentPolicyKey === 'tos') {
+                document.getElementById('statTOSVersion').textContent = p.version || 'v2.4';
+            }
+
+            const container = document.getElementById('policySectionsContainer');
+            container.innerHTML = '';
+
+            const sections = p.sections || [];
+            if (sections.length === 0) {
+                container.innerHTML = '<div style="font-style: italic; color: var(--text-muted);">No clauses recorded for this policy section.</div>';
+                return;
+            }
+
+            sections.forEach((sec, idx) => {
+                const box = document.createElement('div');
+                box.className = 'policy-section-box';
+                box.innerHTML = `
+                    <h4 class="policy-section-title">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="color:#4f46e5;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        ${sec.heading}
+                    </h4>
+                    <p class="policy-section-body">${sec.content}</p>
+                `;
+                container.appendChild(box);
+            });
+        }
+
+        function openEditModal() {
+            const p = allPoliciesData[currentPolicyKey];
+            if (!p) return;
+
+            document.getElementById('editModalTitle').textContent = `Edit Section: ${p.title}`;
+            document.getElementById('inputPolicyTitle').value = p.title || '';
+            document.getElementById('inputPolicyVersion').value = p.version || '';
+            document.getElementById('inputPolicySummary').value = p.summary || '';
+
+            renderEditSectionInputs(p.sections || []);
+            toggleModal('editPolicyModal', true);
+        }
+
+        function renderEditSectionInputs(sections) {
+            const list = document.getElementById('editSectionsList');
+            list.innerHTML = '';
+
+            sections.forEach((sec, idx) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; position: relative;';
+                item.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.75rem; font-weight: 800; color: #4f46e5; text-transform: uppercase;">Clause #${idx + 1}</span>
+                        <button type="button" onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: var(--error); cursor: pointer; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 4px;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg> Remove
+                        </button>
+                    </div>
+                    <input type="text" class="form-input sec-heading" value="${sec.heading.replace(/"/g, '&quot;')}" placeholder="Clause Title" style="margin-bottom: 0.5rem;">
+                    <textarea class="form-input sec-content" rows="2" placeholder="Clause Description & Details">${sec.content.replace(/</g, '&lt;')}</textarea>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function addSectionField() {
+            const list = document.getElementById('editSectionsList');
+            const idx = list.children.length + 1;
+            const item = document.createElement('div');
+            item.style.cssText = 'background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; position: relative;';
+            item.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.75rem; font-weight: 800; color: #4f46e5; text-transform: uppercase;">Clause #${idx}</span>
+                    <button type="button" onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: var(--error); cursor: pointer; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 4px;">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg> Remove
+                    </button>
+                </div>
+                <input type="text" class="form-input sec-heading" value="${idx}. New Policy Clause" placeholder="Clause Title" style="margin-bottom: 0.5rem;">
+                <textarea class="form-input sec-content" rows="2" placeholder="Clause Description & Details"></textarea>
+            `;
+            list.appendChild(item);
+        }
+
+        async function handleSavePolicySubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('savePolicyBtn');
+            btn.disabled = true;
+            btn.textContent = 'Publishing...';
+
+            const title = document.getElementById('inputPolicyTitle').value.trim();
+            const version = document.getElementById('inputPolicyVersion').value.trim();
+            const summary = document.getElementById('inputPolicySummary').value.trim();
+
+            const sections = [];
+            const list = document.getElementById('editSectionsList');
+            Array.from(list.children).forEach(child => {
+                const h = child.querySelector('.sec-heading').value.trim();
+                const c = child.querySelector('.sec-content').value.trim();
+                if (h && c) {
+                    sections.push({ heading: h, content: c });
+                }
+            });
+
+            try {
+                const response = await fetch(`/api/policies/admin/${currentPolicyKey}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, version, summary, sections })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    allPoliciesData[currentPolicyKey] = result.data;
+                    renderActivePolicy();
+                    toggleModal('editPolicyModal', false);
+                    showToast(`Policy "${title}" published successfully!`);
+                } else if (response.status === 401) {
+                    alert('Admin session expired or unauthorized. Please log in again.');
+                    localStorage.removeItem('domiknow_token');
+                    localStorage.removeItem('domiknow_role');
+                    window.location.href = '../auth/login.html';
+                    return;
+                } else {
+                    const result = await response.json();
+                    alert(result.message || 'Failed to publish policy update.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error connecting to server.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg> Publish Policy Update`;
+            }
+        }
+
+        function openPreviewModal() {
+            const p = allPoliciesData[currentPolicyKey];
+            if (!p) return;
+
+            const body = document.getElementById('previewModalBody');
+            body.innerHTML = `
+                <div style="background-color: var(--bg-primary); border-radius: var(--radius-md); padding: 1.25rem; border: 1px solid var(--border-color); margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.75rem; font-weight: 800; color: #4f46e5; text-transform: uppercase;">${p.category || 'Platform Policy'}</div>
+                    <h3 style="margin: 0.25rem 0 0.5rem 0; font-size: 1.35rem; font-weight: 800; color: var(--text-primary);">${p.title}</h3>
+                    <p style="margin: 0; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;">${p.summary}</p>
+                </div>
+                <div>
+                    ${(p.sections || []).map(s => `
+                        <div style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem;">
+                            <h4 style="margin: 0 0 0.35rem 0; font-size: 0.95rem; font-weight: 800; color: var(--text-primary);">${s.heading}</h4>
+                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${s.content}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            toggleModal('previewModal', true);
+        }
+    </script>
+</body>
+</html>

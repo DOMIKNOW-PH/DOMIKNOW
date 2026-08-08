@@ -1,6 +1,7 @@
 const landlordReportModel = require('../models/landlordReportModel');
 const userModel          = require('../models/userModel');
 const propertyModel      = require('../models/propertyModel');
+const notificationModel  = require('../models/notificationModel');
 const responseHelper     = require('../utils/responseHelper');
 const auditLogModel  = require('../models/auditLogModel');
 const storageHelper  = require('../utils/storageHelper');
@@ -362,7 +363,7 @@ const landlordReportController = {
             } else if (action === 'ban') {
                 finalStatus = 'approved';
                 auditAction = 'BAN_LANDLORD_ACCOUNT';
-                await userModel.updateStatus(report.landlord_id, 'banned');
+                await userModel.updateStatus(report.landlord_id, 'disabled');
                 // Deactivate all properties owned by this landlord
                 const deactivated = await propertyModel.deactivateByLandlordId(report.landlord_id);
                 successMessage = `Landlord account permanently banned. ${deactivated.length} property listing(s) have been deactivated.`;
@@ -390,6 +391,53 @@ const landlordReportController = {
                 auditAction,
                 `Admin set landlord report ${reportId} status="${finalStatus}", severity="${finalSeverity}", action="${action || 'status_change'}". Remarks: ${admin_remarks || 'N/A'}`
             );
+
+            // Dispatch real-time notifications to affected landlord and reporter tenant
+            if (action === 'warning') {
+                await notificationModel.create({
+                    user_id: report.landlord_id,
+                    type: 'admin_warning',
+                    title: 'Official Platform Warning Notice',
+                    message: `The Admin investigated a tenant report and issued a formal TOS warning notice against your account. Admin Findings: "${admin_remarks || 'Policy breach'}"`,
+                    reference_id: reportId
+                });
+                if (report.tenant_id) {
+                    await notificationModel.create({
+                        user_id: report.tenant_id,
+                        type: 'report_resolved',
+                        title: 'Disciplinary Action Enforced',
+                        message: `Your filed report #${reportId.slice(0, 8)} was investigated and a formal warning has been issued to the landlord.`,
+                        reference_id: reportId
+                    });
+                }
+            } else if (action === 'suspend') {
+                await notificationModel.create({
+                    user_id: report.landlord_id,
+                    type: 'admin_suspension',
+                    title: 'Temporary Account Suspension Notice',
+                    message: `Your account has been temporarily suspended for ${suspension_days || 7} days due to verified TOS policy non-compliance. Admin Findings: "${admin_remarks || 'Policy violation'}"`,
+                    reference_id: reportId
+                });
+                if (report.tenant_id) {
+                    await notificationModel.create({
+                        user_id: report.tenant_id,
+                        type: 'report_resolved',
+                        title: 'Disciplinary Action Enforced',
+                        message: `Your filed report #${reportId.slice(0, 8)} was investigated and account suspension has been enforced against the landlord.`,
+                        reference_id: reportId
+                    });
+                }
+            } else if (action === 'dismiss' || finalStatus === 'rejected') {
+                if (report.tenant_id) {
+                    await notificationModel.create({
+                        user_id: report.tenant_id,
+                        type: 'report_dismissed',
+                        title: 'Report Investigation Closed (Dismissed)',
+                        message: `Your filed report #${reportId.slice(0, 8)} was reviewed and dismissed by admin (insufficient evidence or no policy breach). Admin Remarks: "${admin_remarks || 'None'}"`,
+                        reference_id: reportId
+                    });
+                }
+            }
 
             return responseHelper.success(res, successMessage, updatedReport);
         } catch (error) {

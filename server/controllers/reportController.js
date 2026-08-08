@@ -2,6 +2,7 @@ const reportModel = require('../models/reportModel');
 const tenantReportModel = require('../models/tenantReportModel');
 const landlordReportModel = require('../models/landlordReportModel');
 const reportMessageModel = require('../models/reportMessageModel');
+const notificationModel = require('../models/notificationModel');
 const auditLogModel = require('../models/auditLogModel');
 const responseHelper = require('../utils/responseHelper');
 const supabase = require('../config/supabaseClient');
@@ -123,6 +124,41 @@ const reportController = {
             });
 
             await auditLogModel.log(adminId, 'UPDATE_REPORT_STATUS', `Admin updated status of report ${id} to ${status}`);
+
+            // Dispatch real-time notifications
+            const currentReport = await reportModel.findReportById(id);
+            if (currentReport) {
+                if (status === 'resolved') {
+                    if (currentReport.reporter_id) {
+                        await notificationModel.create({
+                            user_id: currentReport.reporter_id,
+                            type: 'report_resolved',
+                            title: 'Report Resolution Update',
+                            message: `Your filed report "${currentReport.report_title}" has been reviewed and resolved by Admin. Admin Remarks: "${admin_remarks || 'Case resolved.'}"`,
+                            reference_id: id
+                        });
+                    }
+                    if (currentReport.reported_user_id) {
+                        await notificationModel.create({
+                            user_id: currentReport.reported_user_id,
+                            type: 'admin_warning',
+                            title: 'Official Admin Governance Notice',
+                            message: `The Admin investigated a report concerning your account and enforced policy compliance. Admin Remarks: "${admin_remarks || 'Please adhere to platform policies.'}"`,
+                            reference_id: id
+                        });
+                    }
+                } else if (status === 'dismissed') {
+                    if (currentReport.reporter_id) {
+                        await notificationModel.create({
+                            user_id: currentReport.reporter_id,
+                            type: 'report_dismissed',
+                            title: 'Report Investigation Closed (Dismissed)',
+                            message: `Your filed report "${currentReport.report_title}" was reviewed and dismissed by Admin. Remarks: "${admin_remarks || 'No policy violation found.'}"`,
+                            reference_id: id
+                        });
+                    }
+                }
+            }
 
             return responseHelper.success(res, `Report status updated to ${status}.`, updated);
 

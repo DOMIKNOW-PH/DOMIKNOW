@@ -173,36 +173,32 @@ const authController = {
                 return responseHelper.error(res, 'Invalid credentials.', null, 401);
             }
 
-            // 3. Block conditions
-            if (!user.is_verified) {
-                await auditLogModel.log(user.id, 'LOGIN_BLOCKED', 'Email not verified.');
-                return responseHelper.error(res, 'Please verify your email before logging in.', null, 403);
-            }
-            if (user.account_status === 'pending') {
-                await auditLogModel.log(user.id, 'LOGIN_BLOCKED', 'Account pending admin approval.');
-                return responseHelper.error(res, 'Your account is pending admin approval.', null, 403);
-            }
-            if (user.account_status === 'disabled') {
-                await auditLogModel.log(user.id, 'LOGIN_BLOCKED', 'Account disabled.');
-                return responseHelper.error(res, 'Your account has been disabled. Contact support.', null, 403);
-            }
-            if (user.account_status === 'rejected') {
-                await auditLogModel.log(user.id, 'LOGIN_BLOCKED', 'Account rejected.');
-                return responseHelper.error(res, 'Your account application was rejected.', null, 403);
-            }
-
             // Auto-lift expired suspensions before enforcing block
             const currentUser = await userModel.liftExpiredSuspension(user);
 
-            if (currentUser.account_status === 'suspended') {
-                const liftAt = currentUser.suspension_lifted_at ? new Date(currentUser.suspension_lifted_at) : null;
-                const daysLeft = liftAt ? Math.ceil((liftAt - new Date()) / (1000 * 60 * 60 * 24)) : '?';
-                await auditLogModel.log(user.id, 'LOGIN_BLOCKED', `Account suspended. Lifts in ${daysLeft} day(s).`);
-                return responseHelper.error(res, `Your account has been temporarily suspended. It will be lifted in ${daysLeft} day(s). Contact support for assistance.`, null, 403);
+            // 3. Block conditions
+            if (!currentUser.is_verified) {
+                await auditLogModel.log(currentUser.id, 'LOGIN_BLOCKED', 'Email not verified.');
+                return responseHelper.error(res, 'Please verify your email before logging in.', null, 403);
             }
-            if (currentUser.account_status === 'banned') {
-                await auditLogModel.log(user.id, 'LOGIN_BLOCKED', 'Account permanently banned.');
-                return responseHelper.error(res, 'Your account has been permanently banned from the platform due to a serious platform violation. Contact support if you believe this is an error.', null, 403);
+            if (currentUser.account_status === 'pending') {
+                await auditLogModel.log(currentUser.id, 'LOGIN_BLOCKED', 'Account pending admin approval.');
+                return responseHelper.error(res, 'Your account is pending admin approval.', null, 403);
+            }
+            if (currentUser.account_status === 'rejected') {
+                await auditLogModel.log(currentUser.id, 'LOGIN_BLOCKED', 'Account rejected.');
+                return responseHelper.error(res, 'Your account application was rejected.', null, 403);
+            }
+            if (currentUser.account_status === 'disabled') {
+                if (currentUser.suspension_lifted_at) {
+                    const liftAt = new Date(currentUser.suspension_lifted_at);
+                    const daysLeft = Math.max(1, Math.ceil((liftAt - new Date()) / (1000 * 60 * 60 * 24)));
+                    await auditLogModel.log(currentUser.id, 'LOGIN_BLOCKED', `Account suspended. Lifts in ${daysLeft} day(s).`);
+                    return responseHelper.error(res, `Your account has been temporarily suspended. It will automatically be lifted in ${daysLeft} day(s). Contact support for assistance.`, null, 403);
+                } else {
+                    await auditLogModel.log(currentUser.id, 'LOGIN_BLOCKED', 'Account disabled or banned.');
+                    return responseHelper.error(res, 'Your account has been disabled or permanently banned. Contact support for assistance.', null, 403);
+                }
             }
 
             // 4. Generate JWT token

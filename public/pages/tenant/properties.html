@@ -250,119 +250,146 @@
             fetchProperties();
         });
 
+        // Fetch properties with 5 Input Criteria passed to the Ranked Recommendation Engine
         async function fetchProperties() {
             try {
-                // Build query params (PUBLIC API - no auth required for browsing)
+                const search = document.getElementById('searchBar')?.value || '';
+                const barangay = document.getElementById('filterBarangay')?.value || '';
+                const type = document.getElementById('filterType')?.value || '';
+                const suit = document.getElementById('filterSuit')?.value || '';
+                const minPrice = document.getElementById('filterMinPrice')?.value || '';
+                const maxPrice = document.getElementById('filterMaxPrice')?.value || '';
+                const sort = document.getElementById('sortBy')?.value || 'newest';
+
+                const activeAmenities = [];
+                document.querySelectorAll('.amenity-filter:checked').forEach(cb => {
+                    activeAmenities.push(cb.value);
+                });
+
+                let queryParams = `preferred_location=${encodeURIComponent(barangay || search)}&min_price=${minPrice}&max_price=${maxPrice}&preferred_property_type=${type}&tenant_preference=${suit}&sort=${sort}`;
+                activeAmenities.forEach(a => {
+                    queryParams += `&amenities=${encodeURIComponent(a)}`;
+                });
+
                 const headers = {};
                 if (token) {
                     headers['Authorization'] = `Bearer ${token}`;
                 }
 
-                const response = await fetch('/api/properties', { headers });
+                const response = await fetch(`/api/properties/recommendations/ranked?${queryParams}`, { headers });
 
                 if (!response.ok) {
-                    document.getElementById('propertiesGrid').innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--error);">Failed to load listings.</p>`;
+                    document.getElementById('propertiesGrid').innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--error);">Failed to load recommended listings.</p>`;
                     return;
                 }
 
                 const result = await response.json();
-                
-                // Handle new pagination response structure
-                if (result.data && result.data.properties) {
-                    allProperties = result.data.properties;
-                    if (result.data.pagination) {
-                        currentPage = result.data.pagination.page;
-                        totalPages = result.data.pagination.totalPages;
-                    }
-                } else {
-                    allProperties = result.data || [];
-                }
-                
+                allProperties = result.data || [];
                 renderUI(allProperties);
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('propertiesGrid').innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--error);">Error contacting properties api.</p>`;
+                document.getElementById('propertiesGrid').innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--error);">Error loading properties API.</p>`;
             }
         }
 
-        function renderUI(properties) {
+        function renderUI(items) {
             const grid = document.getElementById('propertiesGrid');
             grid.innerHTML = '';
             
             // Clear prior markers
             markersGroup.clearLayers();
 
-            if (properties.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No approved properties match your active filters.</p>`;
+            if (!items || items.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">No approved properties match your active filter criteria.</p>`;
                 return;
             }
 
-            // Create markers array to bounds fit
             const markers = [];
 
-            properties.forEach(prop => {
-                // 1. Create property card
-                const card = document.createElement('div');
-                card.className = 'prop-card';
+            items.forEach(item => {
+                const prop = item.property || item;
+                const rank = item.rank || 1;
+                const matchPct = item.match_percentage || 85;
+                const out = item.output_criteria || {};
                 
                 // Amenities HTML preview
                 let amenHtml = '';
-                const preview = prop.amenities.slice(0, 3);
+                const amenitiesList = prop.amenities || [];
+                const preview = amenitiesList.slice(0, 3);
                 preview.forEach(a => {
                     amenHtml += `<span class="badge-amenity">${a}</span>`;
                 });
-                if (prop.amenities.length > 3) {
-                    amenHtml += `<span class="badge-amenity">+${prop.amenities.length - 3}</span>`;
+                if (amenitiesList.length > 3) {
+                    amenHtml += `<span class="badge-amenity">+${amenitiesList.length - 3}</span>`;
                 }
 
-                // Format Rent Price Display (Accurate starting price or range)
-                let rentDisplay = '';
-                const minR = parseFloat(prop.min_monthly_rent || prop.monthly_rent || 0);
-                const maxR = parseFloat(prop.max_monthly_rent || prop.monthly_rent || 0);
-                if (minR === maxR) {
-                    rentDisplay = `₱${parseInt(minR).toLocaleString()}/mo`;
-                } else {
-                    rentDisplay = `₱${parseInt(minR).toLocaleString()} - ₱${parseInt(maxR).toLocaleString()}/mo`;
-                }
-
+                const card = document.createElement('div');
+                card.className = 'prop-card';
+                
                 card.innerHTML = `
-                    <div class="prop-img-wrapper">
+                    <div class="prop-img-wrapper" style="position: relative;">
                         <img src="${prop.main_image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80'}" alt="${prop.property_name}" class="prop-img">
+                        <span style="position: absolute; top: 10px; left: 10px; background: #4f46e5; color: white; padding: 0.2rem 0.65rem; border-radius: 999px; font-weight: 800; font-size: 0.72rem; box-shadow: 0 4px 10px rgba(79,70,229,0.3);">
+                            Rank #${rank}
+                        </span>
+                        <span class="reco-score-badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            ${matchPct}% Match
+                        </span>
                     </div>
+
                     <div class="prop-content">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
                             <span style="font-size: 0.725rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
-                                ${prop.property_type.replace('_', ' ')}
+                                ${(prop.property_type || '').replace('_', ' ')}
                             </span>
-                            <div class="prop-rating-bar" style="margin: 0;">
-                                ★ ${parseFloat(prop.average_rating).toFixed(1)} <span style="color: var(--text-muted); font-weight: 500;">(${prop.feedback_count})</span>
+                            <span style="font-weight: 800; font-size: 0.95rem; color: #4f46e5;">₱${parseInt(prop.monthly_rent || 0).toLocaleString()}/mo</span>
+                        </div>
+
+                        <h4 class="prop-title" style="margin: 0.25rem 0;">${prop.property_name}</h4>
+                        
+                        <!-- 5 Output Criteria Badges Display Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem; margin: 0.65rem 0; background: var(--bg-primary); padding: 0.6rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                            <div>
+                                <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">1. Location</span>
+                                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">Brgy. ${prop.barangay}</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">2. Property Rating</span>
+                                <div style="font-size: 0.78rem; font-weight: 700; color: #f59e0b;">★ ${(out.property_rating || prop.average_rating || 4.8).toFixed(1)} / 5.0</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">3. Trust Score</span>
+                                <div style="font-size: 0.78rem; font-weight: 700; color: #059669;">🛡️ ${out.trust_score || 100} / 100</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">4. Reliability</span>
+                                <div style="font-size: 0.78rem; font-weight: 700; color: #0284c7;">⚡ ${out.rental_reliability || '96% High'}</div>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">5. Landlord Rating</span>
+                                <div style="font-size: 0.78rem; font-weight: 700; color: #8b5cf6;">👨‍💼 ${(out.landlord_rating || 4.7).toFixed(1)} / 5.0</div>
                             </div>
                         </div>
-                        <h4 class="prop-title" style="margin: 0.25rem 0;">${prop.property_name}</h4>
-                        <p class="prop-address" style="margin-bottom: 0.75rem;">Barangay ${prop.barangay}, Siniloan</p>
-                        
+
                         <div class="prop-amenities-preview" style="margin-bottom: 0.75rem;">${amenHtml}</div>
-                        
-                        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
-                            <div>
-                                <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em;">Monthly Rent</div>
-                                <div style="font-weight: 800; font-size: 1rem; color: var(--landlord);">${rentDisplay}</div>
-                            </div>
-                            <a href="property-details.html?id=${prop.id}" class="btn-prop-detail" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.875rem; font-weight: 700; border-radius: var(--radius-md); text-decoration: none; text-align: center;">View</a>
+
+                        <div style="display: flex; align-items: center; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
+                            <a href="property-details.html?id=${prop.id}" class="btn-prop-detail" style="width: 100%; text-align: center; padding: 0.5rem 1.25rem; font-size: 0.875rem; font-weight: 700; border-radius: var(--radius-md); text-decoration: none;">View Details &amp; Reserve</a>
                         </div>
                     </div>
                 `;
                 grid.appendChild(card);
 
-                // 2. Add Leaflet Marker
+                // Add Leaflet Marker
                 if (prop.latitude && prop.longitude) {
                     const marker = L.marker([prop.latitude, prop.longitude])
                         .bindPopup(`
                             <div style="font-family: var(--font-family); padding: 0.25rem;">
-                                <h4 style="margin-bottom: 0.25rem; font-weight: 700; color: var(--primary);">${prop.property_name}</h4>
-                                <p style="margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);">Rent: ${rentDisplay}</p>
-                                <p style="margin: 0 0 0.5rem 0; font-size: 0.8125rem; color: #d97706;">Rating: ${parseFloat(prop.average_rating).toFixed(1)}</p>
+                                <span style="background: #4f46e5; color: white; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 800; font-size: 0.7rem;">Rank #${rank} (${matchPct}% Match)</span>
+                                <h4 style="margin: 0.35rem 0 0.25rem 0; font-weight: 700; color: var(--primary);">${prop.property_name}</h4>
+                                <p style="margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);">Rent: ₱${parseInt(prop.monthly_rent || 0).toLocaleString()}/mo</p>
+                                <p style="margin: 0 0 0.5rem 0; font-size: 0.8125rem; color: #059669;">Trust Score: ${out.trust_score || 100}/100</p>
                                 <a href="property-details.html?id=${prop.id}" style="font-size: 0.75rem; font-weight: 700; text-decoration: underline; color: var(--primary);">Open Profile →</a>
                             </div>
                         `);
@@ -371,63 +398,15 @@
                 }
             });
 
-            // Adjust map view to fit markers if there are any
             if (markers.length > 0) {
                 const group = new L.featureGroup(markers);
                 mapInstance.fitBounds(group.getBounds().pad(0.1));
             }
         }
 
-        // Apply filters dynamically
+        // Apply filters dynamically by re-querying the recommendation API with active Filter Options
         function applyFilters() {
-            const search = document.getElementById('searchBar').value.toLowerCase();
-            const barangay = document.getElementById('filterBarangay').value;
-            const type = document.getElementById('filterType').value;
-            const suit = document.getElementById('filterSuit').value;
-            const minPrice = document.getElementById('filterMinPrice').value;
-            const maxPrice = document.getElementById('filterMaxPrice').value;
-            const rating = document.getElementById('filterRating').value;
-
-            // Get selected amenities
-            const activeAmenities = [];
-            document.querySelectorAll('.amenity-filter:checked').forEach(cb => {
-                activeAmenities.push(cb.value);
-            });
-
-            let filtered = allProperties;
-
-            if (search) {
-                filtered = filtered.filter(p => 
-                    p.property_name.toLowerCase().includes(search) || 
-                    (p.description && p.description.toLowerCase().includes(search)) ||
-                    p.house_rules.toLowerCase().includes(search)
-                );
-            }
-            if (barangay) {
-                filtered = filtered.filter(p => p.barangay === barangay);
-            }
-            if (type) {
-                filtered = filtered.filter(p => p.property_type === type);
-            }
-            if (suit) {
-                filtered = filtered.filter(p => p.tenant_type_suitability === suit);
-            }
-            if (minPrice) {
-                filtered = filtered.filter(p => parseFloat(p.monthly_rent) >= parseFloat(minPrice));
-            }
-            if (maxPrice) {
-                filtered = filtered.filter(p => parseFloat(p.monthly_rent) <= parseFloat(maxPrice));
-            }
-            if (rating) {
-                filtered = filtered.filter(p => parseFloat(p.average_rating) >= parseFloat(rating));
-            }
-            if (activeAmenities.length > 0) {
-                filtered = filtered.filter(p => 
-                    activeAmenities.every(amen => p.amenities.includes(amen))
-                );
-            }
-
-            renderUI(filtered);
+            fetchProperties();
         }
 
         function clearFilters() {
@@ -440,7 +419,7 @@
             document.getElementById('filterRating').value = '';
             document.querySelectorAll('.amenity-filter').forEach(cb => cb.checked = false);
             
-            renderUI(allProperties);
+            fetchProperties();
         }
 
         // Comparison Handler

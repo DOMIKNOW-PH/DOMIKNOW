@@ -76,7 +76,7 @@ const userModel = {
         const { data, error } = await supabase
             .from('users')
             .update({
-                account_status: 'suspended',
+                account_status: 'disabled',
                 suspension_lifted_at: liftAt.toISOString(),
                 updated_at: new Date()
             })
@@ -94,7 +94,7 @@ const userModel = {
      * Returns the (possibly updated) user record.
      */
     async liftExpiredSuspension(user) {
-        if (user.account_status !== 'suspended') return user;
+        if (user.account_status !== 'disabled') return user;
         if (!user.suspension_lifted_at) return user;
 
         const liftAt = new Date(user.suspension_lifted_at);

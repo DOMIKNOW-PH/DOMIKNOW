@@ -29,6 +29,8 @@ const propertyRatingRoutes = require('./routes/propertyRatingRoutes');
 const landlordRatingRoutes = require('./routes/landlordRatingRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const unitRoutes = require('./routes/unitRoutes');
+const policyRoutes = require('./routes/policyRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 
 
@@ -115,6 +117,8 @@ app.use('/api/admin/monitor', adminMonitorRoutes);
 app.use('/api/admin', adminMonitorRoutes);
 
 // Objective 5 Routing
+app.use('/api/policies', policyRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api', unitRoutes);
 app.use('/api', maintenanceRoutes);
 app.use('/api', reportRoutes);

@@ -1,6 +1,7 @@
 const tenantReportModel = require('../models/tenantReportModel');
 const userModel         = require('../models/userModel');
 const auditLogModel     = require('../models/auditLogModel');
+const notificationModel = require('../models/notificationModel');
 const responseHelper    = require('../utils/responseHelper');
 const { uploadFile, getSignedUrl } = require('../utils/storageHelper');
 
@@ -419,7 +420,7 @@ const tenantReportController = {
             } else if (action === 'ban') {
                 finalStatus = 'approved';
                 auditAction = 'BAN_TENANT_ACCOUNT';
-                await userModel.updateStatus(report.tenant_id, 'banned');
+                await userModel.updateStatus(report.tenant_id, 'disabled');
                 successMessage = 'Tenant account has been permanently banned from the platform.';
             } else if (status === 'approved') {
                 finalStatus = 'approved';
@@ -446,6 +447,53 @@ const tenantReportController = {
                 auditAction,
                 `Admin set tenant report ${id} status="${finalStatus}", severity="${finalSeverity}", action="${action || 'status_change'}". Remarks: ${admin_remarks || 'none'}`
             );
+
+            // Dispatch real-time notifications to affected tenant and reporter landlord
+            if (action === 'warning') {
+                await notificationModel.create({
+                    user_id: report.tenant_id,
+                    type: 'admin_warning',
+                    title: 'Official Platform Warning Notice',
+                    message: `The Admin investigated a filed report and issued a formal TOS warning notice against your account. Admin Findings: "${admin_remarks || 'Policy violation'}"`,
+                    reference_id: id
+                });
+                if (report.landlord_id) {
+                    await notificationModel.create({
+                        user_id: report.landlord_id,
+                        type: 'report_resolved',
+                        title: 'Disciplinary Action Enforced',
+                        message: `Your filed report #${id.slice(0, 8)} was investigated and a formal warning has been issued to the tenant.`,
+                        reference_id: id
+                    });
+                }
+            } else if (action === 'suspend') {
+                await notificationModel.create({
+                    user_id: report.tenant_id,
+                    type: 'admin_suspension',
+                    title: 'Temporary Account Suspension Notice',
+                    message: `Your account has been temporarily suspended for ${suspension_days || 7} days due to verified TOS policy non-compliance. Admin Findings: "${admin_remarks || 'Policy violation'}"`,
+                    reference_id: id
+                });
+                if (report.landlord_id) {
+                    await notificationModel.create({
+                        user_id: report.landlord_id,
+                        type: 'report_resolved',
+                        title: 'Disciplinary Action Enforced',
+                        message: `Your filed report #${id.slice(0, 8)} was investigated and account suspension has been enforced against the tenant.`,
+                        reference_id: id
+                    });
+                }
+            } else if (action === 'dismiss' || finalStatus === 'rejected') {
+                if (report.landlord_id) {
+                    await notificationModel.create({
+                        user_id: report.landlord_id,
+                        type: 'report_dismissed',
+                        title: 'Report Investigation Closed (Dismissed)',
+                        message: `Your filed report #${id.slice(0, 8)} was reviewed and dismissed by admin (insufficient evidence or no policy breach). Admin Remarks: "${admin_remarks || 'None'}"`,
+                        reference_id: id
+                    });
+                }
+            }
 
             return responseHelper.success(res, successMessage, updated);
 
