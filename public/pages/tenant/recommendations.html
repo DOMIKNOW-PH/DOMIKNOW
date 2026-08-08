@@ -302,6 +302,20 @@
             }
         }
 
+        // Barangay geographic boundary polygons lookup for Siniloan, Laguna
+        function getBarangayPolygon(barangayName) {
+            const key = (barangayName || '').trim().toLowerCase();
+            const center = barangayMapCoords[key] || [14.4172, 121.4475];
+            const lat = center[0];
+            const lon = center[1];
+            return [
+                [lat + 0.0035, lon - 0.0045],
+                [lat + 0.0038, lon + 0.0045],
+                [lat - 0.0035, lon + 0.0048],
+                [lat - 0.0038, lon - 0.0042]
+            ];
+        }
+
         function updateMapHighlights(recommended, requestedBarangay) {
             if (!recoMap || !mapMarkersGroup) return;
             mapMarkersGroup.clearLayers();
@@ -309,6 +323,27 @@
             const bounds = [];
             const reqKey = (requestedBarangay || '').trim().toLowerCase();
             const userTargetCoords = barangayMapCoords[reqKey] || [14.4172, 121.4475];
+
+            // Highlight Barangay Polygon Boundary Area if selected
+            if (requestedBarangay) {
+                const polyCoords = getBarangayPolygon(requestedBarangay);
+                const barangayPoly = L.polygon(polyCoords, {
+                    color: '#2563eb',       // Blue outline border
+                    weight: 3.5,            // Bold stroke weight
+                    opacity: 0.95,
+                    fillColor: '#3b82f6',   // Soft blue area fill
+                    fillOpacity: 0.18,      // Semi-transparent overlay fill
+                    dashArray: '6, 6'       // Dashed styled border
+                }).addTo(mapMarkersGroup);
+
+                barangayPoly.bindPopup(`
+                    <div style="font-weight: 800; font-size: 0.88rem; color: #1e40af; padding: 2px;">
+                        📍 Barangay ${requestedBarangay} Boundary Area
+                    </div>
+                `);
+
+                bounds.push(...polyCoords);
+            }
 
             // 1. Highlight User Requested Barangay Location Pin
             const userPinLabel = requestedBarangay ? `Brgy. ${requestedBarangay}` : 'Siniloan Town Center';
