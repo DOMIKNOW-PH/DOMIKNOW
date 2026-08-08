@@ -866,8 +866,7 @@
         }
 
         function isWithinEditWindow(submittedAt) {
-            const days = (Date.now() - new Date(submittedAt)) / (1000 * 60 * 60 * 24);
-            return days <= 7;
+            return true; // Ratings and feedback can be edited anytime by the tenant
         }
 
         // ── Lease Selection ────────────────────────────────────────────────
@@ -1166,9 +1165,6 @@
                         <label class="form-label" for="editFeedbackText">Updated Feedback</label>
                         <textarea id="editFeedbackText" class="form-input" style="height:100px;" minlength="10" required>${rat.feedback}</textarea>
                     </div>
-                    <div style="font-size:0.75rem; color:var(--warning); background:var(--warning-bg); padding:0.5rem 0.75rem; border-radius:var(--radius-sm);">
-                        Edit window closes in <strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong>.
-                    </div>
                 `;
 
                 // Bind edit star triggers
@@ -1264,19 +1260,10 @@
                         <span class="detail-label">Submitted</span>
                         <span class="detail-value">${dateStr}</span>
                     </div>
-                    ${editable ? `
-                    <div style="font-size:0.74rem; color:var(--text-muted); margin-top:0.5rem;">
-                        <span class="edit-window-pill">
-                            <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                            </svg>
-                            ${daysLeft}d edit window remaining
-                        </span>
-                    </div>` : ''}
                 `;
 
                 footer.innerHTML = `
-                    ${editable ? `<button class="btn-primary action-btn" data-action="start-edit" style="background:var(--warning);border-color:var(--warning);padding:0.5rem 1.1rem;">Edit Review</button>` : ''}
+                    <button class="btn-primary action-btn" data-action="start-edit" style="background:var(--warning);border-color:var(--warning);padding:0.5rem 1.1rem;">Edit Review</button>
                     <button class="btn-secondary action-btn" data-action="close" style="padding:0.5rem 1.1rem;">Close</button>
                 `;
             }

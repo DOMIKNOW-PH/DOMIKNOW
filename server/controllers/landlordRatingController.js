@@ -179,13 +179,7 @@ const landlordRatingController = {
                 return responseHelper.error(res, 'Access denied.', null, 403);
             }
 
-            // Edit window check
-            const submittedAt = new Date(existing.submitted_at);
-            const now = new Date();
-            const daysDiff = (now - submittedAt) / (1000 * 60 * 60 * 24);
-            if (daysDiff > EDIT_WINDOW_DAYS) {
-                return responseHelper.error(res, `Landlord ratings can only be edited within ${EDIT_WINDOW_DAYS} days of submission.`);
-            }
+            // Allow tenant to edit landlord rating anytime
 
             const updates = {};
             const criteria = {
