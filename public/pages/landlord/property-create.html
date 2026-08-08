@@ -313,26 +313,27 @@
                     <div class="form-group">
                         <label for="barangay" class="form-label">Barangay (Siniloan) *</label>
                         <select id="barangay" required class="form-select" style="transition: all 0.3s ease;">
-                            <option value="G. Redor">G. Redor (Poblacion)</option>
-                            <option value="Halayhayin">Halayhayin</option>
-                            <option value="Pandeño">Pandeño</option>
-                            <option value="Macasipac">Macasipac</option>
+                            <option value="">-- Select Barangay (Siniloan) --</option>
                             <option value="Acevida">Acevida</option>
-                            <option value="Mendiola">Mendiola (Poblacion)</option>
-                            <option value="Salubungan">Salubungan</option>
-                            <option value="Wawa">Wawa</option>
-                            <option value="Liyang">Liyang</option>
-                            <option value="Kapatalan">Kapatalan</option>
                             <option value="Bagong Pag-asa">Bagong Pag-asa (Poblacion)</option>
-                            <option value="Bagumbarangay">Bagumbarangay (Poblacion)</option>
-                            <option value="Castro">Castro (Poblacion)</option>
-                            <option value="Jose Rizal">Jose Rizal (Poblacion)</option>
+                            <option value="Bagumayan">Bagumayan (Poblacion)</option>
+                            <option value="Buhay">Buhay</option>
+                            <option value="Gen. Luna">Gen. Luna (Poblacion)</option>
+                            <option value="G. Redor" selected>G. Redor (Poblacion)</option>
+                            <option value="Halayhayin">Halayhayin</option>
+                            <option value="I. Mendiola">I. Mendiola (Poblacion)</option>
+                            <option value="Kalaiya">Kalaiya</option>
+                            <option value="Kapatalan">Kapatalan</option>
                             <option value="Laguio">Laguio</option>
+                            <option value="Liyang">Liyang</option>
                             <option value="Llavac">Llavac</option>
+                            <option value="Macatad">Macatad</option>
+                            <option value="Magsaysay">Magsaysay</option>
+                            <option value="Maybo">Maybo</option>
+                            <option value="Pandeño">Pandeño</option>
+                            <option value="Salubungan">Salubungan</option>
                             <option value="Valderrama">Valderrama (Poblacion)</option>
-                            <option value="P. Burgos">P. Burgos</option>
-                            <option value="San Jose">San Jose</option>
-                            <option value="San Antonio">San Antonio</option>
+                            <option value="Wawa">Wawa</option>
                         </select>
                         <span id="bgyDetectStatus" style="display: block; font-size: 0.725rem; margin-top: 0.25rem; min-height: 1rem;"></span>
                     </div>
@@ -672,8 +673,8 @@
     <script>
         const token = localStorage.getItem('domiknow_token');
         let map, marker;
-        const defaultLat = 14.4235;
-        const defaultLng = 121.4450;
+        const defaultLat = 14.4172;
+        const defaultLng = 121.4475;
         let createdPropertyId = null;
         const customPolicies = [];
 
@@ -716,6 +717,9 @@
 
             const lngInput = document.getElementById('longitude');
             if (lngInput) lngInput.addEventListener('change', updateMapFromInputs);
+
+            const bgySelect = document.getElementById('barangay');
+            if (bgySelect) bgySelect.addEventListener('change', onBarangayDropdownChange);
 
             // Bind policy radio cards
             setupRadioCardEvents('smoking_policy', null);
@@ -974,26 +978,26 @@
         }
 
         const SINILOAN_BARANGAYS = [
-            { name: "G. Redor", lat: 14.4234, lng: 121.4448 },
-            { name: "Mendiola", lat: 14.4279, lng: 121.4484 },
-            { name: "Pandeño", lat: 14.4160, lng: 121.4432 },
-            { name: "Salubungan", lat: 14.4215, lng: 121.4473 },
-            { name: "Halayhayin", lat: 14.4241, lng: 121.4486 },
-            { name: "Bagumbarangay", lat: 14.4212, lng: 121.4461 },
-            { name: "P. Burgos", lat: 14.4215, lng: 121.4430 },
-            { name: "Macasipac", lat: 14.4320, lng: 121.4450 },
-            { name: "Acevida", lat: 14.4250, lng: 121.4560 },
-            { name: "Wawa", lat: 14.4146, lng: 121.4453 },
-            { name: "Laguio", lat: 14.4080, lng: 121.4480 },
-            { name: "Liyang", lat: 14.4703, lng: 121.4904 },
-            { name: "Kapatalan", lat: 14.4825, lng: 121.5001 },
-            { name: "Llavac", lat: 14.4950, lng: 121.5200 },
-            { name: "Castro", lat: 14.4225, lng: 121.4440 },
-            { name: "Bagong Pag-asa", lat: 14.4220, lng: 121.4450 },
-            { name: "Jose Rizal", lat: 14.4230, lng: 121.4435 },
-            { name: "Valderrama", lat: 14.4240, lng: 121.4455 },
-            { name: "San Jose", lat: 14.4320, lng: 121.4550 },
-            { name: "San Antonio", lat: 14.4350, lng: 121.4580 }
+            { name: "Acevida", lat: 14.4420, lng: 121.4720 },
+            { name: "Bagong Pag-asa", lat: 14.4172, lng: 121.4475 },
+            { name: "Bagumayan", lat: 14.4168, lng: 121.4480 },
+            { name: "Buhay", lat: 14.4220, lng: 121.4520 },
+            { name: "Gen. Luna", lat: 14.4180, lng: 121.4460 },
+            { name: "G. Redor", lat: 14.4175, lng: 121.4470 },
+            { name: "Halayhayin", lat: 14.4250, lng: 121.4400 },
+            { name: "I. Mendiola", lat: 14.4180, lng: 121.4465 },
+            { name: "Kalaiya", lat: 14.4600, lng: 121.4880 },
+            { name: "Kapatalan", lat: 14.4550, lng: 121.4820 },
+            { name: "Laguio", lat: 14.4330, lng: 121.4600 },
+            { name: "Liyang", lat: 14.4380, lng: 121.4650 },
+            { name: "Llavac", lat: 14.4480, lng: 121.4750 },
+            { name: "Macatad", lat: 14.4280, lng: 121.4550 },
+            { name: "Magsaysay", lat: 14.4190, lng: 121.4485 },
+            { name: "Maybo", lat: 14.4350, lng: 121.4500 },
+            { name: "Pandeño", lat: 14.4400, lng: 121.4680 },
+            { name: "Salubungan", lat: 14.4300, lng: 121.4580 },
+            { name: "Valderrama", lat: 14.4170, lng: 121.4470 },
+            { name: "Wawa", lat: 14.4110, lng: 121.4450 }
         ];
 
         function getClosestSiniloanBarangay(lat, lng) {
@@ -1017,6 +1021,41 @@
             }
             return closestName;
         }
+
+        function onBarangayDropdownChange() {
+            const selectedVal = document.getElementById('barangay')?.value;
+            if (!selectedVal) return;
+
+            const normSelect = selectedVal.trim().toLowerCase();
+            const bgyObj = SINILOAN_BARANGAYS.find(b => 
+                b.name.toLowerCase() === normSelect || 
+                normSelect.includes(b.name.toLowerCase()) || 
+                b.name.toLowerCase().includes(normSelect)
+            );
+
+            if (bgyObj && map && marker) {
+                map.flyTo([bgyObj.lat, bgyObj.lng], 17, { animate: true, duration: 1.2 });
+                marker.setLatLng([bgyObj.lat, bgyObj.lng]);
+                updateCoordinates(bgyObj.lat, bgyObj.lng);
+
+                const statusLabel = document.getElementById('bgyDetectStatus');
+                if (statusLabel) {
+                    statusLabel.style.color = '#10b981';
+                    statusLabel.textContent = `✓ Pin aligned to Barangay ${bgyObj.name}`;
+                }
+
+                const streetVal = document.getElementById('address')?.value || '';
+                const popupHtml = `
+                    <div style="font-family: inherit; font-size: 0.8125rem; line-height: 1.4; padding: 2px;">
+                        <div style="font-weight: 800; color: #2563eb; margin-bottom: 2px;">📍 Pin Target</div>
+                        <div style="font-weight: 700; color: #1e293b; font-size: 0.875rem;">Brgy. ${bgyObj.name}</div>
+                        <div style="color: #64748b; font-size: 0.75rem; margin-top: 2px;">${streetVal || 'Siniloan, Laguna'}</div>
+                    </div>
+                `;
+                marker.bindPopup(popupHtml).openPopup();
+            }
+        }
+        window.onBarangayDropdownChange = onBarangayDropdownChange;
 
         function initializeMap() {
             if (typeof L === 'undefined') return;
@@ -1075,7 +1114,7 @@
                 marker.on('dragend', function() {
                     const pos = marker.getLatLng();
                     updateCoordinates(pos.lat, pos.lng);
-                    reverseGeocode(pos.lat, pos.lng);
+                    reverseGeocode(pos.lat, pos.lng, true);
                 });
 
                 map.on('click', function(e) {
@@ -1083,11 +1122,11 @@
                     marker.setLatLng([lat, lng]);
                     map.panTo([lat, lng]);
                     updateCoordinates(lat, lng);
-                    reverseGeocode(lat, lng);
+                    reverseGeocode(lat, lng, true);
                 });
 
                 updateCoordinates(defaultLat, defaultLng);
-                reverseGeocode(defaultLat, defaultLng);
+                reverseGeocode(defaultLat, defaultLng, false);
             } catch (err) {
                 console.error('Error in initializeMap:', err);
             }
@@ -1098,7 +1137,7 @@
                 map.setView([defaultLat, defaultLng], 17);
                 marker.setLatLng([defaultLat, defaultLng]);
                 updateCoordinates(defaultLat, defaultLng);
-                reverseGeocode(defaultLat, defaultLng);
+                reverseGeocode(defaultLat, defaultLng, false);
             }
         }
         window.centerSiniloanMap = centerSiniloanMap;
@@ -1114,7 +1153,7 @@
             if (!isNaN(lat) && !isNaN(lng) && marker && map) {
                 marker.setLatLng([lat, lng]);
                 map.panTo([lat, lng]);
-                reverseGeocode(lat, lng);
+                reverseGeocode(lat, lng, true);
             }
         }
 
@@ -1140,7 +1179,7 @@
                         map.setView([lat, lng], 17);
                     }
                     updateCoordinates(lat, lng);
-                    reverseGeocode(lat, lng);
+                    reverseGeocode(lat, lng, true);
                     if (btn) {
                         btn.disabled = false;
                         btn.textContent = 'Get My Current Location';
@@ -1156,7 +1195,7 @@
             );
         }
 
-        async function reverseGeocode(lat, lng) {
+        async function reverseGeocode(lat, lng, isUserAction = false) {
             const statusLabel = document.getElementById('bgyDetectStatus');
             if (statusLabel) {
                 statusLabel.style.color = 'var(--primary)';
@@ -1165,7 +1204,7 @@
 
             let detectedStreet = '';
 
-            // 1. Esri World Geocoding API (High Precision for Philippines)
+            // 1. Esri World Geocoding API
             try {
                 const esriUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?location=${lng},${lat}&f=json`;
                 const res = await fetch(esriUrl);
@@ -1196,16 +1235,22 @@
             // 3. Exact Siniloan Barangay Matching via Haversine Engine
             const matchedBarangay = getClosestSiniloanBarangay(lat, lng);
 
-            if (detectedStreet && document.getElementById('address')) {
+            const addrInput = document.getElementById('address');
+            if (detectedStreet && addrInput && (!addrInput.value.trim() || isUserAction)) {
                 const cleanStreet = detectedStreet.split(',')[0].replace(/Siniloan|Laguna|4005|Philippines/gi, '').trim();
-                if (cleanStreet) {
-                    document.getElementById('address').value = cleanStreet;
+                if (cleanStreet && cleanStreet !== 'Unnamed Road') {
+                    addrInput.value = cleanStreet;
                 }
             }
 
             const selectElem = document.getElementById('barangay');
             if (selectElem && matchedBarangay) {
-                selectElem.value = matchedBarangay;
+                // Find matching option text
+                const options = Array.from(selectElem.options);
+                const matchedOption = options.find(opt => opt.value.toLowerCase() === matchedBarangay.toLowerCase() || opt.text.toLowerCase().includes(matchedBarangay.toLowerCase()));
+                if (matchedOption) {
+                    selectElem.value = matchedOption.value;
+                }
                 selectElem.style.borderColor = '#10b981';
                 selectElem.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.25)';
                 setTimeout(() => {
