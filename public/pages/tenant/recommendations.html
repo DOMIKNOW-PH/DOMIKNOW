@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Property Recommendations - DomiKnow</title>
     <link href="../../css/input.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .map-top1-pulse {
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+        @keyframes pulseGlow {
+            0% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6)); }
+            50% { transform: scale(1.12); filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.9)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6)); }
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            padding: 4px;
+        }
+    </style>
 </head>
 <body>
     <!-- Navbar -->
@@ -54,6 +69,10 @@
                             <option value="Acevida">Acevida</option>
                             <option value="Mendiola">Mendiola</option>
                             <option value="Salubungan">Salubungan</option>
+                            <option value="Macatad">Macatad</option>
+                            <option value="Laguio">Laguio</option>
+                            <option value="Kapatalan">Kapatalan</option>
+                            <option value="Wawa">Wawa</option>
                         </select>
                     </div>
 
@@ -114,8 +133,28 @@
                 </form>
             </div>
 
-            <!-- Right Column: Results list -->
+            <!-- Right Column: Results & Interactive Map -->
             <div>
+                <!-- Interactive Map Visualization Card -->
+                <div id="mapContainerCard" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem;">
+                        <h4 style="margin: 0; font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.5"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+                            Proximity Map Visualization
+                        </h4>
+                        <div id="mapLegendBadge" style="font-size: 0.78rem; font-weight: 800; color: #059669; background: rgba(5,150,105,0.12); padding: 0.3rem 0.85rem; border-radius: 50px; border: 1px solid rgba(5,150,105,0.25);">
+                            🏆 Top 1 Match &amp; Requested Location Highlighted
+                        </div>
+                    </div>
+                    
+                    <div id="recoMap" style="height: 340px; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); z-index: 1;"></div>
+                    
+                    <div id="mapDistanceNotice" style="margin-top: 0.85rem; font-size: 0.84rem; font-weight: 700; color: var(--text-primary); background: var(--bg-primary); padding: 0.65rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.6rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="12 6 12 12 16 14"/></svg>
+                        <span>Select a location to visualize distance to the Top 1 nearest recommended property.</span>
+                    </div>
+                </div>
+
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                     <h3 style="margin: 0;">Ranked Recommendation Results</h3>
                     <span id="matchCountBadge" style="font-size: 0.8rem; font-weight: 700; color: var(--primary); background: rgba(79,70,229,0.1); padding: 0.25rem 0.75rem; border-radius: 999px;">0 Matches</span>
@@ -151,12 +190,32 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="../../js/auth.js"></script>
     <script src="../../js/dashboard.js"></script>
     <script>
         const token = localStorage.getItem('domiknow_token');
+        let recoMap = null;
+        let mapMarkersGroup = null;
+
+        // Barangay coordinates map for Siniloan, Laguna
+        const barangayMapCoords = {
+            'g. redor': [14.4175, 121.4470],
+            'halayhayin': [14.4250, 121.4400],
+            'pandeño': [14.4400, 121.4680],
+            'macasipac': [14.4220, 121.4520],
+            'acevida': [14.4420, 121.4720],
+            'mendiola': [14.4180, 121.4465],
+            'salubungan': [14.4300, 121.4580],
+            'macatad': [14.4280, 121.4550],
+            'laguio': [14.4330, 121.4600],
+            'kapatalan': [14.4550, 121.4820],
+            'wawa': [14.4110, 121.4450]
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
+            initLeafletMap();
+
             document.getElementById('recoForm').addEventListener('submit', getRecommendations);
             document.getElementById('modalClose').addEventListener('click', closeReserveModal);
             document.getElementById('reservationForm').addEventListener('submit', submitReservation);
@@ -164,6 +223,18 @@
             // Auto fetch initial matches on page load
             getRecommendations(new Event('submit'));
         });
+
+        function initLeafletMap() {
+            if (recoMap) return;
+            // Center of Siniloan, Laguna
+            recoMap = L.map('recoMap').setView([14.4172, 121.4475], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(recoMap);
+
+            mapMarkersGroup = L.layerGroup().addTo(recoMap);
+        }
 
         async function getRecommendations(e) {
             if (e) e.preventDefault();
@@ -179,13 +250,11 @@
             const propType = document.getElementById('prefPropType').value;
             const tenantType = document.getElementById('prefTenantType').value;
             
-            // Get selected amenities
             const activeAmenities = [];
             document.querySelectorAll('.amenity-pref:checked').forEach(cb => {
                 activeAmenities.push(cb.value);
             });
 
-            // Build query params
             let queryParams = `preferred_location=${encodeURIComponent(barangay)}&min_price=${minPrice}&max_price=${maxPrice}&preferred_property_type=${propType}&tenant_preference=${tenantType}`;
             activeAmenities.forEach(a => {
                 queryParams += `&amenities=${encodeURIComponent(a)}`;
@@ -203,7 +272,9 @@
                 const result = await response.json();
                 const recommended = result.data || [];
                 document.getElementById('matchCountBadge').textContent = `${recommended.length} Matches Found`;
+                
                 renderRecommendations(recommended);
+                updateMapHighlights(recommended, barangay);
 
             } catch (err) {
                 console.error(err);
@@ -213,6 +284,123 @@
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg> Calculate Ranked Matches`;
                 }
+            }
+        }
+
+        function updateMapHighlights(recommended, requestedBarangay) {
+            if (!recoMap || !mapMarkersGroup) return;
+            mapMarkersGroup.clearLayers();
+
+            const bounds = [];
+            const reqKey = (requestedBarangay || '').trim().toLowerCase();
+            const userTargetCoords = barangayMapCoords[reqKey] || [14.4172, 121.4475];
+
+            // 1. Highlight User Requested Barangay Location Pin
+            if (requestedBarangay) {
+                const reqMarker = L.circleMarker(userTargetCoords, {
+                    radius: 12,
+                    fillColor: '#9333ea',
+                    color: '#ffffff',
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 0.95
+                }).addTo(mapMarkersGroup);
+
+                reqMarker.bindPopup(`
+                    <div style="font-size: 0.85rem; font-weight: 800; color: #9333ea;">
+                        📍 Requested Location<br>
+                        <span style="color: #334155; font-weight: 700;">Barangay ${requestedBarangay}</span>
+                    </div>
+                `);
+
+                bounds.push(userTargetCoords);
+            }
+
+            // 2. Plot Top 1 Nearest Recommended Match and other properties
+            if (recommended.length > 0) {
+                const top1 = recommended[0];
+                const top1Prop = top1.property;
+
+                const top1Lat = parseFloat(top1Prop.latitude) || (barangayMapCoords[(top1Prop.barangay || '').toLowerCase()] || [14.4250, 121.4400])[0];
+                const top1Lng = parseFloat(top1Prop.longitude) || (barangayMapCoords[(top1Prop.barangay || '').toLowerCase()] || [14.4250, 121.4400])[1];
+                const top1Pos = [top1Lat, top1Lng];
+
+                // Create Special Pulsing Gold Marker Icon for Top 1
+                const top1Icon = L.divIcon({
+                    className: 'map-top1-pulse',
+                    html: `<div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: 2px solid white; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.85rem; box-shadow: 0 4px 14px rgba(16,185,129,0.5);">#1</div>`,
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 17]
+                });
+
+                const top1Marker = L.marker(top1Pos, { icon: top1Icon }).addTo(mapMarkersGroup);
+                top1Marker.bindPopup(`
+                    <div style="font-size: 0.88rem; padding: 2px;">
+                        <div style="font-size: 0.72rem; font-weight: 800; color: #10b981; text-transform: uppercase;">🏆 #1 Top Recommended Match</div>
+                        <div style="font-weight: 800; color: #0f172a; margin: 2px 0 4px 0;">${top1Prop.property_name}</div>
+                        <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 4px;">📍 Brgy. ${top1Prop.barangay}</div>
+                        <div style="font-size: 0.82rem; font-weight: 800; color: #4f46e5;">₱${parseInt(top1Prop.monthly_rent || 0).toLocaleString()}/mo</div>
+                    </div>
+                `).openPopup();
+
+                bounds.push(top1Pos);
+
+                // 3. Draw dashed distance line connecting Requested Barangay -> Top 1 Recommended Property
+                if (requestedBarangay) {
+                    const polyline = L.polyline([userTargetCoords, top1Pos], {
+                        color: '#10b981',
+                        weight: 3,
+                        dashArray: '6, 8',
+                        opacity: 0.85
+                    }).addTo(mapMarkersGroup);
+
+                    // Update notice text below map
+                    const isExact = (top1Prop.barangay || '').trim().toLowerCase() === reqKey;
+                    const noticeEl = document.getElementById('mapDistanceNotice');
+                    if (noticeEl) {
+                        if (isExact) {
+                            noticeEl.innerHTML = `
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                <span><strong>Exact Location Match:</strong> Top 1 Recommended Property (<strong>${top1Prop.property_name}</strong>) is located directly in <strong>Brgy. ${requestedBarangay}</strong>!</span>
+                            `;
+                        } else {
+                            noticeEl.innerHTML = `
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="12 6 12 12 16 14"/></svg>
+                                <span><strong>Nearest Alternative Highlighted:</strong> Top 1 Recommended Property (<strong>${top1Prop.property_name}</strong> in Brgy. ${top1Prop.barangay}) is highlighted relative to your requested location (<strong>Brgy. ${requestedBarangay}</strong>).</span>
+                            `;
+                        }
+                    }
+                }
+
+                // 4. Plot remaining properties (#2, #3, etc.)
+                recommended.slice(1).forEach(item => {
+                    const p = item.property;
+                    const r = item.rank;
+                    const lat = parseFloat(p.latitude) || (barangayMapCoords[(p.barangay || '').toLowerCase()] || [14.4200, 121.4450])[0];
+                    const lng = parseFloat(p.longitude) || (barangayMapCoords[(p.barangay || '').toLowerCase()] || [14.4200, 121.4450])[1];
+                    const pos = [lat, lng];
+
+                    const normIcon = L.divIcon({
+                        html: `<div style="background: #3b82f6; color: white; border: 2px solid white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">#${r}</div>`,
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13]
+                    });
+
+                    const m = L.marker(pos, { icon: normIcon }).addTo(mapMarkersGroup);
+                    m.bindPopup(`
+                        <div style="font-size: 0.82rem;">
+                            <div style="font-weight: 800; color: #0f172a;">#${r} ${p.property_name}</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">📍 Brgy. ${p.barangay}</div>
+                        </div>
+                    `);
+
+                    bounds.push(pos);
+                });
+            }
+
+            // Fit map bounds to frame user target & properties
+            if (bounds.length > 0) {
+                recoMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
             }
         }
 
@@ -232,7 +420,6 @@
                 const reasons = item.reasons;
                 const out = item.output_criteria || {};
 
-                // Build reason bullet list
                 let reasonsHtml = '';
                 reasons.forEach(r => {
                     reasonsHtml += `<span style="display: block; margin-bottom: 2px;">• ${r}</span>`;
@@ -243,12 +430,11 @@
                 card.style.flexDirection = 'row';
                 card.style.flexWrap = 'wrap';
 
-                // Responsive side columns styling
                 card.innerHTML = `
                     <div class="prop-img-wrapper" style="width: 240px; height: 100%; min-height: 220px; position: relative;">
                         <img src="${prop.main_image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80'}" alt="${prop.property_name}" class="prop-img" style="height: 100%;">
-                        <span style="position: absolute; top: 10px; left: 10px; background: #4f46e5; color: white; padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 800; font-size: 0.75rem; box-shadow: 0 4px 10px rgba(79,70,229,0.3);">
-                            Rank #${rank}
+                        <span style="position: absolute; top: 10px; left: 10px; background: ${rank === 1 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#4f46e5'}; color: white; padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 800; font-size: 0.75rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                            ${rank === 1 ? '🏆 Rank #1 Top Match' : `Rank #${rank}`}
                         </span>
                         <span class="prop-type-badge">${(prop.property_type || '').replace('_', ' ')}</span>
                         <span class="reco-score-badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
@@ -303,7 +489,6 @@
             });
         }
 
-        // Reservation Modal Operations
         function openReserveModal(propId, propName) {
             document.getElementById('reservePropId').value = propId;
             document.getElementById('modalPropName').textContent = propName;
