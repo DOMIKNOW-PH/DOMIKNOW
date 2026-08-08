@@ -76,87 +76,32 @@ const propertyController = {
                 return responseHelper.success(res, 'No properties available for recommendation', []);
             }
 
-            // Barangay Coordinates lookup map in Siniloan, Laguna
-            const barangayCoords = {
-                'bagong pag-asa': { lat: 14.4172, lon: 121.4475 },
-                'bagong pag-asa (poblacion)': { lat: 14.4172, lon: 121.4475 },
-                'bagumayan': { lat: 14.4168, lon: 121.4480 },
-                'bagumayan (poblacion)': { lat: 14.4168, lon: 121.4480 },
-                'g. redor': { lat: 14.4175, lon: 121.4470 },
-                'g. redor (poblacion)': { lat: 14.4175, lon: 121.4470 },
-                'i. mendiola': { lat: 14.4180, lon: 121.4465 },
-                'i. mendiola (poblacion)': { lat: 14.4180, lon: 121.4465 },
-                'mercado': { lat: 14.4165, lon: 121.4472 },
-                'mercado (poblacion)': { lat: 14.4165, lon: 121.4472 },
-                'p. burgos': { lat: 14.4150, lon: 121.4460 },
-                'magsaysay': { lat: 14.4190, lon: 121.4485 },
-                'wawa': { lat: 14.4110, lon: 121.4450 },
-                'halayhayin': { lat: 14.4250, lon: 121.4400 },
-                'castro': { lat: 14.4220, lon: 121.4520 },
-                'macatad': { lat: 14.4280, lon: 121.4550 },
-                'salubungan': { lat: 14.4300, lon: 121.4580 },
-                'laguio': { lat: 14.4330, lon: 121.4600 },
-                'liyang': { lat: 14.4380, lon: 121.4650 },
-                'pandeno': { lat: 14.4400, lon: 121.4680 },
-                'acevida': { lat: 14.4420, lon: 121.4720 },
-                'llavac': { lat: 14.4480, lon: 121.4750 },
-                'kapatalan': { lat: 14.4550, lon: 121.4820 },
-                'kalaiya': { lat: 14.4600, lon: 121.4880 },
-                'maybo': { lat: 14.4350, lon: 121.4500 }
-            };
+            // Strict Location Filtering: If user selected a specific barangay, filter ONLY properties in that barangay
+            let qualifiedCandidates = candidates;
+            if (preferred_location) {
+                const normPref = preferred_location.trim().toLowerCase();
+                qualifiedCandidates = candidates.filter(prop => {
+                    const normPropBrgy = (prop.barangay || '').trim().toLowerCase();
+                    const normAddress = (prop.address || '').trim().toLowerCase();
+                    return normPropBrgy === normPref || normAddress.includes(normPref);
+                });
 
-            const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
-                const R = 6371; // km
-                const dLat = (lat2 - lat1) * Math.PI / 180;
-                const dLon = (lon2 - lon1) * Math.PI / 180;
-                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                return R * c;
-            };
+                if (qualifiedCandidates.length === 0) {
+                    return responseHelper.success(res, `No properties found in Barangay ${preferred_location}`, []);
+                }
+            }
 
             // 2-Stage Recommendation Engine: Filter Constraint Matching + Quality & Trust Ranking
-            const recommended = candidates.map(prop => {
+            const recommended = qualifiedCandidates.map(prop => {
                 let score = 0;
                 const reasons = [];
 
                 // ── STAGE 1: FILTER INPUT CONSTRAINTS MATCHING (Max 55 Pts) ──
                 
-                // 1. Preferred Location & Geographic Proximity (Max 20 Pts)
+                // 1. Preferred Location Match (Max 20 Pts)
                 if (preferred_location) {
-                    const normPref = preferred_location.trim().toLowerCase();
-                    const normPropBrgy = (prop.barangay || '').trim().toLowerCase();
-
-                    if (normPropBrgy === normPref) {
-                        score += 20;
-                        reasons.push(`Exact location match in Barangay ${prop.barangay} (+20 pts)`);
-                    } else if ((prop.address || '').toLowerCase().includes(normPref)) {
-                        score += 18;
-                        reasons.push(`Location matches area landmark "${preferred_location}" (+18 pts)`);
-                    } else {
-                        // Calculate geographic distance between preferred location and property location
-                        const prefCoord = barangayCoords[normPref] || { lat: 14.4172, lon: 121.4475 };
-                        const propCoord = (prop.latitude && prop.longitude)
-                            ? { lat: parseFloat(prop.latitude), lon: parseFloat(prop.longitude) }
-                            : (barangayCoords[normPropBrgy] || { lat: 14.4250, lon: 121.4500 });
-
-                        const distKm = calculateHaversineDistance(prefCoord.lat, prefCoord.lon, propCoord.lat, propCoord.lon);
-
-                        if (distKm <= 1.0) {
-                            score += 16;
-                            reasons.push(`Nearest adjacent property (~${distKm.toFixed(1)} km from Brgy. ${preferred_location} in Brgy. ${prop.barangay}) (+16 pts)`);
-                        } else if (distKm <= 2.5) {
-                            score += 12;
-                            reasons.push(`Nearby property (~${distKm.toFixed(1)} km from Brgy. ${preferred_location} in Brgy. ${prop.barangay}) (+12 pts)`);
-                        } else if (distKm <= 5.0) {
-                            score += 8;
-                            reasons.push(`Proximity match (~${distKm.toFixed(1)} km from Brgy. ${preferred_location} in Brgy. ${prop.barangay}) (+8 pts)`);
-                        } else {
-                            score += 4;
-                            reasons.push(`Alternative location (~${distKm.toFixed(1)} km away in Brgy. ${prop.barangay}) (+4 pts)`);
-                        }
-                    }
+                    score += 20;
+                    reasons.push(`Location match in Barangay ${prop.barangay} (+20 pts)`);
                 } else {
                     score += 15;
                 }
