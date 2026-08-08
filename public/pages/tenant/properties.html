@@ -301,25 +301,43 @@
         // Barangay geographic boundary polygons lookup for Siniloan, Laguna
         function getBarangayPolygon(barangayName) {
             const key = (barangayName || '').trim().toLowerCase();
+            const predefinedPolygons = {
+                'halayhayin': [
+                    [14.4320, 121.4380], [14.4340, 121.4460], [14.4260, 121.4500], [14.4200, 121.4450], [14.4210, 121.4390]
+                ],
+                'acevida': [
+                    [14.4170, 121.4460], [14.4180, 121.4520], [14.4090, 121.4550], [14.4050, 121.4490], [14.4110, 121.4450]
+                ],
+                'g. redor': [
+                    [14.4200, 121.4455], [14.4205, 121.4485], [14.4150, 121.4495], [14.4145, 121.4460]
+                ],
+                'macatad': [
+                    [14.4330, 121.4500], [14.4340, 121.4600], [14.4240, 121.4610], [14.4230, 121.4510]
+                ],
+                'wawa': [
+                    [14.4140, 121.4410], [14.4150, 121.4470], [14.4070, 121.4480], [14.4060, 121.4420]
+                ],
+                'salubungan': [
+                    [14.4350, 121.4550], [14.4360, 121.4630], [14.4280, 121.4640], [14.4270, 121.4560]
+                ],
+                'pandeño': [
+                    [14.4440, 121.4630], [14.4450, 121.4720], [14.4360, 121.4730], [14.4350, 121.4640]
+                ]
+            };
+
+            if (predefinedPolygons[key]) return predefinedPolygons[key];
+
             const barangayCoords = {
                 'bagong pag-asa': [14.4172, 121.4475],
-                'bagong pag-asa (poblacion)': [14.4172, 121.4475],
                 'bagumayan': [14.4168, 121.4480],
-                'g. redor': [14.4175, 121.4470],
                 'i. mendiola': [14.4180, 121.4465],
                 'mercado': [14.4165, 121.4472],
                 'p. burgos': [14.4150, 121.4460],
                 'magsaysay': [14.4190, 121.4485],
-                'wawa': [14.4110, 121.4450],
-                'halayhayin': [14.4250, 121.4400],
                 'castro': [14.4220, 121.4520],
-                'macatad': [14.4280, 121.4550],
-                'salubungan': [14.4300, 121.4580],
                 'laguio': [14.4330, 121.4600],
                 'liyang': [14.4380, 121.4650],
                 'pandeno': [14.4400, 121.4680],
-                'pandeño': [14.4400, 121.4680],
-                'acevida': [14.4420, 121.4720],
                 'llavac': [14.4480, 121.4750],
                 'kapatalan': [14.4550, 121.4820],
                 'kalaiya': [14.4600, 121.4880],
@@ -330,10 +348,12 @@
             const lat = center[0];
             const lon = center[1];
             return [
-                [lat + 0.0035, lon - 0.0045],
-                [lat + 0.0038, lon + 0.0045],
-                [lat - 0.0035, lon + 0.0048],
-                [lat - 0.0038, lon - 0.0042]
+                [lat + 0.0040, lon - 0.0050],
+                [lat + 0.0045, lon + 0.0040],
+                [lat + 0.0010, lon + 0.0055],
+                [lat - 0.0040, lon + 0.0045],
+                [lat - 0.0042, lon - 0.0040],
+                [lat - 0.0010, lon - 0.0052]
             ];
         }
 
@@ -344,25 +364,26 @@
             // Clear prior markers
             markersGroup.clearLayers();
 
-            // Highlight Barangay Boundary Polygon if a barangay is selected
+            // Highlight Barangay Boundary Polygon with Red Dotted Line (matching user request)
             const selectedBarangay = document.getElementById('filterBarangay')?.value || '';
-            if (selectedBarangay) {
-                const polyCoords = getBarangayPolygon(selectedBarangay);
-                const barangayPoly = L.polygon(polyCoords, {
-                    color: '#2563eb',       // Blue outline border
-                    weight: 3,              // Bold stroke weight
-                    opacity: 0.95,
-                    fillColor: '#3b82f6',   // Soft blue area fill
-                    fillOpacity: 0.18,      // Semi-transparent overlay fill
-                    dashArray: '6, 6'       // Dashed styled border
-                }).addTo(markersGroup);
+            const polyTarget = selectedBarangay || 'Siniloan';
+            const polyCoords = getBarangayPolygon(polyTarget);
+            
+            const barangayPoly = L.polygon(polyCoords, {
+                color: '#ef4444',       // Red outline border (matching attachment screenshot)
+                weight: 3.5,            // Bold line stroke
+                opacity: 0.95,
+                fillColor: '#ef4444',   // Soft red area fill
+                fillOpacity: 0.1,       // Transparent fill overlay
+                dashArray: '5, 5'       // Dotted/dashed border pattern
+            }).addTo(markersGroup);
 
-                barangayPoly.bindPopup(`
-                    <div style="font-weight: 800; font-size: 0.88rem; color: #1e40af; padding: 2px;">
-                        📍 Barangay ${selectedBarangay} Boundary Area
-                    </div>
-                `);
-            }
+            const displayLabel = selectedBarangay ? `Barangay ${selectedBarangay}` : 'Siniloan Municipality';
+            barangayPoly.bindPopup(`
+                <div style="font-weight: 800; font-size: 0.88rem; color: #dc2626; padding: 2px;">
+                    📍 ${displayLabel} Boundary Line
+                </div>
+            `);
 
             if (!items || items.length === 0) {
                 grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">No approved properties match your active filter criteria.</p>`;
