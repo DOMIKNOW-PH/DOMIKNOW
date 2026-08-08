@@ -48,7 +48,7 @@ app.use(helmet({
             imgSrc: ["'self'", "data:", "blob:", "https:"],
             mediaSrc: ["'self'", "data:", "blob:", "https:", "https://*.supabase.co"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            connectSrc: ["'self'", "https://api.bigdatacloud.net", "https://geocode.arcgis.com", "https://*.arcgis.com", "https://server.arcgisonline.com", "https://*.basemaps.cartocdn.com", "https://basemaps.cartocdn.com", "https://unpkg.com", "https://*.supabase.co"]
+            connectSrc: ["'self'", "https://nominatim.openstreetmap.org", "https://*.tile.openstreetmap.org", "https://api.bigdatacloud.net", "https://geocode.arcgis.com", "https://*.arcgis.com", "https://server.arcgisonline.com", "https://*.basemaps.cartocdn.com", "https://basemaps.cartocdn.com", "https://unpkg.com", "https://*.supabase.co"]
         }
     }
 }));

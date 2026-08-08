@@ -1198,41 +1198,37 @@
             let detectedRoad = '';
             let detectedBgyName = '';
 
-            // 1. Primary: Query Esri ArcGIS World Geocoding Service (High Precision)
+            // 1. Primary: Query OpenStreetMap Nominatim Reverse Geocoding Engine
             try {
-                const esriUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?location=${lng},${lat}&f=json`;
-                const res = await fetch(esriUrl);
-                const data = await res.json();
-                if (data && data.address) {
-                    const a = data.address;
-                    detectedRoad = a.Address || a.StAddr || a.Match_addr || a.Neighborhood || '';
-                    detectedBgyName = a.Neighborhood || a.District || a.Subregion || '';
+                const nomUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+                const nomRes = await fetch(nomUrl);
+                const nomData = await nomRes.json();
+                if (nomData && nomData.address) {
+                    const addr = nomData.address;
+                    detectedRoad = addr.road || addr.street || addr.pedestrian || addr.residential || addr.neighbourhood || '';
+                    detectedBgyName = addr.suburb || addr.quarter || addr.neighbourhood || addr.village || addr.hamlet || '';
                 }
             } catch (e) {
-                console.warn('Esri geocode notice:', e);
+                console.warn('OpenStreetMap Nominatim geocode notice:', e);
             }
 
-            // 2. Secondary Provider: Query BigDataCloud Client API
-            if (!detectedRoad || !detectedBgyName) {
+            // 2. Secondary Provider: Query Esri World Geocode Server as Fallback
+            if (!detectedRoad) {
                 try {
-                    const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`;
-                    const bdcRes = await fetch(bdcUrl);
-                    const bdcData = await bdcRes.json();
-                    if (bdcData) {
-                        if (!detectedRoad) {
-                            detectedRoad = bdcData.locality || bdcData.city || '';
-                        }
-                        if (!detectedBgyName && bdcData.localityInfo && bdcData.localityInfo.administrative) {
-                            const bgyObj = bdcData.localityInfo.administrative.find(a => a.order >= 4);
-                            if (bgyObj) detectedBgyName = bgyObj.name;
-                        }
+                    const esriUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?location=${lng},${lat}&f=json`;
+                    const res = await fetch(esriUrl);
+                    const data = await res.json();
+                    if (data && data.address) {
+                        const a = data.address;
+                        detectedRoad = a.Address || a.StAddr || a.Match_addr || a.Neighborhood || '';
+                        if (!detectedBgyName) detectedBgyName = a.Neighborhood || a.District || '';
                     }
                 } catch (e) {
-                    console.warn('BigDataCloud geocode notice:', e);
+                    console.warn('Esri geocode notice:', e);
                 }
             }
 
-            // 3. Match Barangay from API or fallback to Siniloan Distance Engine
+            // 3. Match Barangay from OpenStreetMap or Siniloan Distance Engine
             let matchedBarangay = '';
             if (detectedBgyName) {
                 const normDetectedBgy = detectedBgyName.trim().toLowerCase();
@@ -1298,14 +1294,13 @@
             if (!address) return;
 
             try {
-                const esriSearchUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=${encodeURIComponent(address + ', Siniloan, Laguna, Philippines')}&f=json`;
-                const res = await fetch(esriSearchUrl);
+                const nomSearchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}, Siniloan, Laguna, Philippines`;
+                const res = await fetch(nomSearchUrl);
                 const data = await res.json();
 
-                if (data && data.candidates && data.candidates.length > 0) {
-                    const best = data.candidates[0];
-                    const lat = parseFloat(best.location.y);
-                    const lng = parseFloat(best.location.x);
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
                     if (marker && map) {
                         marker.setLatLng([lat, lng]);
                         map.setView([lat, lng], 17);
