@@ -115,42 +115,38 @@ const propertyController = {
             }
 
             // ── STAGE 2: QUALITY, TRUST & RELIABILITY RANKING ──
-            // Rank qualified properties by Property Rating, Trust Score, Rental Reliability & Landlord Rating
+            // Rank qualified properties strictly by Property Rating, Trust Score, Rental Reliability & Landlord Rating
             const recommended = qualifiedCandidates.map(prop => {
                 let score = 0;
                 const reasons = [];
-
-                // Base match score for satisfying 100% of specified filter inputs
-                score += 50;
-                reasons.push(`Satisfies 100% of your active filter requirements (+50 pts)`);
 
                 const trustScore = prop.landlord?.landlord_trust_score ?? 100;
                 const propertyRating = parseFloat(prop.average_rating || 4.8);
                 const landlordRating = parseFloat(prop.landlord_rating || 4.7);
                 const rentalReliability = Math.min(99, Math.max(85, Math.round(trustScore * 0.5 + propertyRating * 10)));
 
-                // A. Property Rating Score (Max 15 Pts)
-                const ratingPoints = Math.round((propertyRating / 5.0) * 15);
+                // 1. Property Rating Score (30% Weight / Max 30 Pts)
+                const ratingPoints = Math.round((propertyRating / 5.0) * 30);
                 score += ratingPoints;
-                reasons.push(`Property rating: ${propertyRating.toFixed(1)}/5.0 ★ (+${ratingPoints} pts)`);
+                reasons.push(`Property Rating (${propertyRating.toFixed(1)}/5.0 ★) (+${ratingPoints} pts)`);
 
-                // B. Landlord Trust Score (Max 15 Pts)
-                const trustPoints = Math.round((trustScore / 100) * 15);
+                // 2. Landlord Trust Score (30% Weight / Max 30 Pts)
+                const trustPoints = Math.round((trustScore / 100) * 30);
                 score += trustPoints;
-                reasons.push(`Landlord trust score: ${trustScore}/100 🛡️ (+${trustPoints} pts)`);
+                reasons.push(`Landlord Trust Score (${trustScore}/100 🛡️) (+${trustPoints} pts)`);
 
-                // C. Rental Reliability Index (Max 10 Pts)
-                const reliabilityPoints = Math.round((rentalReliability / 100) * 10);
+                // 3. Rental Reliability Index (20% Weight / Max 20 Pts)
+                const reliabilityPoints = Math.round((rentalReliability / 100) * 20);
                 score += reliabilityPoints;
-                reasons.push(`Rental reliability index: ${rentalReliability}% ⚡ (+${reliabilityPoints} pts)`);
+                reasons.push(`Rental Reliability Index (${rentalReliability}% ⚡) (+${reliabilityPoints} pts)`);
 
-                // D. Landlord Rating Score (Max 10 Pts)
-                const landlordRatingPoints = Math.round((landlordRating / 5.0) * 10);
+                // 4. Landlord Rating Score (20% Weight / Max 20 Pts)
+                const landlordRatingPoints = Math.round((landlordRating / 5.0) * 20);
                 score += landlordRatingPoints;
-                reasons.push(`Landlord reputation: ${landlordRating.toFixed(1)}/5.0 👨‍💼 (+${landlordRatingPoints} pts)`);
+                reasons.push(`Landlord Reputation Rating (${landlordRating.toFixed(1)}/5.0 👨‍💼) (+${landlordRatingPoints} pts)`);
 
-                // Calculate total match percentage (Max Total Score = 100 pts)
-                const matchPercentage = Math.min(100, Math.max(50, Math.round((score / 100) * 100)));
+                // Total match percentage equals combined score (Max = 100%)
+                const matchPercentage = Math.min(100, Math.max(50, Math.round(score)));
 
                 return {
                     property: prop,
@@ -167,10 +163,10 @@ const propertyController = {
                 };
             });
 
-            // Sort by highest match percentage descending
-            recommended.sort((a, b) => b.match_percentage - a.match_percentage);
+            // Sort by highest quality match score descending
+            recommended.sort((a, b) => b.score - a.score);
 
-            // Assign rank number
+            // Assign rank number (#1, #2, #3, etc.)
             const rankedList = recommended.map((item, idx) => ({
                 rank: idx + 1,
                 ...item
