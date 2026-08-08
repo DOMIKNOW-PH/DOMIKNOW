@@ -169,8 +169,8 @@ async function handleLogin(e) {
             } else {
                 // Redirect based on role
                 const role = result.data.user.role;
-                if (role === 'tenant') window.location.href = '../tenant/dashboard.html';
-                else if (role === 'landlord') window.location.href = '../landlord/dashboard.html';
+                if (role === 'tenant') window.location.href = '../tenant/properties.html';
+                else if (role === 'landlord') window.location.href = '../landlord/properties.html';
                 else if (role === 'maintenance') window.location.href = '../maintenance/dashboard.html';
                 else if (role === 'admin') window.location.href = '../admin/reports.html';
             }

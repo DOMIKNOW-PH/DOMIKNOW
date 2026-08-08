@@ -6,7 +6,6 @@ const NAVIGATION_CONFIG = {
     {
       section: 'Main',
       items: [
-        { label: 'Dashboard', href: 'dashboard.html' },
         { label: 'Property Discovery', href: 'properties.html' }
       ]
     },
@@ -38,7 +37,6 @@ const NAVIGATION_CONFIG = {
     {
       section: 'Main',
       items: [
-        { label: 'Dashboard', href: 'dashboard.html' },
         { label: 'My Properties', href: 'properties.html' },
         { label: 'Register Property', href: 'property-create.html' }
       ]

@@ -1,12 +1,14 @@
 const reservationModel = require('../models/reservationModel');
 const propertyModel = require('../models/propertyModel');
 const auditLogModel = require('../models/auditLogModel');
+const notificationModel = require('../models/notificationModel');
 const responseHelper = require('../utils/responseHelper');
 
 const reservationController = {
     async createReservation(req, res) {
         try {
-            return responseHelper.error(res, 'Reservations are disabled. Please submit a direct rental application instead.', null, 400);
+            const { property_id, move_in_date, message } = req.body;
+            const tenantId = req.user.id;
 
             // 2. Check property exists
             const property = await propertyModel.findById(property_id);
@@ -36,6 +38,17 @@ const reservationController = {
 
             // 6. Log audit
             await auditLogModel.log(tenantId, 'SUBMIT_RESERVATION', `Tenant submitted reservation for property: ${property.property_name}`);
+
+            // Dispatch notification to landlord
+            if (property.landlord_id) {
+                await notificationModel.create({
+                    user_id: property.landlord_id,
+                    type: 'reservation_submitted',
+                    title: 'New Unit Reservation Request',
+                    message: `A tenant submitted a new unit reservation request for property "${property.property_name}".`,
+                    reference_id: newReservation.id
+                });
+            }
 
             return responseHelper.success(res, 'Reservation submitted successfully', newReservation, 201);
 
@@ -89,7 +102,28 @@ const reservationController = {
             if (status === 'approved') actionType = 'APPROVE_RESERVATION';
             if (status === 'rejected') actionType = 'REJECT_RESERVATION';
 
-            await auditLogModel.log(req.user.id, actionType, `Admin changed reservation ${id} status to ${status}`);
+            await auditLogModel.log(req.user.id, actionType, `Reservation ${id} status changed to ${status}`);
+
+            // Dispatch notification to tenant
+            if (record.tenant_id) {
+                if (status === 'approved') {
+                    await notificationModel.create({
+                        user_id: record.tenant_id,
+                        type: 'reservation_approved',
+                        title: 'Unit Reservation Approved! 🎉',
+                        message: `Your reservation request for property "${record.property_name || 'rental unit'}" has been approved by the landlord!`,
+                        reference_id: id
+                    });
+                } else if (status === 'rejected') {
+                    await notificationModel.create({
+                        user_id: record.tenant_id,
+                        type: 'reservation_rejected',
+                        title: 'Reservation Status Update',
+                        message: `Your reservation request for property "${record.property_name || 'rental unit'}" was declined by the landlord.`,
+                        reference_id: id
+                    });
+                }
+            }
 
             return responseHelper.success(res, `Reservation successfully ${status}`, updatedRecord);
 

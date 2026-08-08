@@ -11,6 +11,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Determine expected role based on path
     const path = window.location.pathname;
+    
+    // Auto-redirect removed dashboard pages to properties.html
+    if (path.includes('/tenant/dashboard.html')) {
+        window.location.href = '/pages/tenant/properties.html';
+        return;
+    }
+    if (path.includes('/landlord/dashboard.html')) {
+        window.location.href = '/pages/landlord/properties.html';
+        return;
+    }
+
     let expectedRole = null;
     if (path.includes('/tenant/')) expectedRole = 'tenant';
     if (path.includes('/landlord/')) expectedRole = 'landlord';
@@ -45,8 +56,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 3. Verify role
         if (expectedRole && user.role !== expectedRole) {
-            // Redirect to correct dashboard
-            window.location.href = `/pages/${user.role}/dashboard.html`;
+            if (user.role === 'tenant' || user.role === 'landlord') {
+                window.location.href = `/pages/${user.role}/properties.html`;
+            } else {
+                window.location.href = `/pages/${user.role}/dashboard.html`;
+            }
             return;
         }
 
@@ -105,7 +119,6 @@ function renderNewDashboardLayout(user) {
             {
                 section: 'Main',
                 items: [
-                    { label: 'Dashboard', href: 'dashboard.html' },
                     { label: 'Property Discovery', href: 'properties.html' }
                 ]
             },
@@ -137,7 +150,6 @@ function renderNewDashboardLayout(user) {
             {
                 section: 'Main',
                 items: [
-                    { label: 'Dashboard', href: 'dashboard.html' },
                     { label: 'My Properties', href: 'properties.html' },
                     { label: 'Register Property', href: 'property-create.html' }
                 ]
@@ -471,6 +483,30 @@ function initNotificationSystem() {
                 typeBg = '#ecfdf5';
                 typeBorder = '#a7f3d0';
                 iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>`;
+            } else if (item.type === 'reservation_submitted') {
+                typeBg = '#eff6ff';
+                typeBorder = '#bfdbfe';
+                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16"/><path d="M12 11v6"/><path d="M9 14h6"/></svg>`;
+            } else if (item.type === 'reservation_approved') {
+                typeBg = '#ecfdf5';
+                typeBorder = '#a7f3d0';
+                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+            } else if (item.type === 'reservation_rejected') {
+                typeBg = '#fef2f2';
+                typeBorder = '#fecdd3';
+                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+            } else if (item.type === 'lease_created') {
+                typeBg = '#eef2ff';
+                typeBorder = '#c7d2fe';
+                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+            } else if (item.type === 'lease_signed') {
+                typeBg = '#f0fdf4';
+                typeBorder = '#bbf7d0';
+                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`;
+            } else if (item.type === 'lease_expiring') {
+                typeBg = '#fffbeb';
+                typeBorder = '#fde68a';
+                iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
             }
 
             notifCard.style.cssText = `background: ${typeBg}; border: 1px solid ${typeBorder}; padding: 0.9rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; position: relative; cursor: pointer; transition: transform 0.15s ease; ${isUnread ? 'border-left: 4px solid #4f46e5;' : ''}`;
@@ -496,7 +532,7 @@ function initNotificationSystem() {
                 </div>
             `;
 
-            // Click Handler: Mark as read & redirect to Reports Page (Notification stays in list!)
+            // Click Handler: Mark as read & redirect dynamically based on notification category
             notifCard.addEventListener('click', async () => {
                 const token = localStorage.getItem('domiknow_token');
                 if (token && !item.read_status) {
@@ -513,16 +549,30 @@ function initNotificationSystem() {
                 // Update unread badge counter display
                 fetchNotifications();
 
-                // Redirect user to the Reports page
+                // Dynamic role and category redirection
                 const role = localStorage.getItem('domiknow_role') || 'tenant';
-                if (role === 'tenant') {
-                    window.location.href = item.reference_id 
-                        ? `/pages/tenant/reports.html?id=${item.reference_id}` 
-                        : '/pages/tenant/reports.html';
-                } else if (role === 'landlord') {
-                    window.location.href = '/pages/landlord/reports.html';
+                if (item.type.startsWith('reservation')) {
+                    if (role === 'tenant') {
+                        window.location.href = '/pages/tenant/reservations.html';
+                    } else {
+                        window.location.href = '/pages/landlord/reservations.html';
+                    }
+                } else if (item.type.startsWith('lease')) {
+                    if (role === 'tenant') {
+                        window.location.href = '/pages/tenant/leases.html';
+                    } else {
+                        window.location.href = '/pages/landlord/leases.html';
+                    }
                 } else {
-                    window.location.href = '/pages/tenant/reports.html';
+                    if (role === 'tenant') {
+                        window.location.href = item.reference_id 
+                            ? `/pages/tenant/reports.html?id=${item.reference_id}` 
+                            : '/pages/tenant/reports.html';
+                    } else if (role === 'landlord') {
+                        window.location.href = '/pages/landlord/reports.html';
+                    } else {
+                        window.location.href = '/pages/tenant/reports.html';
+                    }
                 }
             });
 

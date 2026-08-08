@@ -2,6 +2,7 @@ const leaseModel = require('../models/leaseModel');
 const landlordModel = require('../models/landlordModel');
 const userModel = require('../models/userModel');
 const auditLogModel = require('../models/auditLogModel');
+const notificationModel = require('../models/notificationModel');
 const responseHelper = require('../utils/responseHelper');
 
 const leaseController = {
@@ -96,6 +97,17 @@ const leaseController = {
 
             // 7. Audit log
             await auditLogModel.log(landlordId, 'CREATE_LEASE', `Landlord created lease agreement ${lease.lease_number} for application ${application_id}`);
+
+            // Dispatch notification to tenant
+            if (application.tenant_id) {
+                await notificationModel.create({
+                    user_id: application.tenant_id,
+                    type: 'lease_created',
+                    title: 'New Digital Lease Agreement Prepared 📄',
+                    message: `Landlord has issued a digital lease contract (${lease.lease_number}) for property "${application.property_name || 'your unit'}". Please review and sign.`,
+                    reference_id: lease.id
+                });
+            }
 
             return responseHelper.success(res, 'Lease agreement drafted successfully and sent to tenant for review.', lease, 201);
 
@@ -245,6 +257,17 @@ const leaseController = {
             const acceptedLease = await leaseModel.acceptLease(id, tenantId, signature_name.trim());
             if (!acceptedLease) {
                 return responseHelper.error(res, 'Lease record not found or access denied.', null, 404);
+            }
+
+            // Dispatch notification to landlord
+            if (acceptedLease.landlord_id) {
+                await notificationModel.create({
+                    user_id: acceptedLease.landlord_id,
+                    type: 'lease_signed',
+                    title: 'Lease Contract Signed 🖊️',
+                    message: `Tenant ${tenantUser.full_name || 'Tenant'} has electronically signed the lease agreement (${acceptedLease.lease_number}).`,
+                    reference_id: id
+                });
             }
 
             // Sync occupancy status
