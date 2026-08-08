@@ -226,14 +226,21 @@
 
         function initLeafletMap() {
             if (recoMap) return;
+            const container = document.getElementById('recoMap');
+            if (!container) return;
+
             // Center of Siniloan, Laguna
-            recoMap = L.map('recoMap').setView([14.4172, 121.4475], 13);
+            recoMap = L.map('recoMap').setView([14.4172, 121.4475], 14);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(recoMap);
 
             mapMarkersGroup = L.layerGroup().addTo(recoMap);
+
+            setTimeout(() => {
+                if (recoMap) recoMap.invalidateSize();
+            }, 300);
         }
 
         async function getRecommendations(e) {
@@ -274,7 +281,15 @@
                 document.getElementById('matchCountBadge').textContent = `${recommended.length} Matches Found`;
                 
                 renderRecommendations(recommended);
-                updateMapHighlights(recommended, barangay);
+                
+                // Ensure map is initialized and resized properly
+                initLeafletMap();
+                setTimeout(() => {
+                    if (recoMap) {
+                        recoMap.invalidateSize();
+                        updateMapHighlights(recommended, barangay);
+                    }
+                }, 200);
 
             } catch (err) {
                 console.error(err);
@@ -296,25 +311,22 @@
             const userTargetCoords = barangayMapCoords[reqKey] || [14.4172, 121.4475];
 
             // 1. Highlight User Requested Barangay Location Pin
-            if (requestedBarangay) {
-                const reqMarker = L.circleMarker(userTargetCoords, {
-                    radius: 12,
-                    fillColor: '#9333ea',
-                    color: '#ffffff',
-                    weight: 3,
-                    opacity: 1,
-                    fillOpacity: 0.95
-                }).addTo(mapMarkersGroup);
+            const userPinLabel = requestedBarangay ? `Brgy. ${requestedBarangay}` : 'Siniloan Town Center';
+            const reqIcon = L.divIcon({
+                className: '',
+                html: `<div style="background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%); color: white; border: 2px solid white; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1rem; box-shadow: 0 4px 14px rgba(147,51,234,0.6);">📍</div>`,
+                iconSize: [34, 34],
+                iconAnchor: [17, 17]
+            });
 
-                reqMarker.bindPopup(`
-                    <div style="font-size: 0.85rem; font-weight: 800; color: #9333ea;">
-                        📍 Requested Location<br>
-                        <span style="color: #334155; font-weight: 700;">Barangay ${requestedBarangay}</span>
-                    </div>
-                `);
-
-                bounds.push(userTargetCoords);
-            }
+            const reqMarker = L.marker(userTargetCoords, { icon: reqIcon }).addTo(mapMarkersGroup);
+            reqMarker.bindPopup(`
+                <div style="font-size: 0.85rem; font-weight: 800; color: #9333ea;">
+                    📍 Requested Location Target<br>
+                    <span style="color: #334155; font-weight: 700;">${userPinLabel}</span>
+                </div>
+            `);
+            bounds.push(userTargetCoords);
 
             // 2. Plot Top 1 Nearest Recommended Match and other properties
             if (recommended.length > 0) {
@@ -325,12 +337,12 @@
                 const top1Lng = parseFloat(top1Prop.longitude) || (barangayMapCoords[(top1Prop.barangay || '').toLowerCase()] || [14.4250, 121.4400])[1];
                 const top1Pos = [top1Lat, top1Lng];
 
-                // Create Special Pulsing Gold Marker Icon for Top 1
+                // Create Special Pulsing Gold/Emerald Marker Icon for Top 1
                 const top1Icon = L.divIcon({
                     className: 'map-top1-pulse',
-                    html: `<div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: 2px solid white; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.85rem; box-shadow: 0 4px 14px rgba(16,185,129,0.5);">#1</div>`,
-                    iconSize: [34, 34],
-                    iconAnchor: [17, 17]
+                    html: `<div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: 2px solid white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.85rem; box-shadow: 0 4px 14px rgba(16,185,129,0.6);">#1</div>`,
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 18]
                 });
 
                 const top1Marker = L.marker(top1Pos, { icon: top1Icon }).addTo(mapMarkersGroup);
@@ -346,29 +358,36 @@
                 bounds.push(top1Pos);
 
                 // 3. Draw dashed distance line connecting Requested Barangay -> Top 1 Recommended Property
-                if (requestedBarangay) {
-                    const polyline = L.polyline([userTargetCoords, top1Pos], {
-                        color: '#10b981',
-                        weight: 3,
-                        dashArray: '6, 8',
-                        opacity: 0.85
-                    }).addTo(mapMarkersGroup);
+                const polyline = L.polyline([userTargetCoords, top1Pos], {
+                    color: '#10b981',
+                    weight: 4,
+                    dashArray: '6, 8',
+                    opacity: 0.9
+                }).addTo(mapMarkersGroup);
 
-                    // Update notice text below map
+                // Calculate distance callout
+                const R = 6371;
+                const dLat = (top1Pos[0] - userTargetCoords[0]) * Math.PI / 180;
+                const dLon = (top1Pos[1] - userTargetCoords[1]) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(userTargetCoords[0] * Math.PI / 180) * Math.cos(top1Pos[0] * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const distKm = (R * c).toFixed(1);
+
+                const noticeEl = document.getElementById('mapDistanceNotice');
+                if (noticeEl) {
                     const isExact = (top1Prop.barangay || '').trim().toLowerCase() === reqKey;
-                    const noticeEl = document.getElementById('mapDistanceNotice');
-                    if (noticeEl) {
-                        if (isExact) {
-                            noticeEl.innerHTML = `
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                                <span><strong>Exact Location Match:</strong> Top 1 Recommended Property (<strong>${top1Prop.property_name}</strong>) is located directly in <strong>Brgy. ${requestedBarangay}</strong>!</span>
-                            `;
-                        } else {
-                            noticeEl.innerHTML = `
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="12 6 12 12 16 14"/></svg>
-                                <span><strong>Nearest Alternative Highlighted:</strong> Top 1 Recommended Property (<strong>${top1Prop.property_name}</strong> in Brgy. ${top1Prop.barangay}) is highlighted relative to your requested location (<strong>Brgy. ${requestedBarangay}</strong>).</span>
-                            `;
-                        }
+                    if (isExact) {
+                        noticeEl.innerHTML = `
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            <span><strong>Exact Location Match:</strong> Top 1 Recommended Property (<strong>${top1Prop.property_name}</strong>) is located directly in <strong>Brgy. ${top1Prop.barangay}</strong>!</span>
+                        `;
+                    } else {
+                        noticeEl.innerHTML = `
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="12 6 12 12 16 14"/></svg>
+                            <span><strong>Nearest Match Proximity:</strong> Top 1 Match (<strong>${top1Prop.property_name}</strong> in Brgy. ${top1Prop.barangay}) is located approx. <strong>${distKm} km</strong> from target location (<strong>${userPinLabel}</strong>).</span>
+                        `;
                     }
                 }
 
@@ -381,9 +400,9 @@
                     const pos = [lat, lng];
 
                     const normIcon = L.divIcon({
-                        html: `<div style="background: #3b82f6; color: white; border: 2px solid white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">#${r}</div>`,
-                        iconSize: [26, 26],
-                        iconAnchor: [13, 13]
+                        html: `<div style="background: #3b82f6; color: white; border: 2px solid white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">#${r}</div>`,
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
                     });
 
                     const m = L.marker(pos, { icon: normIcon }).addTo(mapMarkersGroup);
@@ -400,7 +419,7 @@
 
             // Fit map bounds to frame user target & properties
             if (bounds.length > 0) {
-                recoMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+                recoMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
             }
         }
 
