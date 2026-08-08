@@ -1199,55 +1199,81 @@
             const statusLabel = document.getElementById('bgyDetectStatus');
             if (statusLabel) {
                 statusLabel.style.color = 'var(--primary)';
-                statusLabel.textContent = '⚡ Precision Geocoding Pin...';
+                statusLabel.textContent = '⚡ Detecting Location Details...';
             }
 
-            let detectedStreet = '';
+            let detectedRoad = '';
+            let detectedBgyName = '';
 
-            // 1. Esri World Geocoding API
+            // 1. Query Nominatim OpenStreetMap Reverse Geocoding for High-Precision Street & Barangay
             try {
-                const esriUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?location=${lng},${lat}&f=json`;
-                const res = await fetch(esriUrl);
-                const data = await res.json();
-                if (data && data.address) {
-                    const a = data.address;
-                    detectedStreet = a.Address || a.StAddr || a.Match_addr || a.Neighborhood || '';
+                const nomUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+                const nomRes = await fetch(nomUrl);
+                const nomData = await nomRes.json();
+                if (nomData && nomData.address) {
+                    const addr = nomData.address;
+                    detectedRoad = addr.road || addr.street || addr.pedestrian || addr.residential || addr.neighbourhood || '';
+                    detectedBgyName = addr.suburb || addr.quarter || addr.neighbourhood || addr.village || addr.hamlet || '';
                 }
             } catch (e) {
-                console.warn('Esri geocode notice:', e);
+                console.warn('Nominatim geocode notice:', e);
             }
 
-            // 2. Fallback to Nominatim if street not found
-            if (!detectedStreet) {
+            // 2. Query Esri World Geocode Server as Secondary Provider if road not found
+            if (!detectedRoad) {
                 try {
-                    const nomUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-                    const nomRes = await fetch(nomUrl);
-                    const nomData = await nomRes.json();
-                    if (nomData && nomData.address) {
-                        const addr = nomData.address;
-                        detectedStreet = addr.road || addr.street || addr.suburb || '';
+                    const esriUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?location=${lng},${lat}&f=json`;
+                    const res = await fetch(esriUrl);
+                    const data = await res.json();
+                    if (data && data.address) {
+                        const a = data.address;
+                        detectedRoad = a.Address || a.StAddr || a.Match_addr || a.Neighborhood || '';
                     }
                 } catch (e) {
-                    console.warn('Nominatim geocode notice:', e);
+                    console.warn('Esri geocode notice:', e);
                 }
             }
 
-            // 3. Exact Siniloan Barangay Matching via Haversine Engine
-            const matchedBarangay = getClosestSiniloanBarangay(lat, lng);
+            // 3. Match Barangay from OS/Geocoding API or fallback to Haversine Point Distance Engine
+            let matchedBarangay = '';
+            if (detectedBgyName) {
+                const normDetectedBgy = detectedBgyName.trim().toLowerCase();
+                const matchedObj = SINILOAN_BARANGAYS.find(b => 
+                    b.name.toLowerCase() === normDetectedBgy || 
+                    normDetectedBgy.includes(b.name.toLowerCase()) || 
+                    b.name.toLowerCase().includes(normDetectedBgy)
+                );
+                if (matchedObj) {
+                    matchedBarangay = matchedObj.name;
+                }
+            }
 
+            if (!matchedBarangay) {
+                matchedBarangay = getClosestSiniloanBarangay(lat, lng);
+            }
+
+            // 4. Update Street / Purok / Sitio input box when user clicks or drags pin
             const addrInput = document.getElementById('address');
-            if (detectedStreet && addrInput && (!addrInput.value.trim() || isUserAction)) {
-                const cleanStreet = detectedStreet.split(',')[0].replace(/Siniloan|Laguna|4005|Philippines/gi, '').trim();
-                if (cleanStreet && cleanStreet !== 'Unnamed Road') {
-                    addrInput.value = cleanStreet;
+            if (addrInput) {
+                if (isUserAction || !addrInput.value.trim()) {
+                    let cleanStreet = detectedRoad.split(',')[0]
+                        .replace(/Siniloan|Laguna|4005|Philippines|CALABARZON/gi, '')
+                        .trim();
+                    
+                    if (cleanStreet && cleanStreet.toLowerCase() !== 'unnamed road') {
+                        addrInput.value = cleanStreet;
+                    }
                 }
             }
 
+            // 5. Update Barangay Select Option
             const selectElem = document.getElementById('barangay');
             if (selectElem && matchedBarangay) {
-                // Find matching option text
                 const options = Array.from(selectElem.options);
-                const matchedOption = options.find(opt => opt.value.toLowerCase() === matchedBarangay.toLowerCase() || opt.text.toLowerCase().includes(matchedBarangay.toLowerCase()));
+                const matchedOption = options.find(opt => 
+                    opt.value.toLowerCase() === matchedBarangay.toLowerCase() || 
+                    opt.text.toLowerCase().includes(matchedBarangay.toLowerCase())
+                );
                 if (matchedOption) {
                     selectElem.value = matchedOption.value;
                 }
@@ -1261,11 +1287,11 @@
 
             if (statusLabel) {
                 statusLabel.style.color = '#10b981';
-                statusLabel.textContent = `✓ Auto-detected Barangay: ${matchedBarangay}`;
+                statusLabel.textContent = `✓ Detected Barangay: ${matchedBarangay}`;
             }
 
             if (marker) {
-                const streetVal = document.getElementById('address') ? document.getElementById('address').value : '';
+                const streetVal = addrInput ? addrInput.value : '';
                 const popupHtml = `
                     <div style="font-family: inherit; font-size: 0.8125rem; line-height: 1.4; padding: 2px;">
                         <div style="font-weight: 800; color: #2563eb; margin-bottom: 2px;">📍 Pin Target</div>
