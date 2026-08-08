@@ -309,79 +309,13 @@
                     submitBtn.innerHTML = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg> Calculate Ranked Matches`;
                 }
             }
-        }
-
-        // Barangay geographic boundary polygons lookup for Siniloan, Laguna
-        function getBarangayPolygon(barangayName) {
-            const key = (barangayName || '').trim().toLowerCase();
-            const predefinedPolygons = {
-                'halayhayin': [
-                    [14.4320, 121.4380], [14.4340, 121.4460], [14.4260, 121.4500], [14.4200, 121.4450], [14.4210, 121.4390]
-                ],
-                'acevida': [
-                    [14.4170, 121.4460], [14.4180, 121.4520], [14.4090, 121.4550], [14.4050, 121.4490], [14.4110, 121.4450]
-                ],
-                'g. redor': [
-                    [14.4200, 121.4455], [14.4205, 121.4485], [14.4150, 121.4495], [14.4145, 121.4460]
-                ],
-                'macatad': [
-                    [14.4330, 121.4500], [14.4340, 121.4600], [14.4240, 121.4610], [14.4230, 121.4510]
-                ],
-                'wawa': [
-                    [14.4140, 121.4410], [14.4150, 121.4470], [14.4070, 121.4480], [14.4060, 121.4420]
-                ],
-                'salubungan': [
-                    [14.4350, 121.4550], [14.4360, 121.4630], [14.4280, 121.4640], [14.4270, 121.4560]
-                ],
-                'pandeño': [
-                    [14.4440, 121.4630], [14.4450, 121.4720], [14.4360, 121.4730], [14.4350, 121.4640]
-                ]
-            };
-
-            if (predefinedPolygons[key]) return predefinedPolygons[key];
-
-            const center = barangayMapCoords[key] || [14.4172, 121.4475];
-            const lat = center[0];
-            const lon = center[1];
-            return [
-                [lat + 0.0040, lon - 0.0050],
-                [lat + 0.0045, lon + 0.0040],
-                [lat + 0.0010, lon + 0.0055],
-                [lat - 0.0040, lon + 0.0045],
-                [lat - 0.0042, lon - 0.0040],
-                [lat - 0.0010, lon - 0.0052]
-            ];
-        }
-
         function updateMapHighlights(recommended, requestedBarangay) {
             if (!recoMap || !mapMarkersGroup) return;
             mapMarkersGroup.clearLayers();
 
             const bounds = [];
             const reqKey = (requestedBarangay || '').trim().toLowerCase();
-            const userTargetCoords = barangayMapCoords[reqKey] || [14.4172, 121.4475];
-
-            // Always Draw Red Dotted Polygon Boundary Line (matching screenshot attachment)
-            const polyTarget = requestedBarangay || 'Siniloan';
-            const polyCoords = getBarangayPolygon(polyTarget);
-            
-            const barangayPoly = L.polygon(polyCoords, {
-                color: '#ef4444',       // Red outline border line (matching attachment screenshot)
-                weight: 3.5,            // Bold line stroke width
-                opacity: 0.95,
-                fillColor: '#ef4444',   // Soft red area fill
-                fillOpacity: 0.1,       // Transparent area fill overlay
-                dashArray: '5, 5'       // Dotted/dashed border pattern
-            }).addTo(mapMarkersGroup);
-
-            const displayLabel = requestedBarangay ? `Barangay ${requestedBarangay}` : 'Siniloan Municipality';
-            barangayPoly.bindPopup(`
-                <div style="font-weight: 800; font-size: 0.88rem; color: #dc2626; padding: 2px;">
-                    📍 ${displayLabel} Boundary Line
-                </div>
-            `);
-
-            bounds.push(...polyCoords);
+            const userTargetCoords = barangayMapCoords[reqKey] || [14.4172, 121.4475];...polyCoords);
 
             // 1. Highlight User Requested Barangay Location Pin
             const userPinLabel = requestedBarangay ? `Brgy. ${requestedBarangay}` : 'Siniloan Town Center';
