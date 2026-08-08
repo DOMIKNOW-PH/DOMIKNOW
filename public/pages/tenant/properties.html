@@ -23,6 +23,38 @@
         .compare-bar.hidden {
             display: none !important;
         }
+
+        /* ── Map Marker Animations ── */
+        .map-top1-pulse {
+            animation: pulseGlow 2s infinite ease-in-out;
+            z-index: 1000 !important;
+        }
+        @keyframes pulseGlow {
+            0% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6)); }
+            50% { transform: scale(1.15); filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.9)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6)); }
+        }
+        .map-marker-bounce {
+            animation: markerBounce 0.5s ease-in-out 2;
+        }
+        @keyframes markerBounce {
+            0%, 100% { transform: translateY(0) scale(1.1); }
+            50% { transform: translateY(-10px) scale(1.2); }
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            padding: 4px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .prop-card {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+        }
+        .prop-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+            border-color: #4f46e5;
+        }
     </style>
 </head>
 <body>
@@ -279,6 +311,7 @@
             }
 
             const markers = [];
+            const markerMap = {};
 
             items.forEach(item => {
                 const prop = item.property || item;
@@ -299,12 +332,13 @@
 
                 const card = document.createElement('div');
                 card.className = 'prop-card';
+                card.dataset.propId = prop.id;
                 
                 card.innerHTML = `
                     <div class="prop-img-wrapper" style="position: relative;">
                         <img src="${prop.main_image_url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80'}" alt="${prop.property_name}" class="prop-img">
-                        <span style="position: absolute; top: 10px; left: 10px; background: #4f46e5; color: white; padding: 0.2rem 0.65rem; border-radius: 999px; font-weight: 800; font-size: 0.72rem; box-shadow: 0 4px 10px rgba(79,70,229,0.3);">
-                            Rank #${rank}
+                        <span style="position: absolute; top: 10px; left: 10px; background: ${rank === 1 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#4f46e5'}; color: white; padding: 0.2rem 0.65rem; border-radius: 999px; font-weight: 800; font-size: 0.72rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                            ${rank === 1 ? '🏆 Rank #1 Top Match' : `Rank #${rank}`}
                         </span>
                         <span class="reco-score-badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                             ${matchPct}% Match
@@ -354,26 +388,80 @@
                 `;
                 grid.appendChild(card);
 
-                // Add Leaflet Marker
+                // Add Custom Animated Leaflet Marker
                 if (prop.latitude && prop.longitude) {
-                    const marker = L.marker([prop.latitude, prop.longitude])
+                    const lat = parseFloat(prop.latitude);
+                    const lng = parseFloat(prop.longitude);
+
+                    const markerIcon = L.divIcon({
+                        className: rank === 1 ? 'map-top1-pulse' : '',
+                        html: rank === 1
+                            ? `<div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: 2.5px solid white; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.85rem; box-shadow: 0 4px 14px rgba(16,185,129,0.6);">#1</div>`
+                            : `<div style="background: #3b82f6; color: white; border: 2px solid white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">#${rank}</div>`,
+                        iconSize: rank === 1 ? [38, 38] : [30, 30],
+                        iconAnchor: rank === 1 ? [19, 19] : [15, 15]
+                    });
+
+                    const marker = L.marker([lat, lng], { icon: markerIcon })
                         .bindPopup(`
-                            <div style="font-family: var(--font-family); padding: 0.25rem;">
-                                <span style="background: #4f46e5; color: white; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 800; font-size: 0.7rem;">Rank #${rank} (${matchPct}% Match)</span>
-                                <h4 style="margin: 0.35rem 0 0.25rem 0; font-weight: 700; color: var(--primary);">${prop.property_name}</h4>
-                                <p style="margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);">Rent: ₱${parseInt(prop.monthly_rent || 0).toLocaleString()}/mo</p>
-                                <p style="margin: 0 0 0.5rem 0; font-size: 0.8125rem; color: #059669;">Trust Score: ${out.trust_score || 100}/100</p>
-                                <a href="property-details.html?id=${prop.id}" style="font-size: 0.75rem; font-weight: 700; text-decoration: underline; color: var(--primary);">Open Profile →</a>
+                            <div style="font-family: var(--font-family); padding: 0.35rem 0.25rem;">
+                                <span style="background: ${rank === 1 ? '#10b981' : '#4f46e5'}; color: white; padding: 0.2rem 0.6rem; border-radius: 999px; font-weight: 800; font-size: 0.72rem;">${rank === 1 ? '🏆 Top Match' : `Rank #${rank}`} (${matchPct}% Match)</span>
+                                <h4 style="margin: 0.4rem 0 0.25rem 0; font-weight: 800; color: var(--primary); font-size: 0.95rem;">${prop.property_name}</h4>
+                                <p style="margin: 0; font-size: 0.82rem; font-weight: 700; color: #4f46e5;">₱${parseInt(prop.monthly_rent || 0).toLocaleString()}/month</p>
+                                <p style="margin: 0.2rem 0 0.5rem 0; font-size: 0.78rem; color: #059669; font-weight: 700;">🛡️ Trust Score: ${out.trust_score || 100}/100</p>
+                                <a href="property-details.html?id=${prop.id}" style="font-size: 0.78rem; font-weight: 800; text-decoration: none; color: white; background: #4f46e5; padding: 0.35rem 0.75rem; border-radius: 6px; display: inline-block;">Open Details →</a>
                             </div>
                         `);
+                    
                     markersGroup.addLayer(marker);
                     markers.push(marker);
+                    markerMap[prop.id] = { marker, lat, lng };
                 }
+
+                // Card Hover & Click Interactive Map Animations
+                card.addEventListener('mouseenter', () => {
+                    const data = markerMap[prop.id];
+                    if (data && data.marker) {
+                        const iconElement = data.marker.getElement();
+                        if (iconElement) {
+                            iconElement.classList.add('map-marker-bounce');
+                        }
+                    }
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    const data = markerMap[prop.id];
+                    if (data && data.marker) {
+                        const iconElement = data.marker.getElement();
+                        if (iconElement) {
+                            iconElement.classList.remove('map-marker-bounce');
+                        }
+                    }
+                });
+
+                card.addEventListener('click', (e) => {
+                    // Avoid triggering when clicking View Details link
+                    if (e.target.closest('a')) return;
+                    const data = markerMap[prop.id];
+                    if (data && data.marker) {
+                        mapInstance.flyTo([data.lat, data.lng], 16, {
+                            animate: true,
+                            duration: 1.2,
+                            easeLinearity: 0.25
+                        });
+                        data.marker.openPopup();
+                    }
+                });
             });
 
+            // Smooth animated camera transition to fit all property markers
             if (markers.length > 0) {
                 const group = new L.featureGroup(markers);
-                mapInstance.fitBounds(group.getBounds().pad(0.1));
+                mapInstance.flyToBounds(group.getBounds().pad(0.15), {
+                    animate: true,
+                    duration: 1.4,
+                    easeLinearity: 0.25
+                });
             }
         }
 
