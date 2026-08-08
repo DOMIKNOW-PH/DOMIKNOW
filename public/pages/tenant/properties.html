@@ -104,8 +104,9 @@
             <aside class="filter-card">
                 <h3 class="filter-title">Filter Options</h3>
                 
+                <!-- 1. Preferred location -->
                 <div class="filter-section">
-                    <label class="form-label" for="filterBarangay">Barangay</label>
+                    <label class="form-label" for="filterBarangay">Preferred location</label>
                     <select id="filterBarangay" class="form-select">
                         <option value="">All Barangays in Siniloan</option>
                         <option value="Acevida">Acevida</option>
@@ -131,8 +132,19 @@
                     </select>
                 </div>
 
+                <!-- 2. Budget or rental price range -->
                 <div class="filter-section">
-                    <label class="form-label" for="filterType">Property Type</label>
+                    <label class="form-label">Budget or rental price range</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="number" id="filterMinPrice" placeholder="Min ₱" class="form-input" style="padding: 0.5rem;">
+                        <span style="color: var(--text-muted); font-size: 0.8125rem;">to</span>
+                        <input type="number" id="filterMaxPrice" placeholder="Max ₱" class="form-input" style="padding: 0.5rem;">
+                    </div>
+                </div>
+
+                <!-- 3. Preferred property type -->
+                <div class="filter-section">
+                    <label class="form-label" for="filterType">Preferred property type</label>
                     <select id="filterType" class="form-select">
                         <option value="">All Types</option>
                         <option value="apartment">Apartment</option>
@@ -141,39 +153,9 @@
                     </select>
                 </div>
 
-
+                <!-- 4. Preferred amenities -->
                 <div class="filter-section">
-                    <label class="form-label" for="filterSuit">Tenant Suitability</label>
-                    <select id="filterSuit" class="form-select">
-                        <option value="">All Suitability</option>
-                        <option value="student">Student</option>
-                        <option value="worker">Worker</option>
-                        <option value="family">Family</option>
-                        <option value="general">General</option>
-                    </select>
-                </div>
-
-                <div class="filter-section">
-                    <label class="form-label">Price Bounds (Monthly)</label>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input type="number" id="filterMinPrice" placeholder="Min ₱" class="form-input" style="padding: 0.5rem;">
-                        <span style="color: var(--text-muted); font-size: 0.8125rem;">to</span>
-                        <input type="number" id="filterMaxPrice" placeholder="Max ₱" class="form-input" style="padding: 0.5rem;">
-                    </div>
-                </div>
-
-                <div class="filter-section">
-                    <label class="form-label" for="filterRating">Minimum Rating</label>
-                    <select id="filterRating" class="form-select">
-                        <option value="">No Minimum</option>
-                        <option value="4.5">★ 4.5 & up</option>
-                        <option value="4.0">★ 4.0 & up</option>
-                        <option value="3.5">★ 3.5 & up</option>
-                    </select>
-                </div>
-
-                <div class="filter-section">
-                    <label class="form-label">Key Amenities</label>
+                    <label class="form-label">Preferred amenities</label>
                     <div class="amenity-checkbox-grid">
                         <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="WiFi"> WiFi</label>
                         <label class="checkbox-label"><input type="checkbox" class="amenity-filter" value="CCTV"> CCTV</label>
@@ -235,11 +217,9 @@
 
             // Bind Event Listeners for Filters
             document.getElementById('filterBarangay').addEventListener('change', applyFilters);
-            document.getElementById('filterType').addEventListener('change', applyFilters);
-            document.getElementById('filterSuit').addEventListener('change', applyFilters);
             document.getElementById('filterMinPrice').addEventListener('input', applyFilters);
             document.getElementById('filterMaxPrice').addEventListener('input', applyFilters);
-            document.getElementById('filterRating').addEventListener('change', applyFilters);
+            document.getElementById('filterType').addEventListener('change', applyFilters);
             document.querySelectorAll('.amenity-filter').forEach(cb => cb.addEventListener('change', applyFilters));
             document.getElementById('sortBy').addEventListener('change', applyFilters);
             
@@ -262,14 +242,13 @@
             fetchProperties();
         });
 
-        // Fetch properties with 5 Input Criteria passed to the Ranked Recommendation Engine
+        // Fetch properties with 4 Input Criteria passed to the Ranked Recommendation Engine
         async function fetchProperties() {
             try {
                 const barangay = document.getElementById('filterBarangay')?.value || '';
-                const type = document.getElementById('filterType')?.value || '';
-                const suit = document.getElementById('filterSuit')?.value || '';
                 const minPrice = document.getElementById('filterMinPrice')?.value || '';
                 const maxPrice = document.getElementById('filterMaxPrice')?.value || '';
+                const type = document.getElementById('filterType')?.value || '';
                 const sort = document.getElementById('sortBy')?.value || 'newest';
 
                 const activeAmenities = [];
@@ -277,7 +256,7 @@
                     activeAmenities.push(cb.value);
                 });
 
-                let queryParams = `preferred_location=${encodeURIComponent(barangay)}&min_price=${minPrice}&max_price=${maxPrice}&preferred_property_type=${type}&tenant_preference=${suit}&sort=${sort}`;
+                let queryParams = `preferred_location=${encodeURIComponent(barangay)}&min_price=${minPrice}&max_price=${maxPrice}&preferred_property_type=${type}&sort=${sort}`;
                 activeAmenities.forEach(a => {
                     queryParams += `&amenities=${encodeURIComponent(a)}`;
                 });
@@ -582,11 +561,9 @@
 
         function clearFilters() {
             document.getElementById('filterBarangay').value = '';
-            document.getElementById('filterType').value = '';
-            document.getElementById('filterSuit').value = '';
             document.getElementById('filterMinPrice').value = '';
             document.getElementById('filterMaxPrice').value = '';
-            document.getElementById('filterRating').value = '';
+            document.getElementById('filterType').value = '';
             document.querySelectorAll('.amenity-filter').forEach(cb => cb.checked = false);
             
             fetchProperties();
