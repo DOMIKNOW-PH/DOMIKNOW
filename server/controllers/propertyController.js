@@ -116,22 +116,24 @@ const propertyController = {
                 return R * c;
             };
 
-            // Run multi-criteria scoring algorithm
+            // 2-Stage Recommendation Engine: Filter Constraint Matching + Quality & Trust Ranking
             const recommended = candidates.map(prop => {
                 let score = 0;
                 const reasons = [];
 
-                // 1. Proximity & Geographic Location match (Max 25 pts)
+                // ── STAGE 1: FILTER INPUT CONSTRAINTS MATCHING (Max 55 Pts) ──
+                
+                // 1. Preferred Location & Geographic Proximity (Max 20 Pts)
                 if (preferred_location) {
                     const normPref = preferred_location.trim().toLowerCase();
                     const normPropBrgy = (prop.barangay || '').trim().toLowerCase();
 
                     if (normPropBrgy === normPref) {
-                        score += 25;
-                        reasons.push(`Exact location match in Barangay ${prop.barangay} (+25 pts)`);
+                        score += 20;
+                        reasons.push(`Exact location match in Barangay ${prop.barangay} (+20 pts)`);
                     } else if ((prop.address || '').toLowerCase().includes(normPref)) {
-                        score += 22;
-                        reasons.push(`Location matches area landmark "${preferred_location}" (+22 pts)`);
+                        score += 18;
+                        reasons.push(`Location matches area landmark "${preferred_location}" (+18 pts)`);
                     } else {
                         // Calculate geographic distance between preferred location and property location
                         const prefCoord = barangayCoords[normPref] || { lat: 14.4172, lon: 121.4475 };
@@ -142,79 +144,91 @@ const propertyController = {
                         const distKm = calculateHaversineDistance(prefCoord.lat, prefCoord.lon, propCoord.lat, propCoord.lon);
 
                         if (distKm <= 1.0) {
-                            score += 20;
-                            reasons.push(`Nearest adjacent property (~${distKm.toFixed(1)} km from Brgy. ${preferred_location} in Brgy. ${prop.barangay}) (+20 pts)`);
+                            score += 16;
+                            reasons.push(`Nearest adjacent property (~${distKm.toFixed(1)} km from Brgy. ${preferred_location} in Brgy. ${prop.barangay}) (+16 pts)`);
                         } else if (distKm <= 2.5) {
-                            score += 15;
-                            reasons.push(`Nearby property (~${distKm.toFixed(1)} km from Brgy. ${preferred_location} in Brgy. ${prop.barangay}) (+15 pts)`);
+                            score += 12;
+                            reasons.push(`Nearby property (~${distKm.toFixed(1)} km from Brgy. ${preferred_location} in Brgy. ${prop.barangay}) (+12 pts)`);
                         } else if (distKm <= 5.0) {
-                            score += 10;
-                            reasons.push(`Proximity match (~${distKm.toFixed(1)} km from Brgy. ${preferred_location} in Brgy. ${prop.barangay}) (+10 pts)`);
+                            score += 8;
+                            reasons.push(`Proximity match (~${distKm.toFixed(1)} km from Brgy. ${preferred_location} in Brgy. ${prop.barangay}) (+8 pts)`);
                         } else {
-                            score += 5;
-                            reasons.push(`Alternative location (~${distKm.toFixed(1)} km away in Brgy. ${prop.barangay}) (+5 pts)`);
+                            score += 4;
+                            reasons.push(`Alternative location (~${distKm.toFixed(1)} km away in Brgy. ${prop.barangay}) (+4 pts)`);
                         }
                     }
                 } else {
                     score += 15;
                 }
 
-                // 2. Budget / Rental Price Range match (Max 25 pts)
+                // 2. Budget / Rental Price Range (Max 15 Pts)
                 const rent = parseFloat(prop.monthly_rent || 0);
-                if (rent >= min_price && rent <= max_price) {
-                    score += 25;
-                    reasons.push(`Monthly rent (₱${rent.toLocaleString()}) fits within budget (+25 pts)`);
-                } else if (rent < min_price) {
-                    score += 20;
-                    reasons.push(`Monthly rent (₱${rent.toLocaleString()}) is below maximum budget (+20 pts)`);
-                }
-
-                // 3. Preferred Property Type match (Max 15 pts)
-                if (preferred_property_type) {
-                    if (prop.property_type === preferred_property_type) {
+                if (min_price > 0 || max_price < 50000) {
+                    if (rent >= min_price && rent <= max_price) {
                         score += 15;
-                        reasons.push(`Matches preferred property type "${preferred_property_type}" (+15 pts)`);
+                        reasons.push(`Monthly rent (₱${rent.toLocaleString()}) fits within budget (+15 pts)`);
+                    } else if (rent < min_price) {
+                        score += 12;
+                        reasons.push(`Monthly rent (₱${rent.toLocaleString()}) is below maximum budget (+12 pts)`);
                     }
                 } else {
                     score += 10;
                 }
 
-                // 4. Preferred Amenities match (Max 15 pts)
+                // 3. Preferred Property Type (Max 10 Pts)
+                if (preferred_property_type) {
+                    if (prop.property_type === preferred_property_type) {
+                        score += 10;
+                        reasons.push(`Matches preferred property type "${preferred_property_type}" (+10 pts)`);
+                    }
+                } else {
+                    score += 8;
+                }
+
+                // 4. Preferred Amenities (Max 10 Pts)
                 if (preferred_amenities.length > 0) {
                     const matchedAmenities = (prop.amenities || []).filter(a => 
                         preferred_amenities.some(pa => pa.toLowerCase() === a.toLowerCase())
                     );
                     const amenityRatio = matchedAmenities.length / preferred_amenities.length;
-                    const amenityScore = Math.round(amenityRatio * 15);
+                    const amenityScore = Math.round(amenityRatio * 10);
                     score += amenityScore;
                     if (matchedAmenities.length > 0) {
                         reasons.push(`Matches ${matchedAmenities.length} of ${preferred_amenities.length} requested amenities (+${amenityScore} pts)`);
                     }
                 } else {
-                    score += 10;
+                    score += 8;
                 }
 
-                // 5. Tenant Preference / Suitability (Max 10 pts)
-                if (tenant_preference) {
-                    if (prop.tenant_type_suitability === tenant_preference || prop.tenant_type_suitability === 'general') {
-                        score += 10;
-                        reasons.push(`Matches tenant suitability trait of "${tenant_preference}" (+10 pts)`);
-                    }
-                } else {
-                    score += 5;
-                }
-
-                // Output Criteria Calculation
+                // ── STAGE 2: SYSTEM QUALITY, TRUST & RELIABILITY RANKING (Max 45 Pts) ──
+                
                 const trustScore = prop.landlord?.landlord_trust_score ?? 100;
                 const propertyRating = parseFloat(prop.average_rating || 4.8);
                 const landlordRating = parseFloat(prop.landlord_rating || 4.7);
                 const rentalReliability = Math.min(99, Math.max(85, Math.round(trustScore * 0.5 + propertyRating * 10)));
 
-                // Bonus criteria points for high quality metrics (Max 10 pts)
-                if (trustScore >= 90) score += 5;
-                if (propertyRating >= 4.5) score += 5;
+                // A. Property Rating Score (Max 15 Pts)
+                const ratingPoints = Math.round((propertyRating / 5.0) * 15);
+                score += ratingPoints;
+                reasons.push(`High property rating (${propertyRating.toFixed(1)}/5.0 ★) (+${ratingPoints} pts)`);
 
-                const matchPercentage = Math.min(100, Math.max(50, Math.round((score / 105) * 100)));
+                // B. Landlord Trust Score (Max 12 Pts)
+                const trustPoints = Math.round((trustScore / 100) * 12);
+                score += trustPoints;
+                reasons.push(`Verified landlord trust score (${trustScore}/100 🛡️) (+${trustPoints} pts)`);
+
+                // C. Rental Reliability Index (Max 10 Pts)
+                const reliabilityPoints = Math.round((rentalReliability / 100) * 10);
+                score += reliabilityPoints;
+                reasons.push(`High rental reliability index (${rentalReliability}% ⚡) (+${reliabilityPoints} pts)`);
+
+                // D. Landlord Rating Score (Max 8 Pts)
+                const landlordRatingPoints = Math.round((landlordRating / 5.0) * 8);
+                score += landlordRatingPoints;
+                reasons.push(`Positive landlord reputation rating (${landlordRating.toFixed(1)}/5.0 👨‍💼) (+${landlordRatingPoints} pts)`);
+
+                // Calculate total match percentage (Max Total Possible Score = 100 pts)
+                const matchPercentage = Math.min(100, Math.max(50, Math.round((score / 100) * 100)));
 
                 return {
                     property: prop,
