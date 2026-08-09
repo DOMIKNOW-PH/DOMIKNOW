@@ -1205,7 +1205,8 @@
                 const nomData = await nomRes.json();
                 if (nomData && nomData.address) {
                     const addr = nomData.address;
-                    detectedRoad = addr.road || addr.street || addr.pedestrian || addr.residential || addr.neighbourhood || '';
+                    // Only capture actual road/street fields, not neighbourhood/suburb (which represents barangay)
+                    detectedRoad = addr.road || addr.street || addr.pedestrian || addr.residential || addr.footway || addr.path || '';
                     detectedBgyName = addr.suburb || addr.quarter || addr.neighbourhood || addr.village || addr.hamlet || '';
                 }
             } catch (e) {
@@ -1220,7 +1221,8 @@
                     const data = await res.json();
                     if (data && data.address) {
                         const a = data.address;
-                        detectedRoad = a.Address || a.StAddr || a.Match_addr || a.Neighborhood || '';
+                        // Only capture specific street address fields, not general neighborhood/match address
+                        detectedRoad = a.Address || a.StAddr || '';
                         if (!detectedBgyName) detectedBgyName = a.Neighborhood || a.District || '';
                     }
                 } catch (e) {
@@ -1246,7 +1248,18 @@
                 matchedBarangay = getClosestSiniloanBarangay(lat, lng);
             }
 
-            // 4. Update Street / Purok / Sitio input box when user clicks or drags pin
+            // Helper to verify if string is a barangay name
+            const isBarangayName = (str) => {
+                if (!str) return false;
+                const clean = str.toLowerCase().replace(/^(brgy\.?|barangay)\s*/i, '').trim();
+                if (!clean) return false;
+                return SINILOAN_BARANGAYS.some(b => {
+                    const bName = b.name.toLowerCase();
+                    return clean === bName || clean.includes(bName) || bName.includes(clean);
+                });
+            };
+
+            // 4. Update Street / Purok / Sitio input box when user clicks or drags pin (only if actual road detected)
             const addrInput = document.getElementById('address');
             if (addrInput) {
                 if (isUserAction || !addrInput.value.trim()) {
@@ -1254,7 +1267,11 @@
                         .replace(/Siniloan|Laguna|4005|Philippines|CALABARZON/gi, '')
                         .trim();
                     
-                    if (cleanStreet && cleanStreet.toLowerCase() !== 'unnamed road') {
+                    const isBgy = isBarangayName(cleanStreet) || 
+                                  (matchedBarangay && cleanStreet.toLowerCase().includes(matchedBarangay.toLowerCase())) ||
+                                  (detectedBgyName && cleanStreet.toLowerCase().includes(detectedBgyName.toLowerCase()));
+
+                    if (cleanStreet && cleanStreet.toLowerCase() !== 'unnamed road' && !isBgy) {
                         addrInput.value = cleanStreet;
                     }
                 }
