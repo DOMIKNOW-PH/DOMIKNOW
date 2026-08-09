@@ -648,10 +648,44 @@
                 `;
             }
 
-            // Parse rules
-            const rulesHtml = prop.house_rules 
-                ? prop.house_rules.split('. ').map(r => r ? `<li>${r}</li>` : '').join('')
-                : '<li>No explicit rules provided. General residential codes apply.</li>';
+            // Parse rules - handle both plain text and JSON-encoded formats
+            let rulesHtml = '<li>No explicit rules provided. General residential codes apply.</li>';
+            if (prop.house_rules) {
+                let rawRules = prop.house_rules;
+                let parsedPolicies = [];
+
+                // Try to parse as JSON (API sometimes returns a JSON-encoded object)
+                try {
+                    const parsed = typeof rawRules === 'string' ? JSON.parse(rawRules) : rawRules;
+                    if (parsed && typeof parsed === 'object') {
+                        // Extract the plain house_rules text
+                        if (parsed.house_rules) {
+                            rawRules = parsed.house_rules;
+                        }
+                        // Extract custom_policies
+                        if (Array.isArray(parsed.custom_policies)) {
+                            parsedPolicies = parsed.custom_policies;
+                        }
+                    }
+                } catch (e) {
+                    // Not JSON — treat as plain text string
+                }
+
+                // Render main rule text as bullet points (split by period or newline)
+                const ruleLines = rawRules
+                    .split(/\.\s+|\n/)
+                    .map(r => r.trim())
+                    .filter(r => r.length > 0);
+
+                rulesHtml = ruleLines.map(r => `<li>${r}</li>`).join('');
+
+                // Append custom policies as additional items
+                if (parsedPolicies.length > 0) {
+                    rulesHtml += parsedPolicies
+                        .map(p => `<li><strong>${p.name}:</strong> ${p.value}</li>`)
+                        .join('');
+                }
+            }
 
             // Format Units / Rooms section
             let unitsListHtml = '';
@@ -725,7 +759,7 @@
                             
                             <div class="room-card-specs">
                                 <p style="margin: 0 0 0.25rem 0;"><strong>Rent:</strong> <span style="color: var(--landlord); font-weight: 700;">₱${parseInt(u.monthly_rent).toLocaleString()}</span> / mo</p>
-                                <p style="margin: 0 0 0.25rem 0;"><strong>Capacity:</strong> ${u.capacity} persons (${u.bedrooms || 1} bed, ${u.bathrooms || 1} bath)</p>
+                                <p style="margin: 0 0 0.25rem 0;"><strong>Capacity:</strong> ${u.capacity} persons</p>
                             </div>
  
                             ${unitAmenities ? `<div class="room-card-amenities">${unitAmenities}</div>` : ''}

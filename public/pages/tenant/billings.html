@@ -6,6 +6,80 @@
     <title>My Billings & Payments - DomiKnow</title>
     <link href="../../css/input.css" rel="stylesheet">
     <style>
+        /* ── Tabs Bar ── */
+        .tab-bar {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* ── Payments list/details styles ── */
+        .payment-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .details-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .details-lbl {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .details-val {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 0.15rem;
+        }
+        .receipt-preview {
+            max-width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            margin-top: 0.5rem;
+        }
+
         /* Modern aesthetic styling */
         .current-bill-card {
             background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
@@ -234,33 +308,68 @@
 
     <!-- Main Content -->
     <main class="dashboard-container">
-        <h2>My Billing Statements</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Monitor monthly accounts rent, submeters utilities, and make payments.</p>
 
-        <!-- Current Active Billing Banner Card -->
-        <div id="currentBillContainer">
-            <!-- Rendered by JS -->
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <button class="tab-btn active" id="btnTabBillings">My Billings</button>
+            <button class="tab-btn" id="btnTabPayments">My Payments</button>
         </div>
 
-        <!-- Billing Invoice Log History -->
-        <h3>Billing Statement Logs</h3>
-        <div class="billing-card" style="margin-top: 1rem;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Billing Cycle</th>
-                        <th>Property Name</th>
-                        <th>Rent Amount</th>
-                        <th>Total Invoiced</th>
-                        <th>Due Date</th>
-                        <th>Payment Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="billingsTableBody">
-                    <tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Loading statements history...</td></tr>
-                </tbody>
-            </table>
+        <!-- Billings Tab Content -->
+        <div id="billingsTab" class="tab-pane">
+            <!-- Current Active Billing Banner Card -->
+            <div id="currentBillContainer">
+                <!-- Rendered by JS -->
+            </div>
+
+            <!-- Billing Invoice Log History -->
+            <h3 style="margin-top: 1.5rem;">Billing Statement Logs</h3>
+            <div class="billing-card" style="margin-top: 1rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Billing Cycle</th>
+                            <th>Property Name</th>
+                            <th>Rent Amount</th>
+                            <th>Total Invoiced</th>
+                            <th>Due Date</th>
+                            <th>Payment Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billingsTableBody">
+                        <tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Loading statements history...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payments Tab Content -->
+        <div id="paymentsTab" class="tab-pane hidden">
+            <h3>My Payment Logs</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 0.88rem;">Review the audit logs and verification status of your GCash, Maya, or bank transfer payments.</p>
+            <div class="payment-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date Submitted</th>
+                            <th>Billing Month</th>
+                            <th>Property Name</th>
+                            <th>Amount Paid</th>
+                            <th>Method</th>
+                            <th>Reference Code</th>
+                            <th>Verification Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading payment transactions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -354,6 +463,25 @@
                 </div>
             </form>
         </div>
+    <!-- Payment details modal -->
+    <div id="paymentDetailModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 style="margin:0;color:var(--text-primary);">Payment Details</h3>
+                <button id="closePaymentDetailModalBtn" class="modal-close-x" title="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="paymentModalContent">
+                <!-- Loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button id="closePaymentModalFooterBtn" class="action-btn btn-close">Close</button>
+            </div>
+        </div>
     </div>
 
     <script src="../../js/auth.js"></script>
@@ -362,6 +490,8 @@
         const token = localStorage.getItem('domiknow_token');
         let myBillings = [];
         let selectedBill = null;
+        let paymentsList = [];
+        let activeTab = 'billings';
 
         function parseUtilitiesConfig(raw) {
             if (!raw) return {};
@@ -406,6 +536,20 @@
             });
 
             document.getElementById('paymentForm').addEventListener('submit', handlePaymentSubmit);
+
+            // Tab switcher buttons
+            document.getElementById('btnTabBillings').addEventListener('click', () => switchTab('billings'));
+            document.getElementById('btnTabPayments').addEventListener('click', () => switchTab('payments'));
+
+            // paymentDetailModal close listeners
+            document.getElementById('closePaymentDetailModalBtn').addEventListener('click', closePaymentDetailModal);
+            document.getElementById('closePaymentModalFooterBtn').addEventListener('click', closePaymentDetailModal);
+
+            // Event delegation on payments table body
+            document.getElementById('paymentsTableBody').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-payment-id]');
+                if (btn) openPaymentDetailModal(btn.dataset.paymentId);
+            });
         });
 
         async function loadTenantBillings() {
@@ -761,6 +905,144 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Payment';
             }
+        }
+
+        // --- Billings & Payments Tab Switching and Ported Payments Logic ---
+        function switchTab(tabName) {
+            activeTab = tabName;
+            
+            const btnBillings = document.getElementById('btnTabBillings');
+            const btnPayments = document.getElementById('btnTabPayments');
+            const tabBillings = document.getElementById('billingsTab');
+            const tabPayments = document.getElementById('paymentsTab');
+            
+            if (tabName === 'billings') {
+                btnBillings.classList.add('active');
+                btnPayments.classList.remove('active');
+                tabBillings.classList.remove('hidden');
+                tabPayments.classList.add('hidden');
+                loadTenantBillings();
+            } else {
+                btnBillings.classList.remove('active');
+                btnPayments.classList.add('active');
+                tabBillings.classList.add('hidden');
+                tabPayments.classList.remove('hidden');
+                fetchTenantPayments();
+            }
+        }
+
+        async function fetchTenantPayments() {
+            const tableBody = document.getElementById('paymentsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Loading payment transactions...</td></tr>';
+            try {
+                const response = await fetch('/api/payments/my', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Failed to load payment logs.</td></tr>`;
+                    return;
+                }
+
+                const result = await response.json();
+                paymentsList = result.data || [];
+
+                if (paymentsList.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">No payment entries submitted yet. Outstanding invoices can be settled in My Billings.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                paymentsList.forEach(pay => {
+                    const amount = parseFloat(pay.payment_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    const submitDate = new Date(pay.submitted_at).toLocaleDateString(undefined, { 
+                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                    });
+
+                    let statusClass = 'status-pending';
+                    let statusLabel = 'PENDING VERIFICATION';
+                    if (pay.payment_status === 'verified') {
+                        statusClass = 'status-active';
+                        statusLabel = 'PAID';
+                    } else if (pay.payment_status === 'rejected') {
+                        statusClass = 'status-rejected';
+                        statusLabel = 'REJECTED';
+                    }
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${submitDate}</td>
+                        <td style="font-weight: 700; color: var(--primary);">${pay.billing_records?.billing_month || 'N/A'}</td>
+                        <td>${pay.properties?.property_name || 'Property'}</td>
+                        <td style="font-weight:700; color: var(--text-primary);">₱${amount}</td>
+                        <td style="text-transform: capitalize;">${pay.payment_method.replace('_', ' ')}</td>
+                        <td style="font-family: monospace; font-size: 0.85rem; font-weight: 600;">${pay.payment_reference_number}</td>
+                        <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                        <td>
+                            <button class="action-btn btn-view" data-payment-id="${pay.id}">View Details</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--error);">Error reaching payments API.</td></tr>`;
+            }
+        }
+
+        function openPaymentDetailModal(payId) {
+            const pay = paymentsList.find(p => p.id === payId);
+            if (!pay) return;
+
+            const modal = document.getElementById('paymentDetailModal');
+            const content = document.getElementById('paymentModalContent');
+            
+            const submitDate = new Date(pay.submitted_at).toLocaleString();
+            const amount = parseFloat(pay.payment_amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
+            
+            let statusColor = '#f59e0b';
+            let statusLabel = 'PENDING VERIFICATION';
+            if (pay.payment_status === 'verified') {
+                statusColor = '#10b981';
+                statusLabel = 'PAID';
+            } else if (pay.payment_status === 'rejected') {
+                statusColor = '#ef4444';
+                statusLabel = 'REJECTED';
+            }
+
+            content.innerHTML = `
+                <div class="details-grid">
+                    <div class="details-item"><span class="details-lbl">Billing Cycle</span><span class="details-val">${pay.billing_records?.billing_month || 'N/A'}</span></div>
+                    <div class="details-item"><span class="details-lbl">Amount Paid</span><span class="details-val" style="color:${statusColor};">₱${amount} PHP</span></div>
+                    <div class="details-item"><span class="details-lbl">Method / Channel</span><span class="details-val" style="text-transform: capitalize;">${pay.payment_method.replace('_', ' ')}</span></div>
+                    <div class="details-item"><span class="details-lbl">Reference Number</span><span class="details-val" style="font-family:monospace;">${pay.payment_reference_number}</span></div>
+                    <div class="details-item"><span class="details-lbl">Submitted On</span><span class="details-val">${submitDate}</span></div>
+                    <div class="details-item"><span class="details-lbl">Verification Status</span><span class="details-val" style="color:${statusColor}; font-weight:800;">${statusLabel}</span></div>
+                </div>
+
+                <div style="margin-bottom:1.5rem; margin-top: 1rem;">
+                    <span class="details-lbl">Proof of Payment</span>
+                    <div>
+                        <a href="${pay.payment_proof_url}" target="_blank">
+                            <img src="${pay.payment_proof_url}" class="receipt-preview" alt="Proof Receipt">
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="details-lbl">Landlord Evaluation Notes</span>
+                    <div style="font-size:0.875rem; color:var(--text-secondary); background:var(--bg-primary); border:1px solid var(--border-color); padding:0.75rem; border-radius:4px; margin-top:0.25rem;">
+                        ${pay.verification_remarks ? pay.verification_remarks : '<span style="color:var(--text-muted); font-style:italic;">Awaiting review by property landlord.</span>'}
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closePaymentDetailModal() {
+            document.getElementById('paymentDetailModal').classList.add('hidden');
         }
     </script>
 </body>

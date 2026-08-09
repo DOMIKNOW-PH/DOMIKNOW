@@ -4,32 +4,52 @@
 const NAVIGATION_CONFIG = {
   tenant: [
     {
-      section: 'Main',
+      section: 'Overview',
       items: [
-        { label: 'Property Discovery', href: 'properties.html' }
-      ]
-    },
-    {
-      section: 'Rental Process',
-      items: [
-        { label: 'My Applications', href: 'applications.html' },
-        { label: 'My Lease', href: 'leases.html' }
-      ]
-    },
-    {
-      section: 'Payments',
-      items: [
-        { label: 'My Billings', href: 'billings.html' },
-        { label: 'My Payments', href: 'payments.html' }
-      ]
-    },
-    {
-      section: 'Support',
-      items: [
-        { label: 'Maintenance Requests', href: 'maintenance.html' },
-        { label: 'Reports', href: 'reports.html' },
-        { label: 'Disputes', href: 'disputes.html' },
-        { label: 'Ratings and Feedback', href: 'feedback.html' }
+        {
+          label: 'Discovery',
+          icon: 'Discovery',
+          subItems: [
+            { label: 'Properties', href: 'properties.html' }
+          ]
+        },
+        {
+          label: 'Applications',
+          icon: 'Applications',
+          subItems: [
+            { label: 'My Applications', href: 'applications.html' }
+          ]
+        },
+        {
+          label: 'Leases',
+          icon: 'Leases',
+          subItems: [
+            { label: 'My Lease', href: 'leases.html' }
+          ]
+        },
+        {
+          label: 'Payments',
+          icon: 'Payments',
+          subItems: [
+            { label: 'Billings & Payments', href: 'billings.html' }
+          ]
+        },
+        {
+          label: 'Support',
+          icon: 'Support',
+          subItems: [
+            { label: 'Maintenance Requests', href: 'maintenance.html' },
+            { label: 'Disputes', href: 'disputes.html' },
+            { label: 'Ratings & Feedback', href: 'feedback.html' }
+          ]
+        },
+        {
+          label: 'Reports',
+          icon: 'Reports',
+          subItems: [
+            { label: 'My Reports', href: 'reports.html' }
+          ]
+        }
       ]
     }
   ],

@@ -701,9 +701,25 @@
                 }
             }
 
-            // SECTION 6: Property Rules
+            // SECTION 6: Property Rules — parse JSON-encoded house_rules if needed
+            function parseHouseRulesText(raw) {
+                if (!raw) return '';
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object') {
+                        let text = parsed.house_rules || '';
+                        if (Array.isArray(parsed.custom_policies) && parsed.custom_policies.length > 0) {
+                            const policyLines = parsed.custom_policies.map(p => `${p.name}: ${p.value}`).join('\n');
+                            text = text ? `${text}\n${policyLines}` : policyLines;
+                        }
+                        return text;
+                    }
+                } catch (e) { /* plain text */ }
+                return raw;
+            }
+
             const rulesEl = document.getElementById('viewHouseRules');
-            if (rulesEl) rulesEl.textContent = prop.house_rules || 'No specific property rules submitted.';
+            if (rulesEl) rulesEl.textContent = parseHouseRulesText(prop.house_rules) || 'No specific property rules submitted.';
 
             // Populate Edit Form fields
             const formName = document.getElementById('propertyName');
@@ -743,7 +759,7 @@
             if (formLng) formLng.value = prop.longitude || 121.44;
 
             const formRules = document.getElementById('houseRules');
-            if (formRules) formRules.value = prop.house_rules || '';
+            if (formRules) formRules.value = parseHouseRulesText(prop.house_rules) || '';
 
             // Check checkboxes
             document.querySelectorAll('.amenity-cb').forEach(cb => {
