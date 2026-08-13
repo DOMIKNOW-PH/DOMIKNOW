@@ -338,7 +338,13 @@ function renderNewDashboardLayout(user) {
         
         sidebarHtml += `
                 </div>
-                
+                <!-- Bottom Sidebar Footer with Logout Button -->
+                <div style="padding: 1rem; border-top: 1px solid #e2e8f0; margin-top: auto;">
+                    <button id="newLogoutBtn" class="sidebar-link logout-btn" style="width: 100%; border: none; background: #fef2f2; color: #ef4444; border-radius: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 0.65rem; padding: 0.75rem 1rem; transition: background 0.2s;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        <span>Logout</span>
+                    </button>
+                </div>
             </aside>
         `;
     } else {
@@ -676,14 +682,19 @@ function renderNewDashboardLayout(user) {
     initSidebarScrollPersistence(sidebar);
 
     // Logout button behavior
-    const logoutBtn = document.getElementById('newLogoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('domiknow_token');
-            localStorage.removeItem('domiknow_role');
-            window.location.href = '/pages/auth/login.html';
-        });
-    }
+    const handleGlobalLogout = () => {
+        localStorage.removeItem('domiknow_token');
+        localStorage.removeItem('domiknow_role');
+        localStorage.removeItem('domiknow_user');
+        window.location.href = '/pages/auth/login.html';
+    };
+
+    ['newLogoutBtn', 'logoutBtn', 'sheetLogoutBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', handleGlobalLogout);
+        }
+    });
 
     // --- Tenant Specific Custom Interactive Behaviors ---
     const isTenant = sidebar && sidebar.classList.contains('sidebar-tenant');

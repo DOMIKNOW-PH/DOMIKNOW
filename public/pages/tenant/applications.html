@@ -103,7 +103,10 @@
         const token = localStorage.getItem('domiknow_token');
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (!token) return;
+            if (!token) {
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
             fetchTenantApplications();
         });
 

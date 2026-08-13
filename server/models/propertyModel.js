@@ -179,6 +179,17 @@ const propertyModel = {
         if (error) throw error;
         if (!property) return null;
 
+        // Fetch landlord info
+        let landlord = null;
+        if (property.landlord_id) {
+            const { data: userData } = await supabase
+                .from('users')
+                .select('id, full_name, email, contact_number, landlord_trust_score')
+                .eq('id', property.landlord_id)
+                .maybeSingle();
+            landlord = userData || null;
+        }
+
         // 2. Fetch amenities
         const { data: amenities, error: amenError } = await supabase
             .from('property_amenities')
@@ -210,6 +221,7 @@ const propertyModel = {
 
         return {
             ...property,
+            landlord: landlord,
             amenities: amenities.map(a => a.amenity_name),
             feedback_summary: feedback || null,
             units: units,

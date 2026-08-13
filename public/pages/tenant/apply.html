@@ -373,7 +373,11 @@
         let createdApplicationId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (!token) return;
+            if (!token) {
+                alert('Please log in first to submit a rental application.');
+                window.location.href = `/pages/auth/login.html?redirect=${encodeURIComponent(window.location.href)}`;
+                return;
+            }
             if (!propertyId) {
                 alert('Please select an approved property to apply first.');
                 window.location.href = 'properties.html';

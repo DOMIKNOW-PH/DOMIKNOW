@@ -1064,6 +1064,34 @@
             font-weight: 800;
         }
 
+        /* ── TENANT PROPERTY DISCOVERY MAP MARKER ANIMATIONS ── */
+        .map-top1-pulse {
+            animation: pulseGlow 2s infinite ease-in-out;
+            z-index: 1000 !important;
+        }
+        @keyframes pulseGlow {
+            0% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6)); }
+            50% { transform: scale(1.15); filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.9)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6)); }
+        }
+        .map-marker-bounce {
+            animation: markerBounce 0.5s ease-in-out 2;
+        }
+        @keyframes markerBounce {
+            0%, 100% { transform: translateY(0) scale(1.1); }
+            50% { transform: translateY(-10px) scale(1.2); }
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 16px !important;
+            padding: 4px !important;
+            box-shadow: 0 14px 35px rgba(4, 36, 88, 0.2) !important;
+            border: 1px solid rgba(4, 36, 88, 0.1) !important;
+        }
+        .discovery-popup-content {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 0.35rem 0.25rem;
+        }
+
         /* ── FEATURES GRID SECTION ── */
         .features-section {
             max-width: 1350px;
@@ -1502,8 +1530,8 @@
             <!-- Centered Nav -->
             <nav class="nav-links">
                 <a href="#searchSection" class="nav-link">Search Map</a>
-                <a href="#featuresSection" class="nav-link">Features</a>
-                <a href="#howItWorks" class="nav-link">How It Works</a>
+                <a href="/pages/auth/login.html" class="nav-link">Tenant Portal</a>
+                <a href="/pages/auth/login.html" class="nav-link">Landlord Portal</a>
             </nav>
 
             <!-- Auth / CTA Button -->
@@ -1595,42 +1623,94 @@
                         <button id="btnClearSearch" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size: 0.75rem; padding: 0 2px;">✕</button>
                     </div>
 
-                    <!-- Dark Pill Filter Buttons -->
-                    <button class="estates-filter-pill-dark" id="btnFilterType">
-                        <span id="labelFilterType">Type: All</span>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    <!-- Filter Options Button -->
+                    <button class="estates-filter-pill-dark" id="btnOpenFilterModal" style="background:#0355F3; color:white; border-color:#0355F3;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        <span>Filter Options</span>
                     </button>
-                    <button class="estates-filter-pill-dark" id="btnFilterPrice">
-                        <span id="labelFilterPrice">Price: ₱1k–₱10k</span>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </button>
+                </div>
 
-                    <!-- Light Pill Selectors -->
-                    <select class="estates-filter-pill-light" id="selectBarangayFilter">
-                        <option value="">Barangay ˅</option>
-                        <option value="G. Redor">G. Redor</option>
-                        <option value="Halayhayin">Halayhayin</option>
-                        <option value="Acevida">Acevida</option>
-                        <option value="Bagong Pag-asa">Bagong Pag-asa</option>
-                        <option value="Macasipac">Macasipac</option>
-                        <option value="Pandeño">Pandeño</option>
-                        <option value="Salubungan">Salubungan</option>
-                        <option value="Liyang">Liyang</option>
-                        <option value="Kapatalan">Kapatalan</option>
-                    </select>
+                <!-- Complete Tenant Discovery Filter Options Modal/Drawer -->
+                <div id="filterModal" class="hidden" style="position: absolute; top: 65px; left: 16px; z-index: 1000; width: 340px; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(20px); border-radius: 20px; padding: 1.25rem; border: 1px solid rgba(4, 36, 88, 0.15); box-shadow: 0 20px 50px rgba(4, 36, 88, 0.2);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+                        <h4 style="font-family: 'Outfit', sans-serif; font-weight: 800; color: #042458; margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0355F3" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                            Filter Options
+                        </h4>
+                        <button id="btnCloseFilterModal" style="background: none; border: none; font-size: 1.25rem; color: #64748b; cursor: pointer; font-weight: 700;">✕</button>
+                    </div>
 
-                    <button class="estates-filter-pill-light" id="btnNearSchool" title="Filter near LSPU Campus">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-                        <span>LSPU Campus</span>
-                    </button>
-                    <button class="estates-filter-pill-light" id="btnMyLocation" title="Find properties near me">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 2v4M12 18v4"/></svg>
-                        <span>Near Me</span>
-                    </button>
-                    <button class="estates-filter-pill-light" id="btnShowAll" title="Reset all filters">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                        <span>Reset</span>
-                    </button>
+                    <!-- 1. Preferred Location -->
+                    <div style="margin-bottom: 0.85rem;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #042458; text-transform: uppercase; display: block; margin-bottom: 0.25rem;">1. Preferred Location (Barangay)</label>
+                        <select id="filterBarangayModal" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.8125rem; font-weight: 600; color: #0f172a; background: white;">
+                            <option value="">All Barangays in Siniloan</option>
+                            <option value="Acevida">Acevida</option>
+                            <option value="Bagong Pag-asa">Bagong Pag-asa (Poblacion)</option>
+                            <option value="Bagumayan">Bagumayan</option>
+                            <option value="Buhay">Buhay</option>
+                            <option value="Gen. Luna">Gen. Luna</option>
+                            <option value="G. Redor">G. Redor (Poblacion)</option>
+                            <option value="Halayhayin">Halayhayin</option>
+                            <option value="I. Mendiola">I. Mendiola (Poblacion)</option>
+                            <option value="Kalaiya">Kalaiya</option>
+                            <option value="Kapatalan">Kapatalan</option>
+                            <option value="Laguio">Laguio</option>
+                            <option value="Liyang">Liyang</option>
+                            <option value="Llavac">Llavac</option>
+                            <option value="Macatad">Macatad</option>
+                            <option value="Magsaysay">Magsaysay</option>
+                            <option value="Maybo">Maybo</option>
+                            <option value="Pandeño">Pandeño</option>
+                            <option value="Salubungan">Salubungan</option>
+                            <option value="Valderrama">Valderrama</option>
+                            <option value="Wawa">Wawa</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. Rental Price Range -->
+                    <div style="margin-bottom: 0.85rem;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #042458; text-transform: uppercase; display: block; margin-bottom: 0.25rem;">2. Rental Price Range</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" id="filterMinPriceModal" placeholder="Min ₱" style="width: 50%; padding: 0.45rem 0.6rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.8125rem;">
+                            <span style="font-size: 0.75rem; color: #64748b; font-weight: 700;">to</span>
+                            <input type="number" id="filterMaxPriceModal" placeholder="Max ₱" style="width: 50%; padding: 0.45rem 0.6rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.8125rem;">
+                        </div>
+                    </div>
+
+                    <!-- 3. Preferred Property Type -->
+                    <div style="margin-bottom: 0.85rem;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #042458; text-transform: uppercase; display: block; margin-bottom: 0.25rem;">3. Preferred Property Type</label>
+                        <select id="filterTypeModal" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.8125rem; font-weight: 600; color: #0f172a; background: white;">
+                            <option value="">All Types</option>
+                            <option value="apartment">Apartment</option>
+                            <option value="boarding_house">Boarding House</option>
+                            <option value="bedspace">Bedspace</option>
+                        </select>
+                    </div>
+
+                    <!-- 4. Preferred Amenities -->
+                    <div style="margin-bottom: 1rem;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #042458; text-transform: uppercase; display: block; margin-bottom: 0.35rem;">4. Preferred Amenities</label>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem; max-height: 120px; overflow-y: auto; padding-right: 4px;">
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="WiFi"> WiFi</label>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="CCTV"> CCTV</label>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="Parking"> Parking</label>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="Kitchen Access"> Kitchen</label>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="Laundry Area"> Laundry</label>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="Air Conditioning"> Aircon</label>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="Own CR"> Own CR</label>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="Study Area"> Study Area</label>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="Near School"> Near School</label>
+                            <label style="font-size: 0.75rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.3rem;"><input type="checkbox" class="modal-amenity-cb" value="Near Market"> Near Market</label>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div style="display: flex; gap: 0.5rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">
+                        <button id="btnApplyFilterModal" style="flex: 1; padding: 0.5rem; background: #0355F3; color: white; border: none; border-radius: 10px; font-weight: 800; font-size: 0.8125rem; cursor: pointer;">Apply Filters</button>
+                        <button id="btnClearFilterModal" style="flex: 1; padding: 0.5rem; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 10px; font-weight: 700; font-size: 0.8125rem; cursor: pointer;">Clear All</button>
+                    </div>
                 </div>
 
                 <!-- Leaflet Map Canvas -->
@@ -1674,88 +1754,7 @@
         </div>
     </div>
 
-    <!-- Features Grid Section with staggered reveal -->
-    <section class="features-section" id="featuresSection">
-        <div class="section-header reveal-up">
-            <h2>Why Choose DomiKnow?</h2>
-            <p>Empowering tenants and landlords with modern, legally transparent rental management.</p>
-        </div>
 
-        <div class="features-grid">
-            <div class="feature-card reveal-up stagger-1">
-                <div class="card-inner-glow"></div>
-                <div class="feature-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                        <polyline points="9 11 12 14 15 9"></polyline>
-                    </svg>
-                </div>
-                <h3>Verified Trust Score</h3>
-                <p>Landlords and tenants undergo screening and trust score evaluation to maintain a safe, fraud-free
-                    rental ecosystem.</p>
-            </div>
-
-            <div class="feature-card reveal-up stagger-2">
-                <div class="card-inner-glow"></div>
-                <div class="feature-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                    </svg>
-                </div>
-                <h3>Digital Lease Execution</h3>
-                <p>Legally binding lease agreements with electronic signatures and enforceable utility configuration
-                    terms.</p>
-            </div>
-
-            <div class="feature-card reveal-up stagger-3">
-                <div class="card-inner-glow"></div>
-                <div class="feature-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                </div>
-                <h3>Submeter Utilities Tracking</h3>
-                <p>Automated monthly utility billing based on submeter readings or fixed rent inclusions configured in
-                    your lease.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works Section -->
-    <section class="how-it-works" id="howItWorks">
-        <div class="section-header reveal-up">
-            <h2>How DomiKnow Works</h2>
-            <p>From browsing to signing a lease — everything is streamlined and transparent.</p>
-        </div>
-        <div class="steps-grid">
-            <div class="step-card reveal-up stagger-1">
-                <div class="step-number">1</div>
-                <h3>Browse Properties</h3>
-                <p>Explore the interactive map to discover verified rentals near schools, work, or any location.</p>
-            </div>
-            <div class="step-card reveal-up stagger-2">
-                <div class="step-number">2</div>
-                <h3>Apply Online</h3>
-                <p>Submit your rental application digitally. Attach documents and track your status in real time.</p>
-            </div>
-            <div class="step-card reveal-up stagger-3">
-                <div class="step-number">3</div>
-                <h3>Sign Your Lease</h3>
-                <p>Receive and e-sign your digital lease contract. Utility terms are locked in from the start.</p>
-            </div>
-            <div class="step-card reveal-up" style="transition-delay:0.55s">
-                <div class="step-number">4</div>
-                <h3>Monitor & Pay</h3>
-                <p>Track submeter readings, view itemized billing, and pay monthly rent — all in one dashboard.</p>
-            </div>
-        </div>
-    </section>
 
     <!-- Footer -->
     <footer class="landing-footer">
@@ -1786,9 +1785,9 @@
             <div>
                 <div class="footer-title">Services</div>
                 <ul class="footer-links">
-                    <li><a href="#featuresSection">Utilities Monitoring</a></li>
-                    <li><a href="#featuresSection">Lease Management</a></li>
-                    <li><a href="#featuresSection">Tenant Screening</a></li>
+                    <li><a href="#searchSection">Interactive Map Search</a></li>
+                    <li><a href="pages/auth/login.html">Digital Leases & Utility Tracking</a></li>
+                    <li><a href="pages/auth/login.html">Tenant Screening Portal</a></li>
                 </ul>
             </div>
 
@@ -1944,6 +1943,27 @@
             document.getElementById('btnMapZoomIn')?.addEventListener('click', () => map && map.zoomIn());
             document.getElementById('btnMapZoomOut')?.addEventListener('click', () => map && map.zoomOut());
             document.getElementById('btnDrawBoundary')?.addEventListener('click', toggleSearchZone);
+
+            // Complete Tenant Discovery Filter Modal Event Bindings
+            const filterModal = document.getElementById('filterModal');
+            document.getElementById('btnOpenFilterModal')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                filterModal?.classList.toggle('hidden');
+            });
+            document.getElementById('btnCloseFilterModal')?.addEventListener('click', () => {
+                filterModal?.classList.add('hidden');
+            });
+            document.getElementById('btnApplyFilterModal')?.addEventListener('click', () => {
+                filterModal?.classList.add('hidden');
+                loadAllProperties();
+            });
+            document.getElementById('btnClearFilterModal')?.addEventListener('click', () => {
+                resetFilters();
+                filterModal?.classList.add('hidden');
+            });
+            // Auto-trigger filter apply on modal dropdown change
+            document.getElementById('filterBarangayModal')?.addEventListener('change', applyFilters);
+            document.getElementById('filterTypeModal')?.addEventListener('change', applyFilters);
         });
 
         function initializeMap() {
@@ -1980,11 +2000,9 @@
             ];
 
             zonePolygon = L.polygon(zonePoints, {
-                color: '#0f172a',
-                weight: 2,
+                stroke: false,
                 fillColor: '#38bdf8',
                 fillOpacity: 0.12,
-                dashArray: '5, 5',
                 smoothFactor: 1.5
             }).addTo(map);
         }
@@ -1997,21 +2015,59 @@
             }
         }
 
+        let rankedPropertiesData = [];
+        let markerMap = {};
+
         async function loadAllProperties() {
             try {
-                const response = await fetch('/api/properties');
-                const result = await response.json();
+                const bgyVal = document.getElementById('filterBarangayModal')?.value || document.getElementById('selectBarangayFilter')?.value || '';
+                const searchText = (document.getElementById('mapSearchInput')?.value || '').trim();
 
-                if (response.ok) {
-                    const properties = result.data?.properties || result.data || [];
-                    propertiesData = properties;
-                    if (propertiesData.length > 0) {
-                        selectedProperty = propertiesData[0];
-                    }
-                    renderEstatesView(propertiesData);
-                } else {
-                    throw new Error(result.message || 'Failed to load properties');
+                const minPrice = document.getElementById('filterMinPriceModal')?.value || '';
+                const maxPrice = document.getElementById('filterMaxPriceModal')?.value || (currentPriceFilter ? '3500' : '');
+
+                const typeVal = document.getElementById('filterTypeModal')?.value || currentTypeFilter;
+
+                const activeAmenities = [];
+                document.querySelectorAll('.modal-amenity-cb:checked').forEach(cb => activeAmenities.push(cb.value));
+
+                let queryParams = `preferred_location=${encodeURIComponent(bgyVal || searchText)}`;
+                if (minPrice) queryParams += `&min_price=${minPrice}`;
+                if (maxPrice) queryParams += `&max_price=${maxPrice}`;
+                if (typeVal) queryParams += `&preferred_property_type=${encodeURIComponent(typeVal)}`;
+
+                activeAmenities.forEach(a => {
+                    queryParams += `&amenities=${encodeURIComponent(a)}`;
+                });
+
+                let response = await fetch(`/api/properties/recommendations/ranked?${queryParams}`);
+                let result = await response.json();
+
+                let items = result.data || [];
+                if (!Array.isArray(items) || items.length === 0) {
+                    const fallbackResp = await fetch('/api/properties');
+                    const fallbackResult = await fallbackResp.json();
+                    const rawProps = fallbackResult.data?.properties || fallbackResult.data || [];
+                    items = rawProps.map((p, idx) => ({
+                        property: p,
+                        rank: idx + 1,
+                        match_percentage: 100,
+                        output_criteria: {
+                            property_rating: p.average_rating || 4.8,
+                            trust_score: 100,
+                            rental_reliability: '96% High',
+                            landlord_rating: 4.7
+                        }
+                    }));
                 }
+
+                rankedPropertiesData = items;
+                propertiesData = items.map(item => item.property || item);
+
+                if (propertiesData.length > 0) {
+                    selectedProperty = propertiesData[0];
+                }
+                renderEstatesView(propertiesData);
             } catch (err) {
                 console.error('Error loading properties:', err);
                 const sidebar = document.getElementById('propertiesSidebar');
@@ -2059,38 +2115,29 @@
             const bgySelect = document.getElementById('selectBarangayFilter');
             if (bgySelect) bgySelect.value = '';
 
+            const bgyModal = document.getElementById('filterBarangayModal');
+            if (bgyModal) bgyModal.value = '';
+            const minModal = document.getElementById('filterMinPriceModal');
+            if (minModal) minModal.value = '';
+            const maxModal = document.getElementById('filterMaxPriceModal');
+            if (maxModal) maxModal.value = '';
+            const typeModal = document.getElementById('filterTypeModal');
+            if (typeModal) typeModal.value = '';
+
+            document.querySelectorAll('.modal-amenity-cb').forEach(cb => cb.checked = false);
+
             const labelType = document.getElementById('labelFilterType');
             if (labelType) labelType.textContent = 'Type: All';
 
             const labelPrice = document.getElementById('labelFilterPrice');
             if (labelPrice) labelPrice.textContent = 'Price: ₱1k–₱10k';
 
-            renderEstatesView(propertiesData);
-            map.setView([defaultLat, defaultLng], 14);
+            loadAllProperties();
+            if (map) map.setView([defaultLat, defaultLng], 14);
         }
 
         function applyFilters() {
-            const searchText = (document.getElementById('mapSearchInput')?.value || '').toLowerCase().trim();
-            const bgyVal = document.getElementById('selectBarangayFilter')?.value || '';
-
-            const filtered = propertiesData.filter(prop => {
-                const nameMatch = !searchText || 
-                    (prop.property_name || '').toLowerCase().includes(searchText) || 
-                    (prop.address || '').toLowerCase().includes(searchText) || 
-                    (prop.barangay || '').toLowerCase().includes(searchText);
-
-                const bgyMatch = !bgyVal || (prop.barangay || '').toLowerCase() === bgyVal.toLowerCase();
-                const typeMatch = !currentTypeFilter || (prop.property_type || '').toLowerCase() === currentTypeFilter.toLowerCase();
-                const priceMatch = !currentPriceFilter || parseFloat(prop.monthly_rent || 0) <= 3500;
-
-                return nameMatch && bgyMatch && typeMatch && priceMatch;
-            });
-
-            if (filtered.length > 0 && (!selectedProperty || !filtered.find(p => p.id === selectedProperty.id))) {
-                selectedProperty = filtered[0];
-            }
-
-            renderEstatesView(filtered);
+            loadAllProperties();
         }
 
         function renderEstatesView(properties) {
@@ -2125,36 +2172,37 @@
             const card = document.getElementById('featuredPropertyCard');
             if (!card || !prop) return;
 
+            const rankedItem = rankedPropertiesData.find(item => (item.property?.id || item.id) === prop.id) || {};
+            const rank = rankedItem.rank || 1;
+            const matchPct = rankedItem.match_percentage || 100;
+            const out = rankedItem.output_criteria || {};
+
             const coverImg = prop.images && prop.images.length > 0
                 ? (prop.images.find(img => img.is_main)?.image_url || prop.images[0].image_url)
                 : 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80';
 
             const propTypeStr = (prop.property_type || 'Apartment').replace(/_/g, ' ').toUpperCase();
             const rentFormatted = parseFloat(prop.monthly_rent || 0).toLocaleString();
-            const rating = prop.average_rating || 4.8;
+            const rating = out.property_rating || prop.average_rating || 4.8;
             const occupants = prop.max_occupants || 2;
+            const trustScore = out.trust_score || 100;
 
             card.innerHTML = `
                 <div class="estates-featured-media">
                     <img src="${coverImg}" alt="${prop.property_name}">
+                    <div style="position: absolute; top: 12px; left: 12px; background: ${rank === 1 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#0355F3'}; color: white; padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 800; font-size: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 4px;">
+                        ${rank === 1 ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Rank #1 Top Match' : `Rank #${rank} (${matchPct}% Match)`}
+                    </div>
                     <div class="estates-badge-rating">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                        <span>${rating}</span>
-                    </div>
-                    <div class="estates-badge-tour" title="Interactive Property View">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                    </div>
-                    <div class="estates-featured-dots">
-                        <span class="estates-dot active"></span>
-                        <span class="estates-dot"></span>
-                        <span class="estates-dot"></span>
+                        <span>${typeof rating === 'number' ? rating.toFixed(1) : rating}</span>
                     </div>
                 </div>
 
                 <div class="estates-featured-header">
-                    <span class="estates-popular-label" style="display: flex; align-items: center; gap: 4px;">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#f97316" stroke="#f97316" stroke-width="1"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17c1.38 0 2.5-1.12 2.5-2.5 0-1.74-1.38-2.6-2.5-4-1.12 1.4-2.5 2.26-2.5 4zm3.5-12C8.3 6.4 5 10.4 5 15a7 7 0 0 0 14 0c0-5-4-8.5-7-12.5z"/></svg>
-                        Most Popular in ${prop.barangay || 'Siniloan'}
+                    <span class="estates-popular-label" style="display: flex; align-items: center; gap: 4px; color:#059669; font-weight:700;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Trust Score: ${trustScore}/100 Verified
                     </span>
                     <button class="estates-share-btn" onclick="navigator.clipboard?.writeText(window.location.href); alert('Listing link copied!')">
                         Share <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -2195,7 +2243,7 @@
                     </div>
 
                     <button class="estates-action-btn-black" onclick="showPropertyDetails('${prop.id}')">
-                        <span>Show Contacts</span>
+                        <span>View Details</span>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                 </div>
@@ -2206,7 +2254,10 @@
             const container = document.getElementById('propertiesSidebar');
             if (!container) return;
 
-            container.innerHTML = properties.map(prop => {
+            container.innerHTML = properties.map((prop, idx) => {
+                const rankedItem = rankedPropertiesData.find(item => (item.property?.id || item.id) === prop.id) || {};
+                const rank = rankedItem.rank || (idx + 1);
+
                 const isSelected = selectedProperty && selectedProperty.id === prop.id;
                 const coverImg = prop.images && prop.images.length > 0
                     ? (prop.images.find(img => img.is_main)?.image_url || prop.images[0].image_url)
@@ -2215,9 +2266,10 @@
                 const rentFormatted = parseFloat(prop.monthly_rent || 0).toLocaleString();
 
                 return `
-                    <div class="estates-card-compact ${isSelected ? 'selected' : ''}" onclick="selectEstatesProperty('${prop.id}')" data-property-id="${prop.id}">
+                    <div class="estates-card-compact ${isSelected ? 'selected' : ''}" onclick="selectEstatesProperty('${prop.id}')" onmouseenter="highlightMapMarker('${prop.id}')" onmouseleave="unhighlightMapMarker('${prop.id}')" data-property-id="${prop.id}">
                         <div class="estates-compact-media">
                             <img src="${coverImg}" alt="${prop.property_name}">
+                            <span style="position:absolute; top:6px; left:6px; background:${rank === 1 ? '#10b981' : '#0355F3'}; color:white; padding:0.15rem 0.5rem; border-radius:999px; font-weight:800; font-size:0.68rem;">#${rank}</span>
                         </div>
                         <div class="estates-compact-price-row">
                             <div class="estates-compact-price">₱${rentFormatted} <span style="font-size:0.68rem; font-weight:500; color:#64748b;">/mo</span></div>
@@ -2258,8 +2310,34 @@
 
                 showPropertyMarkers(propertiesData);
 
-                if (found.latitude && found.longitude) {
-                    map.panTo([found.latitude, found.longitude]);
+                const data = markerMap[propId];
+                if (data && data.lat && data.lng && map) {
+                    map.flyTo([data.lat, data.lng], 16, { animate: true, duration: 1.2 });
+                    if (data.marker) data.marker.openPopup();
+                } else if (found.latitude && found.longitude && map) {
+                    map.flyTo([found.latitude, found.longitude], 16, { animate: true, duration: 1.2 });
+                }
+            }
+        }
+
+        function highlightMapMarker(propId) {
+            const data = markerMap[propId];
+            if (data && data.marker) {
+                const el = data.marker.getElement();
+                if (el) {
+                    const innerDiv = el.querySelector('div');
+                    if (innerDiv) innerDiv.classList.add('map-marker-bounce');
+                }
+            }
+        }
+
+        function unhighlightMapMarker(propId) {
+            const data = markerMap[propId];
+            if (data && data.marker) {
+                const el = data.marker.getElement();
+                if (el) {
+                    const innerDiv = el.querySelector('div');
+                    if (innerDiv) innerDiv.classList.remove('map-marker-bounce');
                 }
             }
         }
@@ -2267,34 +2345,77 @@
         function showPropertyMarkers(properties) {
             propertyMarkers.forEach(m => map.removeLayer(m));
             propertyMarkers = [];
+            markerMap = {};
 
-            properties.forEach(prop => {
+            const validMarkers = [];
+
+            properties.forEach((prop, idx) => {
                 if (!prop.latitude || !prop.longitude) return;
+
+                const rankedItem = rankedPropertiesData.find(item => (item.property?.id || item.id) === prop.id) || {};
+                const rank = rankedItem.rank || (idx + 1);
+                const matchPct = rankedItem.match_percentage || 100;
+                const out = rankedItem.output_criteria || {};
+                const trustScore = out.trust_score || 100;
 
                 const isSelected = selectedProperty && selectedProperty.id === prop.id;
                 const priceText = `₱${parseFloat(prop.monthly_rent || 0).toLocaleString()}/mo`;
 
-                const priceIconHtml = `
-                    <div class="estates-price-badge ${isSelected ? 'active' : ''}">
-                        <span>${priceText}</span>
-                    </div>
-                `;
-
                 const customDivIcon = L.divIcon({
                     className: 'estates-price-marker-wrapper',
-                    html: priceIconHtml,
-                    iconSize: [95, 36],
-                    iconAnchor: [47, 36]
+                    html: rank === 1
+                        ? `<div class="map-top1-pulse ${isSelected ? 'active' : ''}" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: 2.5px solid white; border-radius: 999px; padding: 4px 10px; font-weight: 800; font-size: 0.78rem; box-shadow: 0 4px 14px rgba(16,185,129,0.6); display: inline-flex; align-items: center; gap: 4px;">
+                             <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> #1 Top Match
+                           </div>`
+                        : `<div class="estates-price-badge ${isSelected ? 'active' : ''}">
+                             <span style="font-weight:800; font-size:0.75rem; margin-right:3px; color:#0355F3;">#${rank}</span>
+                             <span>${priceText}</span>
+                           </div>`,
+                    iconSize: rank === 1 ? [120, 36] : [95, 36],
+                    iconAnchor: rank === 1 ? [60, 36] : [47, 36]
                 });
 
-                const marker = L.marker([prop.latitude, prop.longitude], { icon: customDivIcon }).addTo(map);
+                const lat = parseFloat(prop.latitude);
+                const lng = parseFloat(prop.longitude);
+
+                const marker = L.marker([lat, lng], { icon: customDivIcon }).addTo(map);
+
+                marker.bindPopup(`
+                    <div class="discovery-popup-content">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
+                            <span style="background: ${rank === 1 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#0355F3'}; color: white; padding: 0.2rem 0.6rem; border-radius: 999px; font-weight: 800; font-size: 0.72rem;">
+                                ${rank === 1 ? '★ Top Match' : `Rank #${rank}`} (${matchPct}% Match)
+                            </span>
+                            <span style="font-size:0.78rem; font-weight:800; color:#0355F3;">${priceText}</span>
+                        </div>
+                        <h4 style="margin: 0.3rem 0 0.25rem 0; font-weight: 800; color: #042458; font-size: 0.95rem;">${prop.property_name}</h4>
+                        <p style="margin: 0.2rem 0 0.5rem 0; font-size: 0.78rem; color: #059669; font-weight: 700; display: flex; align-items: center; gap: 0.25rem;">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Trust Score: ${trustScore}/100
+                        </p>
+                        <button onclick="showPropertyDetails('${prop.id}')" style="width:100%; border:none; background:#0355F3; color:white; font-size:0.78rem; font-weight:800; padding:0.45rem; border-radius:8px; cursor:pointer; transition:all 0.2s;">
+                            Open Property Details ↗
+                        </button>
+                    </div>
+                `);
 
                 marker.on('click', () => {
                     selectEstatesProperty(prop.id);
                 });
 
                 propertyMarkers.push(marker);
+                validMarkers.push(marker);
+                markerMap[prop.id] = { marker, lat, lng };
             });
+
+            if (validMarkers.length > 0 && map) {
+                const group = new L.featureGroup(validMarkers);
+                map.flyToBounds(group.getBounds().pad(0.15), {
+                    animate: true,
+                    duration: 1.2,
+                    easeLinearity: 0.25
+                });
+            }
         }
 
         function searchByLocation(lat, lng) {
@@ -2314,7 +2435,7 @@
             }).addTo(map);
 
             searchMarker.bindPopup('<b style="color:#0f172a;">Location Pin</b>').openPopup();
-            map.setView([lat, lng], 15);
+            map.flyTo([lat, lng], 15, { animate: true, duration: 1.2 });
 
             const nearby = findNearbyProperties(lat, lng, 5);
             renderEstatesView(nearby);

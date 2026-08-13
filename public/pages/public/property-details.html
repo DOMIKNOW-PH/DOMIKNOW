@@ -10,16 +10,21 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
-            --primary: #0F4953;
-            --accent: #F98E6E;
-            --bg-color: #F9FCFB;
-            --soft-pink: #FFCFD2;
-            --text-dark: #0F4953;
-            --text-normal: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --card-shadow: 0 10px 30px rgba(15, 73, 83, 0.05);
-            --header-shadow: 0 4px 20px rgba(15, 73, 83, 0.04);
+            /* DOMIKNOW LIGHT MODE COLOR PALETTE (From Specs) */
+            --bg-color: #F8FAFC;          /* Primary Background (50-55%) */
+            --surface: #FFFFFF;           /* Surface (25-30%) */
+            --primary-dark: #042458;      /* Primary Dark (10-15% - Headings, nav, text) */
+            --primary-action: #0355F3;    /* Primary Action (5-10% - Buttons, links, highlights) */
+
+            --primary: #042458;
+            --accent: #0355F3;
+            --soft-pink: #EDF4FE;
+            --text-dark: #042458;
+            --text-normal: #042458;
+            --text-muted: #475569;
+            --border-color: rgba(4, 36, 88, 0.12);
+            --card-shadow: 0 10px 30px rgba(4, 36, 88, 0.06);
+            --header-shadow: 0 4px 20px rgba(4, 36, 88, 0.04);
         }
 
         body {
@@ -110,7 +115,7 @@
 
         .btn-reserve:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(249, 142, 110, 0.3);
+            box-shadow: 0 6px 16px rgba(3, 85, 243, 0.3);
         }
 
         .details-container {
@@ -146,7 +151,7 @@
             border-radius: 24px;
             padding: 2rem;
             box-shadow: var(--card-shadow);
-            border: 1px solid rgba(15, 73, 83, 0.08);
+            border: 1px solid rgba(4, 36, 88, 0.08);
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
@@ -177,7 +182,7 @@
             border-radius: 24px;
             padding: 2rem;
             box-shadow: var(--card-shadow);
-            border: 1px solid rgba(15, 73, 83, 0.06);
+            border: 1px solid rgba(4, 36, 88, 0.08);
         }
 
         .detail-section-title {
@@ -385,6 +390,15 @@
                     <p id="houseRules" style="line-height: 1.7; font-size: 0.95rem; color: #334155;">-</p>
                 </div>
 
+                <!-- Available Rooms & Units Card -->
+                <div class="detail-card" id="unitsCard" style="display: none;">
+                    <h3 class="detail-section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        Available Rooms & Units
+                    </h3>
+                    <div id="unitsListGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;"></div>
+                </div>
+
                 <!-- Location Map Card -->
                 <div class="detail-card">
                     <h3 class="detail-section-title">
@@ -546,30 +560,87 @@
         }
 
         function displayProperty(property) {
-            document.getElementById('propertyName').textContent = property.property_name;
-            document.getElementById('monthlyRent').textContent = `₱${parseFloat(property.monthly_rent).toLocaleString()} / month`;
-            document.getElementById('address').textContent = `${property.address}, ${property.barangay}, ${property.municipality}, ${property.province}`;
-            document.getElementById('propertyType').textContent = property.property_type.replace('_', ' ');
-            document.getElementById('maxOccupants').textContent = `${property.max_occupants} Pax`;
-            document.getElementById('tenantType').textContent = property.tenant_type_suitability.charAt(0).toUpperCase() + property.tenant_type_suitability.slice(1);
-            document.getElementById('description').textContent = property.description || 'No description provided.';
-            document.getElementById('houseRules').textContent = property.house_rules || 'No specific rules.';
+            document.getElementById('propertyName').textContent = property.property_name || 'Verified Property';
             
-            const landlordName = property.landlord?.full_name || 'N/A';
+            // Rent formatting (range or single price)
+            let rentText = `₱${parseFloat(property.monthly_rent || 0).toLocaleString()} / month`;
+            if (property.unit_stats && property.unit_stats.min_monthly_rent > 0) {
+                if (property.unit_stats.min_monthly_rent < property.unit_stats.max_monthly_rent) {
+                    rentText = `₱${parseFloat(property.unit_stats.min_monthly_rent).toLocaleString()} - ₱${parseFloat(property.unit_stats.max_monthly_rent).toLocaleString()} / month`;
+                } else {
+                    rentText = `₱${parseFloat(property.unit_stats.min_monthly_rent).toLocaleString()} / month`;
+                }
+            }
+            document.getElementById('monthlyRent').textContent = rentText;
+
+            // Address formatting
+            const bgy = property.barangay ? `Brgy. ${property.barangay}` : 'Siniloan';
+            const mun = property.municipality || 'Siniloan';
+            const prov = property.province || 'Laguna';
+            document.getElementById('address').textContent = `${property.address || ''}, ${bgy}, ${mun}, ${prov}`.replace(/^, /, '');
+
+            // Property type & occupancy
+            const pType = (property.property_type || 'Apartment').replace(/_/g, ' ');
+            document.getElementById('propertyType').textContent = pType.charAt(0).toUpperCase() + pType.slice(1);
+            document.getElementById('maxOccupants').textContent = `${property.max_occupants || 1} Pax`;
+
+            const tType = property.tenant_type_suitability || 'general';
+            document.getElementById('tenantType').textContent = tType.charAt(0).toUpperCase() + tType.slice(1);
+
+            document.getElementById('description').textContent = property.description || 'No description provided.';
+            
+            // House Rules JSON Parsing
+            let houseRulesText = 'No specific rules.';
+            if (property.house_rules) {
+                try {
+                    const parsed = typeof property.house_rules === 'string' && property.house_rules.trim().startsWith('{')
+                        ? JSON.parse(property.house_rules)
+                        : property.house_rules;
+                    
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        let parts = [];
+                        if (parsed.house_rules) parts.push(parsed.house_rules);
+                        if (Array.isArray(parsed.custom_policies)) {
+                            parsed.custom_policies.forEach(p => {
+                                if (p.name && p.value) parts.push(`${p.name}: ${p.value}`);
+                            });
+                        }
+                        houseRulesText = parts.join('\n') || 'No specific rules.';
+                    } else {
+                        houseRulesText = String(parsed);
+                    }
+                } catch (e) {
+                    houseRulesText = String(property.house_rules);
+                }
+            }
+            document.getElementById('houseRules').textContent = houseRulesText;
+            
+            // Landlord details
+            const landlordName = property.landlord?.full_name || 'Verified Landlord';
             document.getElementById('landlordName').textContent = landlordName;
             
-            // Set initials
             if (landlordName !== 'N/A') {
                 const parts = landlordName.split(' ');
                 const initials = parts.map(p => p.charAt(0)).join('').substring(0, 2).toUpperCase();
                 document.getElementById('landlordInitials').textContent = initials;
             }
 
+            if (property.landlord?.landlord_trust_score) {
+                const trustBadge = document.createElement('div');
+                trustBadge.className = 'trust-score-badge';
+                trustBadge.style.cssText = 'font-size: 0.75rem; color: #059669; font-weight: 700; margin-top: 2px; display: flex; align-items: center; gap: 4px;';
+                trustBadge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Trust Score: ${property.landlord.landlord_trust_score}/100`;
+                const landlordBox = document.getElementById('landlordName').parentNode;
+                if (landlordBox && !landlordBox.querySelector('.trust-score-badge')) {
+                    landlordBox.appendChild(trustBadge);
+                }
+            }
+
             // Set main image if available
-            if (property.main_image_url) {
+            const coverUrl = property.main_image_url || (property.images && property.images.length > 0 ? property.images[0].image_url : null);
+            if (coverUrl) {
                 const heroImg = document.getElementById('propertyHeroImage');
-                heroImg.style.backgroundImage = `url('${property.main_image_url}')`;
-                // Clear the placeholder text
+                heroImg.style.backgroundImage = `url('${coverUrl}')`;
                 heroImg.innerHTML = '';
             }
 
@@ -586,16 +657,40 @@
                 amenitiesDiv.textContent = 'No amenities listed';
             }
 
-            // Initialize map
-            propertyMap = L.map('propertyMap').setView([property.latitude, property.longitude], 16);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(propertyMap);
+            // Available Units rendering
+            if (property.units && property.units.length > 0) {
+                const unitsCard = document.getElementById('unitsCard');
+                const unitsGrid = document.getElementById('unitsListGrid');
+                if (unitsCard && unitsGrid) {
+                    unitsCard.style.display = 'block';
+                    unitsGrid.innerHTML = property.units.map(u => `
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <h4 style="font-weight: 800; font-size: 0.95rem; color: #0f172a; margin: 0;">Unit ${u.unit_number || ''} ${u.room_name ? '(' + u.room_name + ')' : ''}</h4>
+                                <span style="font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 999px; background: ${u.status === 'available' ? '#dcfce7; color: #166534;' : '#fee2e2; color: #991b1b;'}">${(u.status || 'available').toUpperCase()}</span>
+                            </div>
+                            <div style="font-size: 0.8125rem; font-weight: 700; color: #0355F3; margin-bottom: 0.4rem;">₱${parseFloat(u.monthly_rent || 0).toLocaleString()} / month</div>
+                            <div style="font-size: 0.75rem; color: #64748b; line-height: 1.5;">
+                                <div>Floor: ${u.floor || 'N/A'} • Style: ${(u.rental_style || 'Per Bed').replace('_', ' ')}</div>
+                                <div>Gender: ${u.gender_restriction || 'Mixed'} • Cap: ${u.capacity || 1} Pax</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
 
-            L.marker([property.latitude, property.longitude])
-                .addTo(propertyMap)
-                .bindPopup(`<b>${property.property_name}</b><br>${property.address}`)
-                .openPopup();
+            // Initialize map
+            if (property.latitude && property.longitude) {
+                propertyMap = L.map('propertyMap').setView([property.latitude, property.longitude], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(propertyMap);
+
+                L.marker([property.latitude, property.longitude])
+                    .addTo(propertyMap)
+                    .bindPopup(`<b>${property.property_name}</b><br>${property.address}`)
+                    .openPopup();
+            }
         }
     </script>
 </body>
